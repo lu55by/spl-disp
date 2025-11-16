@@ -2,6 +2,9 @@
 import * as THREE from 'three/webgpu'
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {onBeforeUnmount, onMounted, ref} from "vue";
+import {loadObj} from "../three/loaders/ModelLoader.ts";
+import {loadTexture} from "../three/loaders/TextureLoader.ts";
+import type {PhongMesh} from "../three/constants";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -9,14 +12,17 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
 let camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGPURenderer, controls: OrbitControls,
     clock: THREE.Clock;
 
+const width = window.innerWidth;
+const height = window.innerHeight;
+
 // Init scene fn
 const init = () => {
 
-  const width = canvasEle.value!.clientWidth
-  const height = canvasEle.value!.clientHeight
+  // const width = canvasEle.value!.clientWidth
+  // const height = canvasEle.value!.clientHeight
 
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 600);
-  camera.position.set(6, 3, 10);
+  camera.position.set(2, 3, 4);
 
   scene = new THREE.Scene();
 
@@ -31,7 +37,6 @@ const init = () => {
 
   // Inspector/GUI
   // renderer.inspector = new Inspector()
-  //
   // const gui = renderer.inspector.createParameters("Parameters")
 
   // Lights
@@ -46,17 +51,76 @@ const init = () => {
   const defaultMat = new THREE.MeshStandardNodeMaterial({color: '#ff622e'})
 
   // Test Objects
-  const torusKnot = new THREE.Mesh(new THREE.TorusKnotGeometry(.6, .25, 128, 32), defaultMat)
-  torusKnot.position.set(3, 0, 0)
-  scene.add(torusKnot)
+  const tstObjectsFn = () => {
+    const torusKnot = new THREE.Mesh(new THREE.TorusKnotGeometry(.6, .25, 128, 32), defaultMat)
+    torusKnot.position.set(3, 0, 0)
+    scene.add(torusKnot)
 
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), defaultMat)
-  sphere.position.set(0, 0, 0)
-  scene.add(sphere)
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), defaultMat)
+    sphere.position.set(0, 0, 0)
+    scene.add(sphere)
 
-  const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1, 16, 16), defaultMat)
-  box.position.set(-3, 0, 0)
-  scene.add(box)
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1, 16, 16), defaultMat)
+    box.position.set(-3, 0, 0)
+    scene.add(box)
+  }
+  // tstObjectsFn();
+
+  /*
+    Load Models
+  */
+  // Test Fn
+  const loadHairTst = async () => {
+    const loadedHairModel = await loadObj('./models/hair/mold.obj');
+    // console.log('loadedHairModel -> ', loadedHairModel);
+    const hairTex = await loadTexture('./models/hair/map.png');
+    // console.log('hairTex -> ', hairTex);
+    // Map the texture
+    loadedHairModel.traverse((m) => {
+      if (m instanceof THREE.Mesh) m.material.map = hairTex;
+    })
+    scene.add(loadedHairModel);
+  }
+
+  const loadHeadTst = async () => {
+    const loadedHeadModel = await loadObj('./models/head/final.obj');
+    console.log('loadedHeadModel -> ', loadedHeadModel);
+    // Load Textures
+    const headColTex = await loadTexture('./models/head/headColor.png');
+    const teethColTex = await loadTexture('./models/head/TeethColor.png');
+    const eyeLColTex = await loadTexture('./models/head/eyeColorL.png');
+    const eyeRColTex = await loadTexture('./models/head/eyeColorR.png');
+    // Retrieve Nodes
+    const headNode = loadedHeadModel.getObjectByName("head_lod0_mesh") as PhongMesh
+    const teethNode = loadedHeadModel.getObjectByName("teeth_lod0_mesh") as PhongMesh
+    const eyeLNode = loadedHeadModel.getObjectByName("eyeLeft_lod0_mesh") as PhongMesh
+    const eyeRNode = loadedHeadModel.getObjectByName("eyeRight_lod0_mesh") as PhongMesh
+    // Map the texture
+    headNode.material.map = headColTex
+    teethNode.material.map = teethColTex
+    eyeLNode.material.map = eyeLColTex
+    eyeRNode.material.map = eyeRColTex
+    scene.add(loadedHeadModel)
+  }
+
+  const loadBodyTst = async () => {
+    const loadedBodyModel = await loadObj('./models/body/mold.obj');
+    // console.log('loadedBody -> ', loadedBodyModel);
+    const bodyTex = await loadTexture('./models/body/map.png');
+    // console.log('bodyTex -> ', bodyTex);
+    // Map the texture
+    loadedBodyModel.traverse((m) => {
+      if (m instanceof THREE.Mesh) m.material.map = bodyTex;
+    })
+    scene.add(loadedBodyModel);
+  }
+
+  loadHairTst();
+
+  loadHeadTst();
+
+  loadBodyTst();
+
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement)
@@ -64,14 +128,22 @@ const init = () => {
   controls.minDistance = .1
   controls.maxDistance = 50
 
+  //
+
   window.addEventListener('resize', onWindowResize)
 }
 
 // Resize fn
 const onWindowResize = () => {
-  if (!canvasEle.value) return
-  const width = canvasEle.value.clientWidth
-  const height = canvasEle.value.clientHeight
+  // console.log('Resizing...')
+
+  // if (!canvasEle.value) return
+  // const width = canvasEle.value.clientWidth
+  // const height = canvasEle.value.clientHeight
+
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
 
   // Update camera
   camera.aspect = width / height
