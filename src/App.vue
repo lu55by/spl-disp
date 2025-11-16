@@ -1,8 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ThreeScene from "./components/ThreeScene.vue";
+</script>
 
 <template>
-  <div>Tst</div>
+  <ThreeScene />
 </template>
 
-<style scoped>
-</style>
+
