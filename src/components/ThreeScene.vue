@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import * as THREE from 'three/webgpu'
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
-import {onBeforeUnmount, onMounted, ref, render} from "vue";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 
 // Canvas Element
-const canvasEle = ref<HTMLCanvasElement>();
+const canvasEle = ref<HTMLCanvasElement | null>(null);
 
 let camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGPURenderer, controls: OrbitControls,
     clock: THREE.Clock;
@@ -12,7 +12,10 @@ let camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGPUR
 // Init scene fn
 const init = () => {
 
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 600);
+  const width = canvasEle.value!.clientWidth
+  const height = canvasEle.value!.clientHeight
+
+  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 600);
   camera.position.set(6, 3, 10);
 
   scene = new THREE.Scene();
@@ -20,9 +23,9 @@ const init = () => {
   clock = new THREE.Clock()
 
   // Renderer
-  renderer = new THREE.WebGPURenderer({canvas: canvasEle.value, antialias: true})
+  renderer = new THREE.WebGPURenderer({canvas: canvasEle.value!, antialias: true})
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setSize(width, height)
   renderer.setAnimationLoop(animate)
   renderer.setClearColor('#000')
 
@@ -51,6 +54,10 @@ const init = () => {
   sphere.position.set(0, 0, 0)
   scene.add(sphere)
 
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1, 16, 16), defaultMat)
+  box.position.set(-3, 0, 0)
+  scene.add(box)
+
   // Controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
@@ -62,13 +69,17 @@ const init = () => {
 
 // Resize fn
 const onWindowResize = () => {
+  if (!canvasEle.value) return
+  const width = canvasEle.value.clientWidth
+  const height = canvasEle.value.clientHeight
+
   // Update camera
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = width / height
   camera.updateProjectionMatrix()
 
   // Update renderer
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setSize(width, height)
 }
 
 // Animate fn
@@ -92,6 +103,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // Dispose operations
   controls.dispose()
+  renderer.dispose()
 
   // Remove resize listener
   window.removeEventListener('resize', onWindowResize)
