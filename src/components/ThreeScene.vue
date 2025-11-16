@@ -4,13 +4,16 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {onBeforeUnmount, onMounted, ref} from "vue";
 import {loadObj} from "../three/loaders/ModelLoader.ts";
 import {loadTexture} from "../three/loaders/TextureLoader.ts";
-import type {PhongMesh} from "../three/constants";
+import {CameraPos, DirectionalLightIntensity, HeadScalar, type PhongMesh} from "../three/constants";
+import {AxesHelper} from "three";
+import GUI from "lil-gui";
+import {addTransformDebug} from "../three/gui";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
 let camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGPURenderer, controls: OrbitControls,
-    clock: THREE.Clock;
+    clock: THREE.Clock, gui: GUI;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -18,11 +21,15 @@ const height = window.innerHeight;
 // Init scene fn
 const init = () => {
 
+  gui = new GUI();
+
+
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
 
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 600);
-  camera.position.set(2, 3, 4);
+  camera.position.set(CameraPos.x, CameraPos.y, CameraPos.z);
+  addTransformDebug('Camera', gui, camera);
 
   scene = new THREE.Scene();
 
@@ -43,7 +50,7 @@ const init = () => {
   const ambientLight = new THREE.AmbientLight('#fff', 3)
   scene.add(ambientLight)
 
-  const directionalLight = new THREE.DirectionalLight('#fff', 8)
+  const directionalLight = new THREE.DirectionalLight('#fff', DirectionalLightIntensity)
   directionalLight.position.set(4, 3, 1)
   scene.add(directionalLight)
 
@@ -85,22 +92,30 @@ const init = () => {
   const loadHeadTst = async () => {
     const loadedHeadModel = await loadObj('./models/head/final.obj');
     console.log('loadedHeadModel -> ', loadedHeadModel);
+
     // Load Textures
     const headColTex = await loadTexture('./models/head/headColor.png');
     const teethColTex = await loadTexture('./models/head/TeethColor.png');
     const eyeLColTex = await loadTexture('./models/head/eyeColorL.png');
     const eyeRColTex = await loadTexture('./models/head/eyeColorR.png');
+
     // Retrieve Nodes
     const headNode = loadedHeadModel.getObjectByName("head_lod0_mesh") as PhongMesh
     const teethNode = loadedHeadModel.getObjectByName("teeth_lod0_mesh") as PhongMesh
     const eyeLNode = loadedHeadModel.getObjectByName("eyeLeft_lod0_mesh") as PhongMesh
     const eyeRNode = loadedHeadModel.getObjectByName("eyeRight_lod0_mesh") as PhongMesh
+
     // Map the texture
-    headNode.material.map = headColTex
-    teethNode.material.map = teethColTex
-    eyeLNode.material.map = eyeLColTex
-    eyeRNode.material.map = eyeRColTex
-    scene.add(loadedHeadModel)
+    headNode.material.map = headColTex;
+    teethNode.material.map = teethColTex;
+    eyeLNode.material.map = eyeLColTex;
+    eyeRNode.material.map = eyeRColTex;
+    loadedHeadModel.scale.setScalar(HeadScalar);
+    // loadedHeadModel.position.set(4, -150, 0);
+    scene.add(loadedHeadModel);
+
+    // Debug GUI
+    addTransformDebug('Head Transform', gui, loadedHeadModel, {showScale: true});
   }
 
   const loadBodyTst = async () => {
@@ -128,7 +143,8 @@ const init = () => {
   controls.minDistance = .1
   controls.maxDistance = 50
 
-  //
+  // Axes Helper
+  scene.add(new AxesHelper(20))
 
   window.addEventListener('resize', onWindowResize)
 }
