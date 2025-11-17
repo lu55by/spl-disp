@@ -8,7 +8,10 @@ export type PhongMesh = MeshOf<MeshPhongMaterial>
 export const DirectionalLightIntensity = 5
 
 // Head Scalar
-export const HeadScalar = .0107;
+// export const HeadScalar = .0107;
+
+// UV Coordinate to modify on both x and y
+export const UVCoordinateMod = .2;
 
 // Colors
 export const Colors = {

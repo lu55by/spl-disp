@@ -9,20 +9,13 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {onBeforeUnmount, onMounted, ref} from "vue";
 import {loadObj} from "../three/loaders/ModelLoader.ts";
 import {loadTexture} from "../three/loaders/TextureLoader.ts";
-import {
-  CameraProps,
-  CutHeadDebugProps,
-  DirectionalLightIntensity,
-  ModelPaths,
-  NodeNames,
-  type PhongMesh
-} from "../three/constants";
+import {CameraProps, DirectionalLightIntensity, ModelPaths, NodeNames, type PhongMesh} from "../three/constants";
 import {AxesHelper} from "three";
 import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
 import {csgSubtract} from "../three/csg";
 import {type Brush} from "three-bvh-csg";
-import {applyDebugTransformation} from "../three/meshOps";
+import {applyDebugTransformation, modifyNewVerticesUv} from "../three/meshOps";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -188,6 +181,7 @@ const init = () => {
     applyDebugTransformation(cutHead);
     applyDebugTransformation(eyeLMaleNode);
     applyDebugTransformation(eyeRMaleNode);
+    modifyNewVerticesUv(headFemaleNode, cutHead);
     scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
     addTransformDebug('CutHead', gui, cutHead, {showScale: true});
   }
