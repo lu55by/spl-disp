@@ -3,7 +3,9 @@ import ThreeScene from "./components/ThreeScene.vue";
 </script>
 
 <template>
-  <ThreeScene />
+  <div class="w-full h-full">
+    <ThreeScene />
+  </div>
 </template>
 
 

@@ -1,6 +1,7 @@
-import {Mesh, type NormalBufferAttributes} from "three";
+import {Color, Group, Mesh, type MeshPhongMaterial, type NormalBufferAttributes, Object3D} from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type {Brush} from "three-bvh-csg";
+import {Colors} from "../constants";
 
 export function combineMeshes(meshes: Mesh[]) {
     const geometries = meshes.map(mesh => {
@@ -32,4 +33,19 @@ export function applyGeometryScaling(mesh: Mesh | Brush, scale: number): void {
     mesh.geometry.scale(scale, scale, scale);
     mesh.geometry.computeBoundingBox();
     mesh.geometry.computeBoundingSphere();
+}
+
+export function applyMaterialWireframe(obj: Object3D, color?: Color) {
+    if (obj instanceof Group) obj.traverse(m => {
+        if (m instanceof Mesh) {
+            const mat = m.material as MeshPhongMaterial;
+            mat.color = color || Colors.White;
+            mat.wireframe = true;
+        }
+    })
+    if (obj instanceof Mesh) {
+        const mat = obj.material as MeshPhongMaterial;
+        mat.color = color || Colors.White;
+        mat.wireframe = true;
+    }
 }

@@ -1,3 +1,8 @@
+<template>
+  <canvas class="h-full w-full relative" ref="canvasEle"></canvas>
+</template>
+
+
 <script setup lang="ts">
 import * as THREE from 'three/webgpu'
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
@@ -5,16 +10,18 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 import {loadObj} from "../three/loaders/ModelLoader.ts";
 import {loadTexture} from "../three/loaders/TextureLoader.ts";
 import {
-  CameraPos,
+  CameraProps,
+  CutHeadDebugProps,
   DirectionalLightIntensity,
-  HeadNodeNames,
-  HeadScalar,
   ModelPaths,
+  NodeNames,
   type PhongMesh
 } from "../three/constants";
 import {AxesHelper} from "three";
 import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
+import {csgSubtract} from "../three/csg";
+import {type Brush} from "three-bvh-csg";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -34,8 +41,8 @@ const init = () => {
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
 
-  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 600);
-  camera.position.set(CameraPos.x, CameraPos.y, CameraPos.z);
+  camera = new THREE.PerspectiveCamera(CameraProps.Fov, width / height, CameraProps.Near, CameraProps.Far);
+  camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
   addTransformDebug('Camera', gui, camera);
 
   scene = new THREE.Scene();
@@ -85,7 +92,7 @@ const init = () => {
   */
   // Test Fn
   const loadHairTst = async () => {
-    const loadedHairModel = await loadObj(ModelPaths.Hair.Model);
+    const loadedHairModel: THREE.Object3D = await loadObj(ModelPaths.Hair.Model);
     // console.log('loadedHairModel -> ', loadedHairModel);
     const hairTex = await loadTexture(ModelPaths.Hair.Texture.ColorTex);
     // console.log('hairTex -> ', hairTex);
@@ -97,36 +104,74 @@ const init = () => {
   }
 
   const loadHeadTst = async () => {
-    const loadedHeadModel = await loadObj(ModelPaths.Head.Model);
-    console.log('loadedHeadModel -> ', loadedHeadModel);
+    const loadedFemaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadFemale.Model);
+    const loadedHeadMaleModel: THREE.Object3D = await loadObj(ModelPaths.HeadMale.Model);
+    // console.log('loadedFemaleHeadModel -> ', loadedFemaleHeadModel);
 
     // Load Textures
-    const headColTex = await loadTexture(ModelPaths.Head.Texture.HeadColTex);
-    const teethColTex = await loadTexture(ModelPaths.Head.Texture.TeethColTex);
-    const eyeLColTex = await loadTexture(ModelPaths.Head.Texture.EyeLColTex);
-    const eyeRColTex = await loadTexture(ModelPaths.Head.Texture.EyeRColTex);
+    const headFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.HeadColTex);
+    const teethFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.TeethColTex);
+    const eyeLFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.EyeLColTex);
+    const eyeRFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.EyeRColTex);
+    const headMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.HeadColorTex);
+    const eyeLMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeLColTex);
+    const eyeRMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeRColTex);
 
     // Retrieve Nodes
-    const headNode = loadedHeadModel.getObjectByName(HeadNodeNames.Head) as PhongMesh
-    const teethNode = loadedHeadModel.getObjectByName(HeadNodeNames.Teeth) as PhongMesh
-    const eyeLNode = loadedHeadModel.getObjectByName(HeadNodeNames.EyeL) as PhongMesh
-    const eyeRNode = loadedHeadModel.getObjectByName(HeadNodeNames.EyeR) as PhongMesh
+    const headFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
+    // console.log('headFemaleNode -> ', headFemaleNode);
+    const teethFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.Teeth) as PhongMesh
+    const eyeLFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeL) as PhongMesh
+    const eyeRFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeR) as PhongMesh
+
+    // Head Male
+    const headMaleNode = loadedHeadMaleModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
 
     // Map the texture
-    headNode.material.map = headColTex;
-    teethNode.material.map = teethColTex;
-    eyeLNode.material.map = eyeLColTex;
-    eyeRNode.material.map = eyeRColTex;
-    loadedHeadModel.scale.setScalar(HeadScalar);
-    // loadedHeadModel.position.set(4, -150, 0);
-    scene.add(loadedHeadModel);
+    headFemaleNode.material.map = headFemaleColTex;
+    teethFemaleNode.material.map = teethFemaleColTex;
+    eyeLFemaleNode.material.map = eyeLFemaleColTex;
+    eyeRFemaleNode.material.map = eyeRFemaleColTex;
+    headMaleNode.material.map = headMaleColTex;
+    // loadedFemaleHeadModel.scale.setScalar(HeadScalar);
+    // loadedFemaleHeadModel.position.set(4, -150, 0);
+    // scene.add(loadedFemaleHeadModel);
+    // addTransformDebug('Head', gui, loadedFemaleHeadModel, {showScale: true});
 
-    // Debug GUI
-    addTransformDebug('Head', gui, loadedHeadModel, {showScale: true});
+    // Load the Cutters
+    const cuttersModel: THREE.Object3D = await loadObj(ModelPaths.Cutters.Model);
+    // console.log('cuttersModel -> ', cuttersModel);
+    // addTransformDebug('Cutters', gui, cuttersModel, {showScale: true});
+    // cuttersModel.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
+    // cuttersModel.scale.setScalar(CutHeadDebugProps.Scalar);
+    // applyMaterialWireframe(cuttersModel, Colors.Cyan);
+    // scene.add(cuttersModel);
+
+    // Sphere Cutter
+    const sphereCutterNode = cuttersModel.getObjectByName(NodeNames.CuttersNames.Sphere) as PhongMesh;
+    // sphereCutterNode.position.y -= 1;
+    // sphereCutterNode.updateMatrixWorld(true);
+    // sphereCutterNode.geometry.applyMatrix4(sphereCutterNode.matrixWorld);
+    // Cylinder Cutter
+    const cylinderCutterNode = cuttersModel.getObjectByName(NodeNames.CuttersNames.Cylinder) as PhongMesh;
+
+
+    // Try to cut the head node first
+    let cutHead: Brush | PhongMesh;
+    // cutHead = headFemaleNode;
+    // cutHead = headMaleNode;
+    cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
+    cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
+    console.log('cutHead -> ', cutHead);
+    cutHead.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
+    cutHead.scale.setScalar(CutHeadDebugProps.Scalar);
+    // cutHead.material.wireframe = true;
+    scene.add(cutHead);
+    addTransformDebug('CutHead', gui, cutHead, {showScale: true});
   }
 
   const loadBodyTst = async () => {
-    const loadedBodyModel = await loadObj(ModelPaths.Body.Model);
+    const loadedBodyModel: THREE.Object3D = await loadObj(ModelPaths.Body.Model);
     // console.log('loadedBody -> ', loadedBodyModel);
     const bodyTex = await loadTexture(ModelPaths.Body.Texture.ColorTex);
     // console.log('bodyTex -> ', bodyTex);
@@ -137,32 +182,32 @@ const init = () => {
     scene.add(loadedBodyModel);
   }
 
-  loadHairTst();
+  // loadHairTst();
 
   loadHeadTst();
 
-  loadBodyTst();
+  // loadBodyTst();
 
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
-  controls.minDistance = .1
-  controls.maxDistance = 50
+  // controls.minDistance = .1
+  // controls.maxDistance = 50
 
   // Axes Helper
   scene.add(new AxesHelper(20))
 
-  window.addEventListener('resize', onWindowResize)
+  // window.addEventListener('resize', onWindowResize)
 }
 
 // Resize fn
 const onWindowResize = () => {
   // console.log('Resizing...')
 
-  // if (!canvasEle.value) return
-  // const width = canvasEle.value.clientWidth
-  // const height = canvasEle.value.clientHeight
+  // if (!canvasEle.value) return;
+  // const width = canvasEle.value.clientWidth;
+  // const height = canvasEle.value.clientHeight;
 
 
   const width = window.innerWidth;
@@ -173,8 +218,8 @@ const onWindowResize = () => {
   camera.updateProjectionMatrix()
 
   // Update renderer
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setSize(width, height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 }
 
 // Animate fn
@@ -193,6 +238,7 @@ const animate = async () => {
 onMounted(() => {
   init();
   animate();
+  window.addEventListener('resize', onWindowResize);
 })
 
 onBeforeUnmount(() => {
@@ -205,7 +251,3 @@ onBeforeUnmount(() => {
 })
 
 </script>
-
-<template>
-  <canvas class="h-full w-full" ref="canvasEle"/>
-</template>
