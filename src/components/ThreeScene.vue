@@ -10,7 +10,7 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 import {loadObj} from "../three/loaders/ModelLoader.ts";
 import {loadTexture} from "../three/loaders/TextureLoader.ts";
 import {CameraProps, DirectionalLightIntensity, ModelPaths, NodeNames, type PhongMesh} from "../three/constants";
-import {AxesHelper} from "three";
+import {AxesHelper, Vector3} from "three";
 import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
 import {csgSubtract} from "../three/csg";
@@ -175,14 +175,25 @@ const init = () => {
     // cutHead = headFemaleNode;
     // cutHead = headMaleNode;
     cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
+    modifyNewVerticesUv(headFemaleNode, cutHead, 0, .07035);
+
     cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
     console.log('cutHead -> ', cutHead);
+
+    // Cloned Cut Head to compare
+    const cutHeadGeoClone = cutHead.geometry.clone();
+    const cutHeadClone = new THREE.Mesh(cutHeadGeoClone, cutHead.material);
+    applyDebugTransformation(cutHeadClone, new Vector3(-.4, 0, 0));
+    addTransformDebug('CutHeadClone', gui, cutHeadClone, {showScale: true});
+    scene.add(cutHeadClone);
+
     // cutHead.material.wireframe = true;
     applyDebugTransformation(cutHead);
-    applyDebugTransformation(eyeLMaleNode);
-    applyDebugTransformation(eyeRMaleNode);
-    modifyNewVerticesUv(headFemaleNode, cutHead);
-    scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
+    // applyDebugTransformation(eyeLMaleNode);
+    // applyDebugTransformation(eyeRMaleNode);
+    modifyNewVerticesUv(headFemaleNode, cutHead, .12, 0);
+    scene.add(cutHead);
+    // scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
     addTransformDebug('CutHead', gui, cutHead, {showScale: true});
   }
 

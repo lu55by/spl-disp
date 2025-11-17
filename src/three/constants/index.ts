@@ -1,4 +1,4 @@
-import {BufferGeometry, Color, Material, Mesh, MeshBasicMaterial, MeshPhongMaterial} from "three";
+import {BufferGeometry, Color, Material, Mesh, MeshBasicMaterial, MeshPhongMaterial, Vector2} from "three";
 
 export type MeshOf<M extends Material> = Mesh<BufferGeometry, M>
 
@@ -11,7 +11,7 @@ export const DirectionalLightIntensity = 5
 // export const HeadScalar = .0107;
 
 // UV Coordinate to modify on both x and y
-export const UVCoordinateMod = .2;
+export const UVCoordinateMod = new Vector2(.5, .4);
 
 // Colors
 export const Colors = {
@@ -21,7 +21,7 @@ export const Colors = {
 
 // Camera
 export const CameraProps = {
-    Pos: {x: -.02999, y: 2.58, z: -.82},
+    Pos: {x: .31, y: -.21, z: .31},
     Fov: 75,
     Near: .01,
     Far: 500,

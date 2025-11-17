@@ -1,4 +1,4 @@
-import {Color, Group, Mesh, type MeshPhongMaterial, type NormalBufferAttributes, Object3D} from "three";
+import {Color, Group, Mesh, type MeshPhongMaterial, type NormalBufferAttributes, Object3D, Vector3} from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type {Brush} from "three-bvh-csg";
 import {Colors, CutHeadDebugProps, UVCoordinateMod} from "../constants";
@@ -50,35 +50,49 @@ export function applyMaterialWireframe(obj: Object3D, color?: Color) {
     }
 }
 
-export function applyDebugTransformation(obj: Object3D): void {
-    obj.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
+export function applyDebugTransformation(obj: Object3D, posOffset?: Vector3): void {
+    const {x, y, z} = posOffset ? posOffset : new Vector3();
+    obj.position.set(CutHeadDebugProps.Pos.x + x, CutHeadDebugProps.Pos.y + y, CutHeadDebugProps.Pos.z + z);
     obj.scale.setScalar(CutHeadDebugProps.Scalar);
 }
 
-export function modifyNewVerticesUv(originalNode: Mesh, cutObj: Brush): void {
+/**
+ * Modify the uv coordinates of the new vertices.
+ * @param originalNode Original Node before csg operation.
+ * @param cutObj Cut Object after csg operation.
+ * @param offsetPositivePercentage 0 ~ 1 value of the positive offset of the uv start idx based on the original node vertices count.
+ * @param offsetNegativePercentage 0 ~ 1 value of the negative offset of the uv start idx based on the original node vertices count.
+ */
+export function modifyNewVerticesUv(originalNode: Mesh, cutObj: Brush, offsetPositivePercentage: number, offsetNegativePercentage: number): void {
     const originalNodeAttr = getAttributes(originalNode);
     // console.log('originalNode Geometry attributes before cut ->', originalNodeAttr)
-    const cylCutHeadAttr = getAttributes(cutObj);
+    const finalCutObjAttr = getAttributes(cutObj);
     // console.log('cylinder cut cutHead geometry attributes -> ', cylCutHeadAttr)
 
+    // Get the vertices count
 
-    // Get the count of new vertices
-
-    // const newVerticesCount = cylCutHeadAttr.uv!.count - originalNodeAttr.uv!.count
+    const orgCount = originalNodeAttr.uv!.count;
+    const finalCount = finalCutObjAttr.uv!.count;
+    const newVerticesCount = finalCount - orgCount
     // console.log('newVerticesCount ->', newVerticesCount)
+
+    const orgCountOffsetPositive = Math.floor(newVerticesCount * offsetPositivePercentage);
+    const orgCountOffsetNegative = Math.floor(orgCount * offsetNegativePercentage) * -1;
+    console.log('orgCountOffsetPositive -> ', orgCountOffsetPositive);
+    console.log('orgCountOffsetNegative -> ', orgCountOffsetNegative);
+
+    const offsetCount = orgCount + orgCountOffsetPositive + orgCountOffsetNegative;
+    console.log('offsetCount -> ', offsetCount);
 
 
     // Update uv coordinates of the new vertices
 
-    // for (let i = 0; i < newVerticesCount; i++) {
-    // for (let i = originalNodeAttr.uv!.count; i < cylCutHeadAttr.uv!.count; i++) {
-    // for (let i = 0; i < cylCutHeadAttr.uv!.count; i++) {
-    for (let i = originalNodeAttr.uv!.count; i < cylCutHeadAttr.uv!.count; i++) {
+    for (let i = offsetCount; i < finalCount; i++) {
         // const u = cylCutHeadAttr.uv!.getX(i)
         // const v = cylCutHeadAttr.uv!.getY(i)
-        cylCutHeadAttr.uv!.setX(i, UVCoordinateMod);
-        cylCutHeadAttr.uv!.setY(i, UVCoordinateMod);
         // if (i < 3) console.log(`uv of idx (${i}) -> [${u}, ${v}]`)
+        finalCutObjAttr.uv!.setX(i, UVCoordinateMod.x);
+        finalCutObjAttr.uv!.setY(i, UVCoordinateMod.y);
     }
-    cylCutHeadAttr.uv!.needsUpdate = true
+    finalCutObjAttr.uv!.needsUpdate = true;
 }
