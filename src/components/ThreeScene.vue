@@ -22,6 +22,7 @@ import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
 import {csgSubtract} from "../three/csg";
 import {type Brush} from "three-bvh-csg";
+import {applyDebugTransformation} from "../three/meshOps";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -105,41 +106,68 @@ const init = () => {
 
   const loadHeadTst = async () => {
     const loadedFemaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadFemale.Model);
-    const loadedHeadMaleModel: THREE.Object3D = await loadObj(ModelPaths.HeadMale.Model);
-    // console.log('loadedFemaleHeadModel -> ', loadedFemaleHeadModel);
+    const loadedMaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadMale.Model);
+    const loadedCuttersModel: THREE.Object3D = await loadObj(ModelPaths.Cutters.Model);
+
 
     // Load Textures
+
+    // Female
     const headFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.HeadColTex);
     const teethFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.TeethColTex);
     const eyeLFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.EyeLColTex);
     const eyeRFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.EyeRColTex);
+
+    // Male
     const headMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.HeadColorTex);
     const eyeLMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeLColTex);
     const eyeRMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeRColTex);
 
+
     // Retrieve Nodes
+
+    // Female
     const headFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
-    // console.log('headFemaleNode -> ', headFemaleNode);
     const teethFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.Teeth) as PhongMesh
     const eyeLFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeL) as PhongMesh
     const eyeRFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeR) as PhongMesh
 
-    // Head Male
-    const headMaleNode = loadedHeadMaleModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
+    // Male
+    const headMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
+    const eyeLMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeL) as PhongMesh
+    const eyeRMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeR) as PhongMesh
+
+    // Cutters
+    // Sphere Cutter
+    const sphereCutterNode = loadedCuttersModel.getObjectByName(NodeNames.CuttersNames.Sphere) as PhongMesh;
+    // sphereCutterNode.position.y -= 1;
+    // sphereCutterNode.updateMatrixWorld(true);
+    // sphereCutterNode.geometry.applyMatrix4(sphereCutterNode.matrixWorld);
+
+    // Cylinder Cutter
+    const cylinderCutterNode = loadedCuttersModel.getObjectByName(NodeNames.CuttersNames.Cylinder) as PhongMesh;
+
 
     // Map the texture
+
+    // Female
     headFemaleNode.material.map = headFemaleColTex;
     teethFemaleNode.material.map = teethFemaleColTex;
     eyeLFemaleNode.material.map = eyeLFemaleColTex;
     eyeRFemaleNode.material.map = eyeRFemaleColTex;
+
+    // Male
     headMaleNode.material.map = headMaleColTex;
+    eyeLMaleNode.material.map = eyeLMaleColTex;
+    eyeRMaleNode.material.map = eyeRMaleColTex;
+
+
     // loadedFemaleHeadModel.scale.setScalar(HeadScalar);
     // loadedFemaleHeadModel.position.set(4, -150, 0);
     // scene.add(loadedFemaleHeadModel);
     // addTransformDebug('Head', gui, loadedFemaleHeadModel, {showScale: true});
 
-    // Load the Cutters
-    const cuttersModel: THREE.Object3D = await loadObj(ModelPaths.Cutters.Model);
+
     // console.log('cuttersModel -> ', cuttersModel);
     // addTransformDebug('Cutters', gui, cuttersModel, {showScale: true});
     // cuttersModel.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
@@ -147,26 +175,20 @@ const init = () => {
     // applyMaterialWireframe(cuttersModel, Colors.Cyan);
     // scene.add(cuttersModel);
 
-    // Sphere Cutter
-    const sphereCutterNode = cuttersModel.getObjectByName(NodeNames.CuttersNames.Sphere) as PhongMesh;
-    // sphereCutterNode.position.y -= 1;
-    // sphereCutterNode.updateMatrixWorld(true);
-    // sphereCutterNode.geometry.applyMatrix4(sphereCutterNode.matrixWorld);
-    // Cylinder Cutter
-    const cylinderCutterNode = cuttersModel.getObjectByName(NodeNames.CuttersNames.Cylinder) as PhongMesh;
-
 
     // Try to cut the head node first
+
     let cutHead: Brush | PhongMesh;
     // cutHead = headFemaleNode;
     // cutHead = headMaleNode;
     cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
     cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
     console.log('cutHead -> ', cutHead);
-    cutHead.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
-    cutHead.scale.setScalar(CutHeadDebugProps.Scalar);
     // cutHead.material.wireframe = true;
-    scene.add(cutHead);
+    applyDebugTransformation(cutHead);
+    applyDebugTransformation(eyeLMaleNode);
+    applyDebugTransformation(eyeRMaleNode);
+    scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
     addTransformDebug('CutHead', gui, cutHead, {showScale: true});
   }
 

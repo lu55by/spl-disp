@@ -1,7 +1,7 @@
 import {Color, Group, Mesh, type MeshPhongMaterial, type NormalBufferAttributes, Object3D} from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type {Brush} from "three-bvh-csg";
-import {Colors} from "../constants";
+import {Colors, CutHeadDebugProps} from "../constants";
 
 export function combineMeshes(meshes: Mesh[]) {
     const geometries = meshes.map(mesh => {
@@ -48,4 +48,9 @@ export function applyMaterialWireframe(obj: Object3D, color?: Color) {
         mat.color = color || Colors.White;
         mat.wireframe = true;
     }
+}
+
+export function applyDebugTransformation(obj: Object3D): void {
+    obj.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
+    obj.scale.setScalar(CutHeadDebugProps.Scalar);
 }
