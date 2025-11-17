@@ -11,7 +11,7 @@ export const DirectionalLightIntensity = 5
 // export const HeadScalar = .0107;
 
 // UV Coordinate to modify on both x and y
-export const UVCoordinateMod = new Vector2(.5, .4);
+export const UVCoordinateMod = new Vector2(0, 1);
 
 // Colors
 export const Colors = {

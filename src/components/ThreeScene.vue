@@ -55,12 +55,12 @@ const init = () => {
   // const gui = renderer.inspector.createParameters("Parameters")
 
   // Lights
-  const ambientLight = new THREE.AmbientLight('#fff', 3)
-  scene.add(ambientLight)
+  const ambientLight = new THREE.AmbientLight('#fff', 3);
+  scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight('#fff', DirectionalLightIntensity)
+  const directionalLight = new THREE.DirectionalLight('#fff', DirectionalLightIntensity);
   directionalLight.position.set(4, 3, 1)
-  scene.add(directionalLight)
+  scene.add(directionalLight);
 
   // default material
   const defaultMat = new THREE.MeshStandardNodeMaterial({color: '#ff622e'})
@@ -175,25 +175,25 @@ const init = () => {
     // cutHead = headFemaleNode;
     // cutHead = headMaleNode;
     cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
-    modifyNewVerticesUv(headFemaleNode, cutHead, 0, .07035);
+    modifyNewVerticesUv(headFemaleNode, cutHead, 0, .07033);
 
     cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
     console.log('cutHead -> ', cutHead);
 
     // Cloned Cut Head to compare
-    const cutHeadGeoClone = cutHead.geometry.clone();
-    const cutHeadClone = new THREE.Mesh(cutHeadGeoClone, cutHead.material);
-    applyDebugTransformation(cutHeadClone, new Vector3(-.4, 0, 0));
-    addTransformDebug('CutHeadClone', gui, cutHeadClone, {showScale: true});
-    scene.add(cutHeadClone);
+    // const cutHeadGeoClone = cutHead.geometry.clone();
+    // const cutHeadClone = new THREE.Mesh(cutHeadGeoClone, cutHead.material);
+    // applyDebugTransformation(cutHeadClone, new Vector3(-.4, 0, 0));
+    // addTransformDebug('CutHeadClone', gui, cutHeadClone, {showScale: true});
+    // scene.add(cutHeadClone);
 
     // cutHead.material.wireframe = true;
     applyDebugTransformation(cutHead);
-    // applyDebugTransformation(eyeLMaleNode);
-    // applyDebugTransformation(eyeRMaleNode);
+    applyDebugTransformation(eyeLMaleNode);
+    applyDebugTransformation(eyeRMaleNode);
     modifyNewVerticesUv(headFemaleNode, cutHead, .12, 0);
-    scene.add(cutHead);
-    // scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
+    // scene.add(cutHead);
+    scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
     addTransformDebug('CutHead', gui, cutHead, {showScale: true});
   }
 
