@@ -1,19 +1,17 @@
 import GUI from "lil-gui";
-import {Color, Mesh, type MeshPhongMaterial, Object3D} from "three";
+import {Object3D} from "three";
 
 /**
  * Add lil-gui controls to debug a obj's transform.
  * @param guiTitle Title of the gui.
  * @param gui - The lil-gui instance.
  * @param obj - The THREE.Mesh to debug.
- * @param wireframeColor - The Color of the wireframe.
  * @param options - Optional configuration.
  */
 export function addTransformDebug(
     guiTitle: string,
     gui: GUI,
     obj: Object3D,
-    wireframeColor: Color,
     options?: { showRotation?: boolean; showScale?: boolean }
 ) {
     const folder = gui.addFolder(obj.name || guiTitle)
@@ -52,21 +50,30 @@ export function addTransformDebug(
             });
     }
 
-    // TODO: Fix the color.
-    const wireframeState = {
-        showWireframe: false,
-    }
-    folder.add(wireframeState, 'showWireframe')
-        .name('Show Wireframe')
-        .onChange((v: boolean) => {
-            obj.traverse(m => {
-                if (m instanceof Mesh) {
-                    const mat = m.material as MeshPhongMaterial;
-                    mat.color = wireframeColor;
-                    mat.wireframe = v;
-                }
+    // TODO: Fix the issue.
+    /*
+    if (obj instanceof Group) {
+        const wireframeState = {
+            showWireframe: false,
+        }
+        folder.add(wireframeState, 'showWireframe')
+            .name('Show Wireframe')
+            .onChange((v: boolean) => {
+                console.log('v ->', v)
+                obj.traverse(m => {
+                    if (m instanceof Mesh) {
+                        // const mat = m.material;
+                        // if (v) {
+                        //     DefaultDebugWireframeMaterial.color = wireframeColor || DefaultWireframeColor;
+                        //     m.material = DefaultDebugWireframeMaterial;
+                        // } else m.material = mat;
+                        const mat = m.material as MeshPhongMaterial
+                        mat.wireframe = v
+                    }
+                })
             })
-        })
+    }
+    */
 
     folder.open()
 }

@@ -4,7 +4,14 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {onBeforeUnmount, onMounted, ref} from "vue";
 import {loadObj} from "../three/loaders/ModelLoader.ts";
 import {loadTexture} from "../three/loaders/TextureLoader.ts";
-import {CameraPos, DirectionalLightIntensity, HeadScalar, type PhongMesh} from "../three/constants";
+import {
+  CameraPos,
+  DirectionalLightIntensity,
+  HeadNodeNames,
+  HeadScalar,
+  ModelPaths,
+  type PhongMesh
+} from "../three/constants";
 import {AxesHelper} from "three";
 import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
@@ -78,9 +85,9 @@ const init = () => {
   */
   // Test Fn
   const loadHairTst = async () => {
-    const loadedHairModel = await loadObj('./models/hair/mold.obj');
+    const loadedHairModel = await loadObj(ModelPaths.Hair.Model);
     // console.log('loadedHairModel -> ', loadedHairModel);
-    const hairTex = await loadTexture('./models/hair/map.png');
+    const hairTex = await loadTexture(ModelPaths.Hair.Texture.ColorTex);
     // console.log('hairTex -> ', hairTex);
     // Map the texture
     loadedHairModel.traverse((m) => {
@@ -90,20 +97,20 @@ const init = () => {
   }
 
   const loadHeadTst = async () => {
-    const loadedHeadModel = await loadObj('./models/head/final.obj');
+    const loadedHeadModel = await loadObj(ModelPaths.Head.Model);
     console.log('loadedHeadModel -> ', loadedHeadModel);
 
     // Load Textures
-    const headColTex = await loadTexture('./models/head/headColor.png');
-    const teethColTex = await loadTexture('./models/head/TeethColor.png');
-    const eyeLColTex = await loadTexture('./models/head/eyeColorL.png');
-    const eyeRColTex = await loadTexture('./models/head/eyeColorR.png');
+    const headColTex = await loadTexture(ModelPaths.Head.Texture.HeadColTex);
+    const teethColTex = await loadTexture(ModelPaths.Head.Texture.TeethColTex);
+    const eyeLColTex = await loadTexture(ModelPaths.Head.Texture.EyeLColTex);
+    const eyeRColTex = await loadTexture(ModelPaths.Head.Texture.EyeRColTex);
 
     // Retrieve Nodes
-    const headNode = loadedHeadModel.getObjectByName("head_lod0_mesh") as PhongMesh
-    const teethNode = loadedHeadModel.getObjectByName("teeth_lod0_mesh") as PhongMesh
-    const eyeLNode = loadedHeadModel.getObjectByName("eyeLeft_lod0_mesh") as PhongMesh
-    const eyeRNode = loadedHeadModel.getObjectByName("eyeRight_lod0_mesh") as PhongMesh
+    const headNode = loadedHeadModel.getObjectByName(HeadNodeNames.Head) as PhongMesh
+    const teethNode = loadedHeadModel.getObjectByName(HeadNodeNames.Teeth) as PhongMesh
+    const eyeLNode = loadedHeadModel.getObjectByName(HeadNodeNames.EyeL) as PhongMesh
+    const eyeRNode = loadedHeadModel.getObjectByName(HeadNodeNames.EyeR) as PhongMesh
 
     // Map the texture
     headNode.material.map = headColTex;
@@ -115,13 +122,13 @@ const init = () => {
     scene.add(loadedHeadModel);
 
     // Debug GUI
-    addTransformDebug('Head Transform', gui, loadedHeadModel, {showScale: true});
+    addTransformDebug('Head', gui, loadedHeadModel, {showScale: true});
   }
 
   const loadBodyTst = async () => {
-    const loadedBodyModel = await loadObj('./models/body/mold.obj');
+    const loadedBodyModel = await loadObj(ModelPaths.Body.Model);
     // console.log('loadedBody -> ', loadedBodyModel);
-    const bodyTex = await loadTexture('./models/body/map.png');
+    const bodyTex = await loadTexture(ModelPaths.Body.Texture.ColorTex);
     // console.log('bodyTex -> ', bodyTex);
     // Map the texture
     loadedBodyModel.traverse((m) => {
