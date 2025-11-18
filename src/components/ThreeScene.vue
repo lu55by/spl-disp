@@ -10,7 +10,7 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 import {loadObj} from "../three/loaders/ModelLoader.ts";
 import {loadTexture} from "../three/loaders/TextureLoader.ts";
 import {CameraProps, DirectionalLightIntensity, ModelPaths, NodeNames, type PhongMesh} from "../three/constants";
-import {AxesHelper, Vector3} from "three";
+import {AxesHelper} from "three";
 import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
 import {csgSubtract} from "../three/csg";
@@ -174,10 +174,11 @@ const init = () => {
     let cutHead: Brush | PhongMesh;
     // cutHead = headFemaleNode;
     // cutHead = headMaleNode;
-    cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
+    cutHead = csgSubtract(headFemaleNode, sphereCutterNode, false);
     modifyNewVerticesUv(headFemaleNode, cutHead, 0, .07033);
 
     cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
+    modifyNewVerticesUv(headFemaleNode, cutHead, .12, 0);
     console.log('cutHead -> ', cutHead);
 
     // Cloned Cut Head to compare
@@ -191,7 +192,6 @@ const init = () => {
     applyDebugTransformation(cutHead);
     applyDebugTransformation(eyeLMaleNode);
     applyDebugTransformation(eyeRMaleNode);
-    modifyNewVerticesUv(headFemaleNode, cutHead, .12, 0);
     // scene.add(cutHead);
     scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
     addTransformDebug('CutHead', gui, cutHead, {showScale: true});

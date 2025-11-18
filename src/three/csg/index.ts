@@ -1,4 +1,4 @@
-import type {Material, Mesh} from "three";
+import {type Material, type Mesh} from "three";
 import {Brush, Evaluator, HOLLOW_SUBTRACTION, SUBTRACTION} from "three-bvh-csg";
 
 let csgEvaluator = new Evaluator();
@@ -13,6 +13,9 @@ export function csgSubtract(obj2Cut: Mesh | Brush, cutter: Mesh | Brush, isHollo
     brushObj2Cut.updateMatrixWorld();
 
     const brushCutter = new Brush(cutter.geometry, material || cutter.material);
+    // const brushCutterMat = brushCutter.material as MeshPhongMaterial;
+    // console.log('Brush Cutter mat ->', brushCutter.material);
+    // brushCutterMat.color.set(new Color('#eee'));
     brushCutter.updateMatrixWorld();
 
     // console.log(brushObj2Cut, brushCutter)
