@@ -15,7 +15,14 @@ import GUI from "lil-gui";
 import {addTransformDebug} from "../three/gui";
 import {csgSubtract} from "../three/csg";
 import {type Brush} from "three-bvh-csg";
-import {applyDebugTransformation, modifyNewVerticesUv} from "../three/meshOps";
+import {
+  applyDebugTransformation,
+  combineMeshesToGroup,
+  modifyNewVerticesUv,
+  scaleGroupToHeight
+} from "../three/meshOps";
+import {exportObjectToOBJ} from "../three/exporters";
+import {getCutHead} from "../three/utils/csgCutHead.ts";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -174,11 +181,11 @@ const init = () => {
     let cutHead: Brush | PhongMesh;
     // cutHead = headFemaleNode;
     // cutHead = headMaleNode;
-    cutHead = csgSubtract(headFemaleNode, sphereCutterNode, false);
+    cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
     modifyNewVerticesUv(headFemaleNode, cutHead, 0, .07033);
 
     cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
-    modifyNewVerticesUv(headFemaleNode, cutHead, .12, 0);
+    modifyNewVerticesUv(headFemaleNode, cutHead, .11, 0);
     console.log('cutHead -> ', cutHead);
 
     // Cloned Cut Head to compare
@@ -192,9 +199,180 @@ const init = () => {
     applyDebugTransformation(cutHead);
     applyDebugTransformation(eyeLMaleNode);
     applyDebugTransformation(eyeRMaleNode);
+
     // scene.add(cutHead);
     scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
     addTransformDebug('CutHead', gui, cutHead, {showScale: true});
+  }
+
+  const loadExportHeadTst = async () => {
+    const loadedFemaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadFemale.Model);
+    console.log('loadedFemaleHeadModel ->', loadedFemaleHeadModel);
+    const loadedMaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadMale.Model);
+    const loadedCuttersModel: THREE.Object3D = await loadObj(ModelPaths.Cutters.Model);
+
+
+    // Load Textures
+
+    // Female
+    const headFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.HeadColTex);
+    const teethFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.TeethColTex);
+    const eyeLFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.EyeLColTex);
+    const eyeRFemaleColTex = await loadTexture(ModelPaths.HeadFemale.Texture.EyeRColTex);
+
+    // Male
+    const headMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.HeadColorTex);
+    const eyeLMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeLColTex);
+    const eyeRMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeRColTex);
+
+
+    // Retrieve Nodes
+
+    // Female
+    const headFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
+    const teethFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.Teeth) as PhongMesh
+    const eyeLFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeL) as PhongMesh
+    const eyeRFemaleNode = loadedFemaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeR) as PhongMesh
+
+    // Male
+    const headMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
+    const eyeLMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeL) as PhongMesh
+    const eyeRMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeR) as PhongMesh
+
+    // Cutters
+    // Sphere Cutter
+    const sphereCutterNode = loadedCuttersModel.getObjectByName(NodeNames.CuttersNames.Sphere) as PhongMesh;
+    // sphereCutterNode.position.y -= 1;
+    // sphereCutterNode.updateMatrixWorld(true);
+    // sphereCutterNode.geometry.applyMatrix4(sphereCutterNode.matrixWorld);
+
+    // Cylinder Cutter
+    const cylinderCutterNode = loadedCuttersModel.getObjectByName(NodeNames.CuttersNames.Cylinder) as PhongMesh;
+
+
+    // Map the texture
+
+    // Female
+    headFemaleNode.material.map = headFemaleColTex;
+    teethFemaleNode.material.map = teethFemaleColTex;
+    eyeLFemaleNode.material.map = eyeLFemaleColTex;
+    eyeRFemaleNode.material.map = eyeRFemaleColTex;
+
+    // Male
+    headMaleNode.material.map = headMaleColTex;
+    eyeLMaleNode.material.map = eyeLMaleColTex;
+    eyeRMaleNode.material.map = eyeRMaleColTex;
+
+
+    // loadedFemaleHeadModel.scale.setScalar(HeadScalar);
+    // loadedFemaleHeadModel.position.set(4, -150, 0);
+    // scene.add(loadedFemaleHeadModel);
+    // addTransformDebug('Head', gui, loadedFemaleHeadModel, {showScale: true});
+
+
+    // console.log('cuttersModel -> ', cuttersModel);
+    // addTransformDebug('Cutters', gui, cuttersModel, {showScale: true});
+    // cuttersModel.position.set(CutHeadDebugProps.Pos.x, CutHeadDebugProps.Pos.y, CutHeadDebugProps.Pos.z);
+    // cuttersModel.scale.setScalar(CutHeadDebugProps.Scalar);
+    // applyMaterialWireframe(cuttersModel, Colors.Cyan);
+    // scene.add(cuttersModel);
+
+
+    // Try to cut the head node first
+
+    let cutHead: Brush | PhongMesh;
+    // cutHead = headFemaleNode;
+    // cutHead = headMaleNode;
+    cutHead = csgSubtract(headMaleNode, sphereCutterNode, false);
+    modifyNewVerticesUv(headFemaleNode, cutHead, 0, .07033);
+
+    cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
+    // TODO: Try to pass the cutHead as the first arg of modifyNewVerticesUv.
+    modifyNewVerticesUv(headFemaleNode, cutHead, .11, 0);
+    console.log('cutHead -> ', cutHead);
+
+    // Cloned Cut Head to compare
+    // const cutHeadGeoClone = cutHead.geometry.clone();
+    // const cutHeadClone = new THREE.Mesh(cutHeadGeoClone, cutHead.material);
+    // applyDebugTransformation(cutHeadClone, new Vector3(-.4, 0, 0));
+    // addTransformDebug('CutHeadClone', gui, cutHeadClone, {showScale: true});
+    // scene.add(cutHeadClone);
+
+    // cutHead.material.wireframe = true;
+    // applyDebugTransformation(cutHead);
+    // applyDebugTransformation(eyeLMaleNode);
+    // applyDebugTransformation(eyeRMaleNode);
+
+    // scene.add(cutHead);
+    // scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
+    addTransformDebug('CutHead', gui, cutHead, {showScale: true});
+
+    // Combine meshes to be exported
+    // const combinedCutHead2Export = combineMeshes([cutHead, eyeLMaleNode, eyeRMaleNode]);
+    // applyDebugTransformation(combinedCutHead2Export);
+    // camera.lookAt(combinedCutHead2Export.position);
+    // camera.updateMatrixWorld();
+
+    const combinedCutHeadEyesGrp: THREE.Group = combineMeshesToGroup('cutHeadEyesCombinedGrp', cutHead, eyeLMaleNode, eyeRMaleNode);
+    console.log('combinedCutHead2Export ->', combinedCutHeadEyesGrp);
+    scene.add(combinedCutHeadEyesGrp);
+    scaleGroupToHeight(combinedCutHeadEyesGrp);
+    // applyDebugTransformation(combinedCutHeadEyesGrp);
+
+    /*
+     Exporter
+   */
+    const exporter = document.querySelector('.exporter');
+    // console.log('exporter ele ->', exporter);
+    exporter!.addEventListener('click', (e) => {
+      e.preventDefault();
+      // if (cutHead.isBrush) {
+      if (combinedCutHeadEyesGrp.isGroup) {
+        // const exportedMesh = exportMeshToOBJ(cutHead);
+        // console.log('exportedMesh geometry -> ', getAttributes(exportedMesh));
+        // console.log('exportedMesh geometry position -> ', exportedMesh.geometry.attributes.position);
+        // console.log('exportedMesh material -> ', exportedMesh.material);
+        exportObjectToOBJ(combinedCutHeadEyesGrp);
+      }
+    })
+  }
+
+  const csgCutHeadFnTst = async () => {
+    const loadedMaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadMale.Model);
+
+    // Male
+    const headMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.HeadColorTex);
+    const eyeLMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeLColTex);
+    const eyeRMaleColTex = await loadTexture(ModelPaths.HeadMale.Texture.EyeRColTex);
+
+    // Male
+    const headMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.Head) as PhongMesh
+    const eyeLMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeL) as PhongMesh
+    const eyeRMaleNode = loadedMaleHeadModel.getObjectByName(NodeNames.HeadNames.EyeR) as PhongMesh
+
+    // Male
+    headMaleNode.material.map = headMaleColTex;
+    eyeLMaleNode.material.map = eyeLMaleColTex;
+    eyeRMaleNode.material.map = eyeRMaleColTex;
+
+    // getCutHead Fn Tst
+
+    const cutHead = await getCutHead(loadedMaleHeadModel, ModelPaths.Cutters.Model);
+
+    console.log('Cut Head -> ', cutHead);
+    applyDebugTransformation(cutHead);
+    scene.add(cutHead);
+  }
+
+  const csgCutHeadFnTst2 = async () => {
+    // 需要传入的头模 (这里是我本地加载的，你只需传入头模对象至 getCutHead 方法的第一个参数)
+    const loadedMaleHeadModel: THREE.Object3D = await loadObj(ModelPaths.HeadMale.Model);
+
+    // getCutHead Fn Tst
+    const cutHead = await getCutHead(loadedMaleHeadModel, ModelPaths.Cutters.Model);
+
+    console.log('Cut Head -> ', cutHead);
+    scene.add(cutHead);
   }
 
   const loadBodyTst = async () => {
@@ -211,9 +389,13 @@ const init = () => {
 
   // loadHairTst();
 
-  loadHeadTst();
+  // loadHeadTst();
+
+  // loadExportHeadTst();
 
   // loadBodyTst();
+
+  csgCutHeadFnTst();
 
 
   // Controls

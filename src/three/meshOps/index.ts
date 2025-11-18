@@ -1,4 +1,14 @@
-import {Color, Group, Mesh, type MeshPhongMaterial, type NormalBufferAttributes, Object3D, Vector3} from "three";
+import {
+    Box3,
+    BufferGeometry,
+    Color,
+    Group,
+    Mesh,
+    type MeshPhongMaterial,
+    type NormalBufferAttributes,
+    Object3D,
+    Vector3
+} from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type {Brush} from "three-bvh-csg";
 import {Colors, CutHeadDebugProps, UVCoordinateMod} from "../constants";
@@ -63,7 +73,7 @@ export function applyDebugTransformation(obj: Object3D, posOffset?: Vector3): vo
  * @param offsetPositivePercentage 0 ~ 1 value of the positive offset of the uv start idx based on the original node vertices count.
  * @param offsetNegativePercentage 0 ~ 1 value of the negative offset of the uv start idx based on the original node vertices count.
  */
-export function modifyNewVerticesUv(originalNode: Mesh, cutObj: Brush, offsetPositivePercentage: number, offsetNegativePercentage: number): void {
+export function modifyNewVerticesUv(originalNode: Brush | Mesh, cutObj: Brush | Mesh, offsetPositivePercentage: number, offsetNegativePercentage: number): void {
     const originalNodeAttr = getAttributes(originalNode);
     // console.log('originalNode Geometry attributes before cut ->', originalNodeAttr)
     const finalCutObjAttr = getAttributes(cutObj);
@@ -78,11 +88,11 @@ export function modifyNewVerticesUv(originalNode: Mesh, cutObj: Brush, offsetPos
 
     const orgCountOffsetPositive = Math.floor(newVerticesCount * offsetPositivePercentage);
     const orgCountOffsetNegative = Math.floor(orgCount * offsetNegativePercentage) * -1;
-    console.log('orgCountOffsetPositive -> ', orgCountOffsetPositive);
-    console.log('orgCountOffsetNegative -> ', orgCountOffsetNegative);
+    // console.log('orgCountOffsetPositive -> ', orgCountOffsetPositive);
+    // console.log('orgCountOffsetNegative -> ', orgCountOffsetNegative);
 
     const offsetCount = orgCount + orgCountOffsetPositive + orgCountOffsetNegative;
-    console.log('offsetCount -> ', offsetCount);
+    // console.log('offsetCount -> ', offsetCount);
 
 
     // Update uv coordinates of the new vertices
@@ -95,4 +105,89 @@ export function modifyNewVerticesUv(originalNode: Mesh, cutObj: Brush, offsetPos
         finalCutObjAttr.uv!.setY(i, UVCoordinateMod.y);
     }
     finalCutObjAttr.uv!.needsUpdate = true;
+}
+
+
+/**
+ * Combines multiple meshes into a THREE.Group.
+ *
+ * @param name Optional name for the group.
+ * @param meshes List of meshes to combine.
+ * @returns THREE.Group containing all meshes.
+ */
+export function combineMeshesToGroup(
+    name: string,
+    ...meshes: Mesh[]
+): Group {
+    const group = new Group();
+    group.name = name;
+
+    for (const mesh of meshes) {
+        // Avoid accidental re-parenting if mesh already has a parent
+        if (mesh.parent) mesh.parent.remove(mesh);
+        group.add(mesh);
+    }
+
+    return group;
+}
+
+/**
+ * Scales all meshes inside a group to a final real-world height of 37mm.
+ * The scaling is applied directly to geometry vertices (not mesh.scale).
+ *
+ * @param group Group containing meshes
+ * @param targetHeight number (millimeters)
+ */
+export function scaleGroupToHeight(
+    group: Group,
+    targetHeight: number = 37
+) {
+    // -------------------------------
+    // 1. Compute the current height
+    // -------------------------------
+    const groupBox = new Box3().setFromObject(group);
+    const currentHeight = groupBox.max.y - groupBox.min.y;
+    console.log('Grp height -> ', currentHeight);
+
+    if (currentHeight === 0) {
+        console.warn("Group has zero height; cannot scale.");
+        return;
+    }
+
+    // Compute scale factor
+    const scale = targetHeight / currentHeight;
+
+    // -------------------------------
+    // 2. Apply scaling to each mesh geometry
+    // -------------------------------
+    group.traverse((obj) => {
+        if (obj instanceof Mesh && obj.geometry instanceof BufferGeometry) {
+            const geom = obj.geometry;
+            const pos = geom.attributes.position;
+
+            for (let i = 0; i < pos.count; i++) {
+                pos.setXYZ(
+                    i,
+                    pos.getX(i) * scale,
+                    pos.getY(i) * scale,
+                    pos.getZ(i) * scale
+                );
+            }
+
+            pos.needsUpdate = true;
+
+            // Recompute bounds
+            geom.computeBoundingBox();
+            geom.computeBoundingSphere();
+        }
+    });
+
+    // -------------------------------
+    // 3. Reset transforms to identity (VERY IMPORTANT)
+    // -------------------------------
+    group.scale.set(1, 1, 1);
+    group.position.set(0, 0, 0);
+    group.rotation.set(0, 0, 0);
+
+    console.log(`Group scaled by factor: ${scale}`);
 }
