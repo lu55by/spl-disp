@@ -74,5 +74,5 @@ export const ModelPaths = {
         }
     },
     Body: {Model: `${BodyPathPrefix}/mold.obj`, Texture: {ColorTex: `${BodyPathPrefix}/map.png`}},
-    Cutters: {Model: `${CutterPathPrefix}/cutters-cyl-mod.obj`}
+    Cutters: {Model: `${CutterPathPrefix}/cutters.obj`}
 }

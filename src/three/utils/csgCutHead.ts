@@ -10,6 +10,13 @@ import {Brush, Evaluator, HOLLOW_SUBTRACTION, SUBTRACTION} from "three-bvh-csg";
  */
 export async function getCutHead(headModel: THREE.Object3D, cuttersPath: string): Promise<THREE.Object3D> {
     const loadedCuttersModel: THREE.Object3D = await loadObj(cuttersPath);
+    console.log('loadedCuttersModel ->', loadedCuttersModel);
+    const cuttersLen = loadedCuttersModel.children.length;
+
+    if (cuttersLen === 0) {
+        console.warn('No cutters found.');
+        return headModel;
+    }
 
     // 获取节点
 
@@ -19,23 +26,62 @@ export async function getCutHead(headModel: THREE.Object3D, cuttersPath: string)
     const eyeLNode = headModel.getObjectByName("eyeLeft_lod0_mesh") as THREE.Mesh;
     const eyeRNode = headModel.getObjectByName("eyeRight_lod0_mesh") as THREE.Mesh;
 
+    let cutHeadObj: Brush | THREE.Mesh;
+
+    if (cuttersLen === 1) {
+        const cutter = loadedCuttersModel.children[0] as THREE.Mesh;
+        cutHeadObj = csgSubtract(headNode, cutter, false);
+        cutHeadObj.name = 'CutHead';
+        return combineMeshesToGroup('cutHeadEyesCombinedGrp', cutHeadObj, eyeLNode, eyeRNode);
+    }
+
+    let cuttersNodes: THREE.Mesh[] = [];
+
+
     // 切割节点
 
-    // Sphere Cutter
-    const sphereCutterNode = loadedCuttersModel.getObjectByName('Sphere006') as THREE.Mesh;
-    // Cylinder Cutter
-    const cylinderCutterNode = loadedCuttersModel.getObjectByName('Cylinder004') as THREE.Mesh;
+    // 遍历所有节点名称
+    loadedCuttersModel.traverse(m => {
+        if (m instanceof THREE.Mesh) {
+            if (m.name.startsWith('cutting') || m.name === 'Sphere006' || m.name === 'Cylinder004') cuttersNodes.push(m);
+        }
+    })
 
-    let cutHeadObj: Brush | THREE.Mesh;
-    cutHeadObj = csgSubtract(headNode, sphereCutterNode, false);
+    if (cuttersNodes.length === 0) {
+        console.warn('No cutters found.');
+        return headModel;
+    }
+
+
+
+    // Sphere Cutter
+    // sphereCutterNode = loadedCuttersModel.getObjectByName('Sphere006') as THREE.Mesh;
+    // Cylinder Cutter
+    // cylinderCutterNode = loadedCuttersModel.getObjectByName('Cylinder004') as THREE.Mesh;
+
+
+
+    if (cuttersNodes.length === 1) {
+        cutHeadObj = csgSubtract(headNode, cuttersNodes[0]!, false);
+        cutHeadObj.name = 'CutHead';
+        return combineMeshesToGroup('cutHeadEyesCombinedGrp', cutHeadObj!, eyeLNode, eyeRNode);
+    }
+
+    cutHeadObj = csgSubtract(headNode, cuttersNodes[0]!, false);
+
+    for (const cutter of cuttersNodes) {
+        cutHeadObj = csgSubtract(cutHeadObj, cutter, false);
+    }
+
+    // cutHeadObj = csgSubtract(headNode, sphereCutterNode, false);
     // uv 先不进行修改
     // modifyNewVerticesUv(headNode, cutHeadObj, 0, .07033);
 
-    cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
-    cutHeadObj.name = 'CutHead';
+    // cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
+    cutHeadObj!.name = 'CutHead';
     // modifyNewVerticesUv(headNode, cutHeadObj, .11, 0);
 
-    return combineMeshesToGroup('cutHeadEyesCombinedGrp', cutHeadObj, eyeLNode, eyeRNode);
+    return combineMeshesToGroup('cutHeadEyesCombinedGrp', cutHeadObj!, eyeLNode, eyeRNode);
 }
 
 interface LoadObjOptions {
