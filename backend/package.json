@@ -11,11 +11,19 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.82",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "canvas": "^3.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "node-gyp": "^12.1.0",
+    "puppeteer": "^24.30.0",
     "three": "^0.181.1",
     "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/three": "^0.181.0"
   }
 }

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+<script>
+    // Setting up stuff
+
+    const color = 0xf00;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true }); // Set alpha to true for transparency
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // renderer.setClearColor(color, 0); // Set clear color to transparent
+    renderer.setClearColor(color);
+    renderer.setAnimationLoop(animate);
+    document.body.appendChild(renderer.domElement);
+
+    // Funny little green cube
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshBasicMaterial({ color: 0x0ff, transparent: true, opacity: 0.5 });
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    // Move the cam a little
+    camera.position.z = 5;
+
+    // Render
+    function animate() {
+
+        // Rotate the cube
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+</script>
+</body>
+
+</html>
