@@ -14,44 +14,204 @@
             display: block;
         }
     </style>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://unpkg.com/three@0.152.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.152.0/examples/jsm/"
+          }
+        }
+    </script>
+
+    <!--    <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js"></script>-->
+    <!--    <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/jsm/loaders/OBJLoader.js"></script>-->
 </head>
 
 <body>
-<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-<script>
-    // Setting up stuff
 
-    const color = 0xf00;
+<script type="module">
+    import * as THREE from 'three';
+    // import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
+    import {OBJLoader} from "three/addons/loaders/OBJLoader.js";
+    import {MTLLoader} from "three/addons/loaders/MTLLoader.js";
+    // import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+    import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+    import {AxesHelper} from "three";
+
+
+    window.isReady2Screenshot = false;
+
+    // const width = window.innerWidth;
+    // const height = window.innerHeight;
+    const width = 1545;
+    const height = 953;
+    // console.log(width, height);
+
+    const color = '#aa0';
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ alpha: true }); // Set alpha to true for transparency
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    // const renderer = new THREE.WebGLRenderer({ alpha: true }); // Set alpha to true for transparency
+    const renderer = new THREE.WebGLRenderer({});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
     // renderer.setClearColor(color, 0); // Set clear color to transparent
     renderer.setClearColor(color);
     renderer.setAnimationLoop(animate);
     document.body.appendChild(renderer.domElement);
 
+    // Lights
+    const ambientLight = new THREE.AmbientLight('#fff', 1);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight('#fff', 3);
+    directionalLight.position.set(4, 3, 1)
+    scene.add(directionalLight);
+
+    // Controls
+    const orbitControls = new OrbitControls(camera, renderer.domElement);
+    // orbitControls.enableDamping = true;
+    // Axes Helper
+    scene.add(new AxesHelper(10));
+
+
+    // LoadModels
+
+
+    const objLoader = new OBJLoader();
+    const texLoader = new THREE.TextureLoader();
+    // console.log('objLoader ->', objLoader);
+    // console.log('texLoader ->', texLoader);
+
+    const baseModelPath = 'http://192.168.10.17:8900/asset/model';
+
+    const xOffset = 0;
+    const yOffset = 100;
+    const zOffset = -70;
+
+    // Hair
+    const hairBasePath = `${baseModelPath}/hair`;
+    const hairModelPathSuffix = '/man/背头/mold.obj';
+    const hairModelTexPathSuffix = '/man/背头/map.png';
+
+    const hairModelPath = `${hairBasePath + hairModelPathSuffix}`;
+    const hairModelTexPath = `${hairBasePath + hairModelTexPathSuffix}`;
+
+    const hairModel = await objLoader.loadAsync(hairModelPath);
+    const hairNode = hairModel.children[0];
+    hairNode.material.map = await texLoader.loadAsync(hairModelTexPath);
+    console.log('hairModel ->', hairModel);
+    scene.add(hairModel);
+
+
+    // Body
+    const bodyBasePath = `${baseModelPath}/body`;
+    const bodyModelPathSuffix = '/man/西装暴徒/mold.obj';
+    const bodyModelTexPathSuffix = '/man/西装暴徒/map.png';
+
+    const bodyModelPath = `${bodyBasePath + bodyModelPathSuffix}`;
+    const bodyModelTexPath = `${bodyBasePath + bodyModelTexPathSuffix}`;
+
+    const bodyModel = await objLoader.loadAsync(bodyModelPath);
+    const bodyNode = bodyModel.children[0];
+    bodyNode.material.map = await texLoader.loadAsync(bodyModelTexPath);
+    console.log('bodyModel ->', bodyModel);
+    scene.add(bodyModel);
+
+    window.isReady2Screenshot = true;
+
     // Funny little green cube
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial({ color: 0x0ff, transparent: true, opacity: 0.5 });
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+    // const geometry = new THREE.BoxGeometry();
+    // const material = new THREE.MeshBasicMaterial({ color: 0x0ff, transparent: true, opacity: 0.5 });
+    // const cube = new THREE.Mesh(geometry, material);
+    // scene.add(cube);
 
     // Move the cam a little
-    camera.position.z = 5;
+    camera.position.set(0, 30, 150);
+    camera.updateProjectionMatrix();
+    // camera.lookAt(new THREE.Vector3(0, 50, 0));
 
+    // const camLookAtPos = new THREE.Vector3(0, 50, -10);
+    // const camLookAtPos = new THREE.Vector3(0, 50, -10);
+
+    // const clock = new THREE.Clock();
     // Render
     function animate() {
+        // const elapsedTime = clock.getElapsedTime();
+        // requestAnimationFrame(animate);
+
+        // Animate body
+        // if (womanBodyModel && womanBodyModel.isObject3D) {
+        //     womanBodyModel.position.z = Math.sin(elapsedTime) * 100;
+        // }
+
+        // orbitControls.enabled = false;
+        orbitControls.update();
+
+        // camera.lookAt(new THREE.Vector3(0, 50, -.1));
+        camera.lookAt(0, 50, -.1);
+
 
         // Rotate the cube
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
+        // cube.rotation.x += 0.01;
+        // cube.rotation.y += 0.01;
 
+        // await renderer.ini
         renderer.render(scene, camera);
     }
 
     animate();
+
+
+    // Model Loading fns
+
+
+    // --- 加载OBJ头发模型 ---
+    async function loadObj(path, options = {}) {
+        const {mtlPath, scale, position, rotation} = options;
+
+        // let materials: THREE.Material | THREE.Material[] | undefined;
+        let materials
+
+        // Load MTL (if provided)
+        if (mtlPath) {
+            const mtlLoader = new MTLLoader()
+            materials = await new Promise < MTLLoader.MaterialCreator > ((resolve, reject) => {
+                mtlLoader.load(
+                    mtlPath,
+                    (mtl) => {
+                        mtl.preload();
+                        resolve(mtl);
+                    },
+                    undefined,
+                    reject);
+            })
+        }
+
+        // Load OBJ
+        const objLoader = new OBJLoader()
+        if (materials) objLoader.setMaterials(materials)
+
+        const loadedObj = await new Promise < THREE.Object3D > ((resolve, reject) => {
+            objLoader.load(path, resolve, undefined, reject);
+        });
+
+        // Optional transforms
+        if (position) loadedObj.position.copy(position);
+
+        if (rotation) loadedObj.rotation.copy(rotation);
+
+        if (scale) {
+            if (typeof scale === 'number')
+                loadedObj.scale.setScalar(scale);
+            else loadedObj.scale.copy(scale);
+        }
+
+
+        return loadedObj;
+    }
+
+
 </script>
 </body>
 

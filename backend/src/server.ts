@@ -51,10 +51,24 @@ app.post('/api/puppeteer', async (req, res) => {
 
     await page.goto(`file://${filePath}`);
 
-    await page.setViewport({width: 512, height: 512});
+    // Wait for model loading
+    // await page.waitForFunction(() => window.isReady2Screenshot === true, {
+    //     timeout: 30000
+    // });
+    await page.waitForFunction('window.isReady2Screenshot === true', {
+        timeout: 30000
+    });
+
+
+    const width = 1545;
+    const height = 953;
+
+    const fullPage = true;
+
+    await page.setViewport({width, height});
     await page.evaluate(() => document.body.style.background = 'transparent');
     // await page.screenshot({path: `imgs/example-${Math.random().toString().substring(2, 6)}.png`, omitBackground: true});
-    await page.screenshot({path: `imgs/example-${Math.random().toString().substring(2, 6)}.png`});
+    await page.screenshot({path: `imgs/example-${Math.random().toString().substring(2, 6)}.png`, omitBackground: true, fullPage});
 
     await browser.close();
 
