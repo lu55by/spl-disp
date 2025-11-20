@@ -28,18 +28,37 @@
 </head>
 
 <body>
+<div style="width: 100%; height: 100svh; background: linear-gradient(90deg, rgb(27, 27, 37), rgb(54, 54, 72), rgb(27, 27, 37));">
+    <canvas style="width: 100%; height: 100%;" id="webgl"></canvas>
+</div>
 
 <script type="module">
     import * as THREE from 'three';
-    // import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
     import {OBJLoader} from "three/addons/loaders/OBJLoader.js";
     import {MTLLoader} from "three/addons/loaders/MTLLoader.js";
-    // import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
     import {OrbitControls} from "three/addons/controls/OrbitControls.js";
-    import {AxesHelper} from "three";
+    // import {AxesHelper} from "three";
 
+    const canvasEle = document.getElementById("webgl");
 
     window.isReady2Screenshot = false;
+
+    // Head model path
+    let headPathsPassed;
+    // console.log("headModelPathPassed in three ->", headModelPathPassed);
+    window.addEventListener('headPaths-passed', () => {
+        console.log('headPaths-passed from pptr ->', window.headPaths);
+        headPathsPassed = window.headPaths;
+    });
+
+    // let strWindowPassed;
+    // console.log("strWindowPassed in three ->", strWindowPassed);
+
+    // window.addEventListener('str-passed', () => {
+    //     console.log('str-passed from pptr ->', window.strPassed);
+    //     strWindowPassed = window.strPassed;
+    // });
+
 
     // const width = window.innerWidth;
     // const height = window.innerHeight;
@@ -47,32 +66,67 @@
     const height = 953;
     // console.log(width, height);
 
-    const color = '#aa0';
+    const rendererClearColor = '#009';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    // const renderer = new THREE.WebGLRenderer({ alpha: true }); // Set alpha to true for transparency
-    const renderer = new THREE.WebGLRenderer({});
+    // const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true }); // Set alpha to true for transparency
+    // const renderer = new THREE.WebGLRenderer({antialias: true});
+    const renderer = new THREE.WebGLRenderer({canvas: canvasEle, antialias: true,  }); // Set alpha to true for transparency
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
-    // renderer.setClearColor(color, 0); // Set clear color to transparent
-    renderer.setClearColor(color);
+    renderer.setClearColor(rendererClearColor, 0); // Set clear color to transparent
+    // renderer.setClearColor(rendererClearColor);
     renderer.setAnimationLoop(animate);
-    document.body.appendChild(renderer.domElement);
+    renderer.shadowMap.enabled = true;
+    // document.body.appendChild(renderer.domElement);
 
     // Lights
-    const ambientLight = new THREE.AmbientLight('#fff', 1);
-    scene.add(ambientLight);
+    const applyAppLights = () => {
+        // === 改进的光源设置，更适合人头模型 ===
+        // 主光（可旋转）
+        const rotatingLight = new THREE.DirectionalLight(0xffffff, 1.2)
+        rotatingLight.position.set(5, 10, 7)
+        rotatingLight.castShadow = true
+        scene.add(rotatingLight)
 
-    const directionalLight = new THREE.DirectionalLight('#fff', 3);
-    directionalLight.position.set(4, 3, 1)
-    scene.add(directionalLight);
+        // 补光 - 软化阴影
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
+        fillLight.position.set(-5, 3, 5)
+        scene.add(fillLight)
+
+        // 背光 - 增强轮廓
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.6)
+        rimLight.position.set(0, 3, -10)
+        scene.add(rimLight)
+
+        // 顶部环境光 - 确保头顶有足够的光线
+        const topLight = new THREE.DirectionalLight(0xffffff, 0.5)
+        topLight.position.set(0, 10, 0)
+        scene.add(topLight)
+
+        // 环境光 - 提供基础照明
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+        scene.add(ambientLight)
+
+        // 半球光 - 提供更自然的环境照明
+        const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.4)
+        scene.add(hemisphereLight)
+    };
+    applyAppLights();
+
+    // const ambientLight = new THREE.AmbientLight('#fff', 1);
+    // scene.add(ambientLight);
+    //
+    // const directionalLight = new THREE.DirectionalLight('#fff', 3);
+    // directionalLight.position.set(4, 3, 1)
+    // scene.add(directionalLight);
 
     // Controls
     const orbitControls = new OrbitControls(camera, renderer.domElement);
     // orbitControls.enableDamping = true;
     // Axes Helper
-    scene.add(new AxesHelper(10));
+    // scene.add(new AxesHelper(10));
 
 
     // LoadModels
@@ -85,9 +139,9 @@
 
     const baseModelPath = 'http://192.168.10.17:8900/asset/model';
 
-    const xOffset = 0;
-    const yOffset = 100;
-    const zOffset = -70;
+    // const xOffset = 0;
+    // const yOffset = 100;
+    // const zOffset = -70;
 
     // Hair
     const hairBasePath = `${baseModelPath}/hair`;
@@ -103,6 +157,26 @@
     console.log('hairModel ->', hairModel);
     scene.add(hairModel);
 
+    // Head
+    // headModelPath = 'http://192.168.10.17:8900/asset/model/head/2025-11-13-11-18-47-100271_58330/final.obj';
+    if (headPathsPassed) {
+        const {headModelPath, headColorTexPath, eyeColorLTexPath, eyeColorRTexPath} = headPathsPassed;
+        const headModel = await objLoader.loadAsync(headModelPath);
+        console.log('headModel ->', headModel);
+        const headNode = headModel.getObjectByName('head_lod0_mesh');
+        const eyeLNode = headModel.getObjectByName('eyeLeft_lod0_mesh');
+        const eyeRNode = headModel.getObjectByName('eyeRight_lod0_mesh');
+        headNode.material.map = await texLoader.loadAsync(headColorTexPath);
+        eyeLNode.material.map = await texLoader.loadAsync(eyeColorLTexPath);
+        eyeRNode.material.map = await texLoader.loadAsync(eyeColorRTexPath);
+        scene.add(headModel);
+    }
+
+    // Str passed tst
+    // strWindowPassed = "Passed tst str";
+    // if (strWindowPassed) {
+    //     scene.add(new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshNormalMaterial()));
+    // }
 
     // Body
     const bodyBasePath = `${baseModelPath}/body`;
@@ -149,7 +223,7 @@
         orbitControls.update();
 
         // camera.lookAt(new THREE.Vector3(0, 50, -.1));
-        camera.lookAt(0, 50, -.1);
+        camera.lookAt(0, 60, -.1);
 
 
         // Rotate the cube

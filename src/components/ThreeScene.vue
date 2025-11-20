@@ -405,7 +405,7 @@ const init = () => {
   // controls.maxDistance = 50
 
   // Axes Helper
-  scene.add(new AxesHelper(20))
+  scene.add(new AxesHelper(20));
 
   // window.addEventListener('resize', onWindowResize)
 }
