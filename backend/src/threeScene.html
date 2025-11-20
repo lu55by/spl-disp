@@ -79,38 +79,41 @@
     // renderer.setClearColor(rendererClearColor);
     renderer.setAnimationLoop(animate);
     renderer.shadowMap.enabled = true;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
     // document.body.appendChild(renderer.domElement);
 
     // Lights
     const applyAppLights = () => {
         // === 改进的光源设置，更适合人头模型 ===
         // 主光（可旋转）
-        const rotatingLight = new THREE.DirectionalLight(0xffffff, 1.2)
+        const rotatingLight = new THREE.DirectionalLight(0xffffff, .6)
         rotatingLight.position.set(5, 10, 7)
         rotatingLight.castShadow = true
         scene.add(rotatingLight)
 
         // 补光 - 软化阴影
-        const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.4)
         fillLight.position.set(-5, 3, 5)
         scene.add(fillLight)
 
         // 背光 - 增强轮廓
-        const rimLight = new THREE.DirectionalLight(0xffffff, 0.6)
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.3)
         rimLight.position.set(0, 3, -10)
         scene.add(rimLight)
 
         // 顶部环境光 - 确保头顶有足够的光线
-        const topLight = new THREE.DirectionalLight(0xffffff, 0.5)
+        const topLight = new THREE.DirectionalLight(0xffffff, 0.25)
         topLight.position.set(0, 10, 0)
         scene.add(topLight)
 
         // 环境光 - 提供基础照明
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
         scene.add(ambientLight)
 
         // 半球光 - 提供更自然的环境照明
-        const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.4)
+        const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.2)
         scene.add(hemisphereLight)
     };
     applyAppLights();
@@ -153,7 +156,9 @@
 
     const hairModel = await objLoader.loadAsync(hairModelPath);
     const hairNode = hairModel.children[0];
-    hairNode.material.map = await texLoader.loadAsync(hairModelTexPath);
+    const hairNodeTex = await texLoader.loadAsync(hairModelTexPath);
+    hairNodeTex.colorSpace = THREE.SRGBColorSpace;
+    hairNode.material.map = hairNodeTex;
     console.log('hairModel ->', hairModel);
     scene.add(hairModel);
 
@@ -166,9 +171,15 @@
         const headNode = headModel.getObjectByName('head_lod0_mesh');
         const eyeLNode = headModel.getObjectByName('eyeLeft_lod0_mesh');
         const eyeRNode = headModel.getObjectByName('eyeRight_lod0_mesh');
-        headNode.material.map = await texLoader.loadAsync(headColorTexPath);
-        eyeLNode.material.map = await texLoader.loadAsync(eyeColorLTexPath);
-        eyeRNode.material.map = await texLoader.loadAsync(eyeColorRTexPath);
+        const headNodeTex = await texLoader.loadAsync(headColorTexPath);
+        headNodeTex.colorSpace = THREE.SRGBColorSpace;
+        headNode.material.map = headNodeTex;
+        const eyeLNodeTex = await texLoader.loadAsync(eyeColorLTexPath);
+        eyeLNodeTex.colorSpace = THREE.SRGBColorSpace;
+        eyeLNode.material.map = eyeLNodeTex;
+        const eyeRNodeTex = await texLoader.loadAsync(eyeColorRTexPath);
+        eyeRNodeTex.colorSpace = THREE.SRGBColorSpace;
+        eyeRNode.material.map = eyeRNodeTex;
         scene.add(headModel);
     }
 
@@ -188,7 +199,9 @@
 
     const bodyModel = await objLoader.loadAsync(bodyModelPath);
     const bodyNode = bodyModel.children[0];
-    bodyNode.material.map = await texLoader.loadAsync(bodyModelTexPath);
+    const bodyNodeTex = await texLoader.loadAsync(bodyModelTexPath);
+    bodyNodeTex.colorSpace = THREE.SRGBColorSpace;
+    bodyNode.material.map = bodyNodeTex;
     console.log('bodyModel ->', bodyModel);
     scene.add(bodyModel);
 
@@ -201,7 +214,7 @@
     // scene.add(cube);
 
     // Move the cam a little
-    camera.position.set(0, 30, 150);
+    camera.position.set(0, 80, 150);
     camera.updateProjectionMatrix();
     // camera.lookAt(new THREE.Vector3(0, 50, 0));
 
@@ -223,7 +236,7 @@
         orbitControls.update();
 
         // camera.lookAt(new THREE.Vector3(0, 50, -.1));
-        camera.lookAt(0, 60, -.1);
+        camera.lookAt(0, 75, -.1);
 
 
         // Rotate the cube
