@@ -18,7 +18,8 @@
         {
           "imports": {
             "three": "https://unpkg.com/three@0.152.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.152.0/examples/jsm/"
+            "three/addons/": "https://unpkg.com/three@0.152.0/examples/jsm/",
+            "lil-gui": "https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm"
           }
         }
     </script>
@@ -37,31 +38,42 @@
     import {OBJLoader} from "three/addons/loaders/OBJLoader.js";
     import {MTLLoader} from "three/addons/loaders/MTLLoader.js";
     import {OrbitControls} from "three/addons/controls/OrbitControls.js";
-    // import {AxesHelper} from "three";
+    import {GUI} from 'lil-gui';
+
+
+    // let gui;
+    // console.log('gui ->', GUI);
+
 
     const canvasEle = document.getElementById("webgl");
+    console.log('canvasEle -> ', canvasEle);
 
-    window.isReady2Screenshot = false;
+    const wd = window;
+
+    wd.isReady2Screenshot = false;
 
     // Head model path
     let headPathsPassed;
     // console.log("headModelPathPassed in three ->", headModelPathPassed);
-    window.addEventListener('headPaths-passed', () => {
-        console.log('headPaths-passed from pptr ->', window.headPaths);
-        headPathsPassed = window.headPaths;
+    wd.addEventListener('headPaths-passed', () => {
+        console.log('headPaths-passed from pptr ->', wd.headPaths);
+        headPathsPassed = wd.headPaths;
+        // gui = null;
     });
+
+    // if (!headPathsPassed) gui = new GUI();
 
     // let strWindowPassed;
     // console.log("strWindowPassed in three ->", strWindowPassed);
 
-    // window.addEventListener('str-passed', () => {
-    //     console.log('str-passed from pptr ->', window.strPassed);
-    //     strWindowPassed = window.strPassed;
+    // wd.addEventListener('str-passed', () => {
+    //     console.log('str-passed from pptr ->', wd.strPassed);
+    //     strWindowPassed = wd.strPassed;
     // });
 
 
-    // const width = window.innerWidth;
-    // const height = window.innerHeight;
+    // const width = wd.innerWidth;
+    // const height = wd.innerHeight;
     const width = 1545;
     const height = 953;
     // console.log(width, height);
@@ -72,8 +84,8 @@
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     // const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true }); // Set alpha to true for transparency
     // const renderer = new THREE.WebGLRenderer({antialias: true});
-    const renderer = new THREE.WebGLRenderer({canvas: canvasEle, antialias: true,  }); // Set alpha to true for transparency
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const renderer = new THREE.WebGLRenderer({canvas: canvasEle, antialias: true,}); // Set alpha to true for transparency
+    renderer.setPixelRatio(Math.min(wd.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.setClearColor(rendererClearColor, 0); // Set clear color to transparent
     // renderer.setClearColor(rendererClearColor);
@@ -132,6 +144,8 @@
     // scene.add(new AxesHelper(10));
 
 
+    const modelGroup = new THREE.Group();
+
     // LoadModels
 
 
@@ -161,6 +175,7 @@
     hairNode.material.map = hairNodeTex;
     console.log('hairModel ->', hairModel);
     scene.add(hairModel);
+    modelGroup.add(hairModel);
 
     // Head
     // headModelPath = 'http://192.168.10.17:8900/asset/model/head/2025-11-13-11-18-47-100271_58330/final.obj';
@@ -181,6 +196,7 @@
         eyeRNodeTex.colorSpace = THREE.SRGBColorSpace;
         eyeRNode.material.map = eyeRNodeTex;
         scene.add(headModel);
+        modelGroup.add(headModel);
     }
 
     // Str passed tst
@@ -204,8 +220,19 @@
     bodyNode.material.map = bodyNodeTex;
     console.log('bodyModel ->', bodyModel);
     scene.add(bodyModel);
+    modelGroup.add(bodyModel);
+    scene.add(modelGroup);
 
-    window.isReady2Screenshot = true;
+    modelGroup.position.set(-.051, -46.57, 87.83);
+    modelGroup.rotation.set(.015, -.01, 0, "YXZ");
+    // if (gui) addTransformDebug('Model Group', gui, modelGroup, {
+    //     minPosVal: -100,
+    //     maxPosVal: 150,
+    //     step: .005,
+    //     showRotation: true
+    // });
+
+    wd.isReady2Screenshot = true;
 
     // Funny little green cube
     // const geometry = new THREE.BoxGeometry();
@@ -213,8 +240,9 @@
     // const cube = new THREE.Mesh(geometry, material);
     // scene.add(cube);
 
-    // Move the cam a little
-    camera.position.set(0, 80, 150);
+    // Move the cam
+    const camY = 90;
+    camera.position.set(0, camY, 150);
     camera.updateProjectionMatrix();
     // camera.lookAt(new THREE.Vector3(0, 50, 0));
 
@@ -236,12 +264,12 @@
         orbitControls.update();
 
         // camera.lookAt(new THREE.Vector3(0, 50, -.1));
-        camera.lookAt(0, 75, -.1);
+        camera.lookAt(0, 80, -.1);
 
 
         // Rotate the cube
-        // cube.rotation.x += 0.01;
-        // cube.rotation.y += 0.01;
+        // cube.rotation.x += step;
+        // cube.rotation.y += step;
 
         // await renderer.ini
         renderer.render(scene, camera);
@@ -298,6 +326,54 @@
         return loadedObj;
     }
 
+    function addTransformDebug(
+        guiTitle,
+        gui,
+        obj,
+        options = {}
+    ) {
+        const folder = gui.addFolder(obj.name || guiTitle);
+
+        const minPos = options?.minPosVal || -10;
+        const maxPos = options?.maxPosVal || 10;
+        const step = options?.step || .01;
+
+        // --- Position controls ---
+        const posFolder = folder.addFolder('Position');
+        posFolder.add(obj.position, 'x', minPos, maxPos, step).name('X').onChange(() => obj.updateMatrixWorld())
+        posFolder.add(obj.position, 'y', minPos, maxPos, step).name('Y').onChange(() => obj.updateMatrixWorld())
+        posFolder.add(obj.position, 'z', minPos, maxPos, step).name('Z').onChange(() => obj.updateMatrixWorld())
+
+        // --- Rotation controls ---
+        if (options?.showRotation) {
+            const rotFolder = folder.addFolder('Rotation')
+            rotFolder.add(obj.rotation, 'x', -Math.PI, Math.PI, step).name('Rot X')
+            rotFolder.add(obj.rotation, 'y', -Math.PI, Math.PI, step).name('Rot Y')
+            rotFolder.add(obj.rotation, 'z', -Math.PI, Math.PI, step).name('Rot Z')
+        }
+
+        // --- Scale controls ---
+        if (options?.showScale) {
+            const scaleFolder = folder.addFolder('Scale')
+            // scaleFolder.add(obj.scale, 'x', step, 10, step).name('Scale X')
+            // scaleFolder.add(obj.scale, 'y', step, 10, step).name('Scale Y')
+            // scaleFolder.add(obj.scale, 'z', step, 10, step).name('Scale Z')
+
+            // Store a local scalar value for GUI
+            const scaleState = {
+                scalar: obj.scale.x  // assumes uniform at start, safe for setScalar
+            };
+
+            scaleFolder
+                .add(scaleState, "scalar", 0.001, .1, 0.0001)
+                .name("uniformScale")
+                .onChange((v) => {
+                    obj.scale.setScalar(v);
+                });
+        }
+
+        folder.open();
+    }
 
 </script>
 </body>
