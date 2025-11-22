@@ -5,7 +5,6 @@ import path from "path";
 import http from 'http'
 // import https from "https";
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -90,7 +89,7 @@ app.post('/api/thumbnail', async (req, res) => {
     }
 });
 
-app.post('/api/thumbnail-tst', async (req, res) => {
+app.post('/api/thumb-soldier', async (req, res) => {
     try {
         const {ip, body: reqBody} = req;
         console.log('Request ip ->', ip);
@@ -113,7 +112,7 @@ app.post('/api/thumbnail-tst', async (req, res) => {
 
 
         // Go to page
-        const filePath = path.resolve('src/threeScene.html');
+        const filePath = path.resolve('src/soldierHead.html');
         await page.goto(`file://${filePath}`);
 
 
@@ -136,15 +135,31 @@ app.post('/api/thumbnail-tst', async (req, res) => {
 
         const width = 1545;
         const height = 953;
+        // const width = 1000;
+        // const height = 410;
 
-        const fullPage = true;
+        const fullPage = false;
 
         await page.setViewport({width, height});
         await page.evaluate(() => document.body.style.background = 'transparent');
 
+        // const left = width * .1;
+        // const right = width * .1;
+        // const top = height * .1;
+        // const bottom = height * .1;
+
         const imgBuffer = await page.screenshot({
-            omitBackground: false,
-            fullPage
+          omitBackground: false,
+          fullPage,
+          // TODO: Implement the clipping properly.
+          // clip: {
+          //     // x: 0,
+          //     // y: 0,
+          //     x: width * .3,
+          //     y: height * .2,
+          //     width: width * .7,
+          //     height: height * .8
+          // }
         });
 
         await browser.close();
