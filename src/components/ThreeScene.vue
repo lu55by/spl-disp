@@ -33,6 +33,7 @@ import {
 } from "../three/meshOps";
 import { exportObjectToOBJ } from "../three/exporters";
 import { getCutHead } from "../three/utils/csgCutHead.ts";
+import { HDRLoader, UltraHDRLoader } from "three/examples/jsm/Addons.js";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -76,6 +77,9 @@ const init = () => {
   renderer.setSize(width, height);
   renderer.setAnimationLoop(animate);
   renderer.setClearColor("#000");
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1;
 
   // Inspector/GUI
   // renderer.inspector = new Inspector()
@@ -119,6 +123,29 @@ const init = () => {
     scene.add(box);
   };
   // tstObjectsFn();
+
+  /**
+   * Load Hdr
+   */
+  const ultraHDRLoader = new UltraHDRLoader();
+  ultraHDRLoader.setDataType(THREE.FloatType);
+
+  const loadEnvironment = () =>  {
+    ultraHDRLoader.setDataType(THREE.HalfFloatType);
+
+    ultraHDRLoader.load(
+      `hdrs/spruit_sunrise_2k.hdr.jpg`,
+       (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.needsUpdate = true;
+
+        // scene.background = texture;
+        scene.environment = texture;
+      }
+    );
+  };
+
+  loadEnvironment();
 
   /*
     Load Models
@@ -611,14 +638,13 @@ const init = () => {
   };
 
   const csgCutHeadFnTst2 = async () => {
-    const isModelFeMale = false;
+    const isModelFeMale = true;
     const headModelPath = isModelFeMale
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
 
     const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath);
-    // console.log("loadedHeadModel -> ", loadedHeadModel);
-    
+    console.log("loadedHeadModel -> ", loadedHeadModel);
 
     // const headNode = loadedHeadModel.children[0] as PhongMesh;
     const headNode = loadedHeadModel.getObjectByName(
@@ -635,9 +661,18 @@ const init = () => {
       const headColTexPath = isModelFeMale
         ? ModelPaths.HeadFemale.Texture.HeadColTex
         : ModelPaths.HeadMale.Texture.HeadColorTex;
+      const eyeLColTexPath = isModelFeMale
+        ? ModelPaths.HeadFemale.Texture.EyeLColTex
+        : ModelPaths.HeadMale.Texture.EyeLColTex;
+      const eyeRColTexPath = isModelFeMale
+        ? ModelPaths.HeadFemale.Texture.EyeRColTex
+        : ModelPaths.HeadMale.Texture.EyeRColTex;
       const headColTex = await loadTexture(headColTexPath);
-      const eyeLColTex = await loadTexture(headColTexPath);
-      const eyeRColTex = await loadTexture(headColTexPath);
+      headColTex.colorSpace = THREE.SRGBColorSpace;
+      const eyeLColTex = await loadTexture(eyeLColTexPath);
+      eyeLColTex.colorSpace = THREE.SRGBColorSpace;
+      const eyeRColTex = await loadTexture(eyeRColTexPath);
+      eyeRColTex.colorSpace = THREE.SRGBColorSpace;
 
       headNode.material.map = headColTex;
       eyeLNode.material.map = eyeLColTex;
@@ -651,6 +686,15 @@ const init = () => {
       ModelPaths.Cutters.ClyinderStrcLinesRmvd
     );
     applyDebugTransformation(cutHeadtst0);
+
+    // Adjust the metalness and roughness
+    // cutHeadtst0.traverse(m => {
+    //   if (m instanceof THREE.Mesh) {
+    //     const mesh = m as PhongMesh;
+    //     mesh.material.texture
+    //   }
+    // })
+
     scene.add(cutHeadtst0);
     return;
 
