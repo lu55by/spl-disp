@@ -60,10 +60,17 @@ export function applyMaterialWireframe(obj: Object3D, color?: Color) {
     }
 }
 
-export function applyDebugTransformation(obj: Object3D, posOffset?: Vector3): void {
-    const {x, y, z} = posOffset ? posOffset : new Vector3();
-    obj.position.set(CutHeadDebugProps.Pos.x + x, CutHeadDebugProps.Pos.y + y, CutHeadDebugProps.Pos.z + z);
-    obj.scale.setScalar(CutHeadDebugProps.Scalar);
+export function applyDebugTransformation(
+  obj: Object3D,
+  posOffset: Vector3 = new Vector3()
+): void {
+  const { x, y, z } = posOffset;
+  obj?.position.set(
+    CutHeadDebugProps.Pos.x + x,
+    CutHeadDebugProps.Pos.y + y,
+    CutHeadDebugProps.Pos.z + z
+  );
+  obj?.scale.setScalar(CutHeadDebugProps.Scalar);
 }
 
 /**
