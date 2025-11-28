@@ -175,16 +175,12 @@ export async function getCutHeadV2(
     );
   }
 
+  // 切割节点 (根据索引获取 -> 改为根据名称获取)
+
   // 口腔切割节点
   const cutter4OralCavityNode = loadedCuttersModel.getObjectByName(
     "cutting01"
   ) as THREE.Mesh;
-
-  // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
-  cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true);
-  // return new THREE.Group().add(cutHeadObj);
-
-  // 切割节点 (先根据索引获取)
 
   // Sphere Cutter
   // sphereCutterNode = loadedCuttersModel.getObjectByName('Sphere006') as THREE.Mesh;
@@ -200,6 +196,10 @@ export async function getCutHeadV2(
   ) as THREE.Mesh;
 
   // 执行切割操作
+
+  // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
+  cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true);
+  // return new THREE.Group().add(cutHeadObj);
 
   /* 
     男头还是女头？
