@@ -130,19 +130,16 @@ const init = () => {
   const ultraHDRLoader = new UltraHDRLoader();
   ultraHDRLoader.setDataType(THREE.FloatType);
 
-  const loadEnvironment = () =>  {
+  const loadEnvironment = () => {
     ultraHDRLoader.setDataType(THREE.HalfFloatType);
 
-    ultraHDRLoader.load(
-      `hdrs/spruit_sunrise_2k.hdr.jpg`,
-       (texture) => {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        texture.needsUpdate = true;
+    ultraHDRLoader.load(`hdrs/spruit_sunrise_2k.hdr.jpg`, (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.needsUpdate = true;
 
-        // scene.background = texture;
-        scene.environment = texture;
-      }
-    );
+      scene.background = texture;
+      scene.environment = texture;
+    });
   };
 
   loadEnvironment();
@@ -688,12 +685,14 @@ const init = () => {
     applyDebugTransformation(cutHeadtst0);
 
     // Adjust the metalness and roughness
-    // cutHeadtst0.traverse(m => {
-    //   if (m instanceof THREE.Mesh) {
-    //     const mesh = m as PhongMesh;
-    //     mesh.material.texture
-    //   }
-    // })
+    cutHeadtst0.traverse((m) => {
+      if (m instanceof THREE.Mesh) {
+        const mesh = m as any;
+        const map = mesh.material.map;
+        mesh.material = new THREE.MeshStandardMaterial({roughness: .8, metalness: .2});
+        mesh.material.map = map;
+      }
+    });
 
     scene.add(cutHeadtst0);
     return;
