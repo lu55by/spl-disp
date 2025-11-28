@@ -28,6 +28,7 @@ import {
   applyGeometryScaling,
   applyMaterialWireframe,
   combineMeshesToGroup,
+  exportCutHead,
   modifyNewVerticesUv,
   scaleGroupToHeight,
 } from "../three/meshOps";
@@ -137,7 +138,7 @@ const init = () => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       texture.needsUpdate = true;
 
-      scene.background = texture;
+      // scene.background = texture;
       scene.environment = texture;
     });
   };
@@ -665,11 +666,8 @@ const init = () => {
         ? ModelPaths.HeadFemale.Texture.EyeRColTex
         : ModelPaths.HeadMale.Texture.EyeRColTex;
       const headColTex = await loadTexture(headColTexPath);
-      headColTex.colorSpace = THREE.SRGBColorSpace;
       const eyeLColTex = await loadTexture(eyeLColTexPath);
-      eyeLColTex.colorSpace = THREE.SRGBColorSpace;
       const eyeRColTex = await loadTexture(eyeRColTexPath);
-      eyeRColTex.colorSpace = THREE.SRGBColorSpace;
 
       headNode.material.map = headColTex;
       eyeLNode.material.map = eyeLColTex;
@@ -685,16 +683,55 @@ const init = () => {
     applyDebugTransformation(cutHeadtst0);
 
     // Adjust the metalness and roughness
-    cutHeadtst0.traverse((m) => {
+    cutHeadtst0.traverse((m: THREE.Object3D) => {
       if (m instanceof THREE.Mesh) {
         const mesh = m as any;
         const map = mesh.material.map;
-        mesh.material = new THREE.MeshStandardMaterial({roughness: .8, metalness: .2});
+        mesh.material = new THREE.MeshStandardMaterial({
+          roughness: 0.8,
+          metalness: 0.2,
+        });
         mesh.material.map = map;
+        mesh.material.map.colorSpace = THREE.SRGBColorSpace;
       }
     });
 
     scene.add(cutHeadtst0);
+
+    /*
+     Exporter
+   */
+    const exporterBtn = document.querySelector(".exporter");
+    exportCutHead(exporterBtn!, cutHeadtst0);
+
+    // console.log('exporter ele ->', exporter);
+    // exporter!.addEventListener("click", (e) => {
+    //   e.preventDefault();
+    //   // if (cutHead.isBrush) {
+    //   if (cutHeadtst0 instanceof THREE.Group) {
+    //     // const exportedMesh = exportMeshToOBJ(cutHead);
+    //     // console.log('exportedMesh geometry -> ', getAttributes(exportedMesh));
+    //     // console.log('exportedMesh geometry position -> ', exportedMesh.geometry.attributes.position);
+    //     // console.log('exportedMesh material -> ', exportedMesh.material);
+    //     const scaledCutHeadGrp = scaleGroupToHeight(cutHeadtst0);
+    //     exportObjectToOBJ(scaledCutHeadGrp);
+    //   }
+    // });
+
+    // const exportCutHead = (
+    //   exporterEle: Element,
+    //   cutHead2Export: THREE.Object3D
+    // ): void => {
+    //   exporterEle.addEventListener("click", (e) => {
+    //     e.preventDefault();
+    //     // if (cutHead.isBrush) {
+    //     if (cutHead2Export instanceof THREE.Group) {
+    //       const scaledCutHeadGrp = scaleGroupToHeight(cutHead2Export);
+    //       exportObjectToOBJ(scaledCutHeadGrp);
+    //     }
+    //   });
+    // };
+
     return;
 
     // The cutter oral cavity
