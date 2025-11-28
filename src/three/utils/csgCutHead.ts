@@ -130,6 +130,129 @@ export async function getCutHead(
   );
 }
 
+export async function getCutHeadV2(
+  headModel: THREE.Object3D,
+  cuttersPath: string
+): Promise<THREE.Object3D> {
+  // 加载切割模型
+  const loadedCuttersModel: THREE.Object3D = await loadObj(cuttersPath);
+  console.log("loadedCuttersModel ->", loadedCuttersModel);
+  // return headModel;
+  const cuttersLen = loadedCuttersModel.children.length;
+
+  // 没有切割节点，返回头模
+  if (cuttersLen === 0) {
+    console.warn("No cutters found.");
+    return headModel;
+  }
+
+  // 加载口腔切割模型
+
+  // 获取节点
+
+  // 头部节点
+  const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
+  // 左眼节点
+  const eyeLNode = headModel.getObjectByName("eyeLeft_lod0_mesh") as THREE.Mesh;
+  // 右眼节点
+  const eyeRNode = headModel.getObjectByName(
+    "eyeRight_lod0_mesh"
+  ) as THREE.Mesh;
+
+  let cutHeadObj: Brush | THREE.Mesh;
+
+  // 一个切割节点，直接切
+  if (cuttersLen === 1) {
+    const cutter = loadedCuttersModel.children[0] as THREE.Mesh;
+    cutHeadObj = csgSubtract(headNode, cutter, false);
+    // cutHeadObj = csgSubtract(cutHeadObj, cutter, false);
+    cutHeadObj.name = "CutHead";
+    return combineMeshesToGroup(
+      "CutHeadEyesNodeCombinedGrp",
+      cutHeadObj,
+      eyeLNode,
+      eyeRNode
+    );
+  }
+
+  // 口腔切割节点
+  const cutter4OralCavityNode = loadedCuttersModel.getObjectByName(
+    "cutting01"
+  ) as THREE.Mesh;
+
+  // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
+  cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true);
+  // return new THREE.Group().add(cutHeadObj);
+
+  // 切割节点 (先根据索引获取)
+
+  // Sphere Cutter
+  // sphereCutterNode = loadedCuttersModel.getObjectByName('Sphere006') as THREE.Mesh;
+  // const sphereCutterNode = loadedCuttersModel.children[0] as THREE.Mesh;
+  const sphereCutterNode = loadedCuttersModel.getObjectByName(
+    "cutting02"
+  ) as THREE.Mesh;
+  // Cylinder Cutter
+  // cylinderCutterNode = loadedCuttersModel.getObjectByName('Cylinder004') as THREE.Mesh;
+  // const cylinderCutterNode = loadedCuttersModel.children[1] as THREE.Mesh;
+  const cylinderCutterNode = loadedCuttersModel.getObjectByName(
+    "cutting03"
+  ) as THREE.Mesh;
+
+  // 执行切割操作
+
+  /* 
+    男头还是女头？
+      需要区分，因为目前男女头新增顶点在 UV 数组中索引不同，有可能只有 0.002 (开始索引位置偏移百分比) 的差别.
+      目前仅能基于调试无误后的 [固定值] 进行新增顶点的获取.
+      eg.
+        const postCylinderCutOffest = isFemale ? { pos: 0, neg: 0.046 } : { pos: 0, neg: 0.044 };
+        (pos -> 基于切割之前的顶点数量作为开始索引向切割后的几何体 UV 数组 [后] 寻找新增顶点)
+        (neg -> 基于切割之前的顶点数量作为开始索引向切割后的几何体 UV 数组 [前] 寻找新增顶点)
+  */
+  const isFemale = true;
+
+  // 基础材质，只为创建新网格使用
+  const basicMat = new THREE.MeshBasicMaterial();
+
+  // 切割之前克隆几何体
+  const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
+  cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
+  // UV 修改 (基于前一个切割几何体顶点数量)
+  const postSphereCutOffest = { pos: 0, neg: 0.08 };
+  modifyNewVerticesUv(
+    new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
+    cutHeadObj,
+    postSphereCutOffest.pos,
+    postSphereCutOffest.neg
+  );
+
+  // 切割之前克隆几何体
+  const cylCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
+  cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
+  // UV 修改 (基于前一个切割几何体顶点数量)
+  const postCylinderCutOffest = isFemale
+    ? { pos: 0, neg: 0.046 }
+    : { pos: 0, neg: 0.044 };
+  modifyNewVerticesUv(
+    new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
+    cutHeadObj,
+    postCylinderCutOffest.pos,
+    postCylinderCutOffest.neg
+  );
+
+  // 修改 cutHead 名称
+  cutHeadObj!.name = "CutHead";
+
+  // 返回切割过后的头部节点，左眼节点和右眼节点组
+  return combineMeshesToGroup(
+    "cutHeadEyesCombinedGrp",
+    cutHeadObj!,
+    eyeLNode,
+    eyeRNode
+  );
+}
+
 interface LoadObjOptions {
   mtlPath?: string;
   position?: THREE.Vector3;

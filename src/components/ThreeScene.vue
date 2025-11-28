@@ -3,11 +3,13 @@
 </template>
 
 <script setup lang="ts">
+import GUI from "lil-gui";
+import { AxesHelper } from "three";
+import { type Brush } from "three-bvh-csg";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import * as THREE from "three/webgpu";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { loadObj } from "../three/loaders/ModelLoader.ts";
-import { loadTexture } from "../three/loaders/TextureLoader.ts";
 import {
   BasicMat,
   CameraProps,
@@ -16,25 +18,21 @@ import {
   ModelPaths,
   NodeNames,
   OffsetPosNegPercentages,
-  type PhongMesh,
+  type PhongMesh
 } from "../three/constants";
-import { AxesHelper } from "three";
-import GUI from "lil-gui";
-import { addTransformDebug } from "../three/gui";
 import { csgSubtract } from "../three/csg";
-import { type Brush } from "three-bvh-csg";
+import { exportObjectToOBJ } from "../three/exporters";
+import { addTransformDebug } from "../three/gui";
+import { loadObj } from "../three/loaders/ModelLoader";
+import { loadTexture } from "../three/loaders/TextureLoader";
 import {
-  applyDebugTransformation,
-  applyGeometryScaling,
-  applyMaterialWireframe,
+  applyDebugTransformation, applyMaterialWireframe,
   combineMeshesToGroup,
   exportCutHead,
   modifyNewVerticesUv,
-  scaleGroupToHeight,
+  scaleGroupToHeight
 } from "../three/meshOps";
-import { exportObjectToOBJ } from "../three/exporters";
-import { getCutHead } from "../three/utils/csgCutHead.ts";
-import { HDRLoader, UltraHDRLoader } from "three/examples/jsm/Addons.js";
+import { getCutHead, getCutHeadV2 } from "../three/utils/csgCutHead";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -675,11 +673,16 @@ const init = () => {
     };
     await applyTexture();
 
-    const cutHeadtst0 = await getCutHead(
+    // const cutHeadtst0 = await getCutHead(
+    //   loadedHeadModel,
+    //   ModelPaths.Cutters.OralCavity,
+    //   ModelPaths.Cutters.ClyinderStrcLinesRmvd
+    // );
+    const cutHeadtst0 = await getCutHeadV2(
       loadedHeadModel,
-      ModelPaths.Cutters.OralCavity,
-      ModelPaths.Cutters.ClyinderStrcLinesRmvd
+      ModelPaths.Cutters.OralSphereCylinderCombined
     );
+    // return;
     applyDebugTransformation(cutHeadtst0);
 
     // Adjust the metalness and roughness
@@ -703,34 +706,6 @@ const init = () => {
    */
     const exporterBtn = document.querySelector(".exporter");
     exportCutHead(exporterBtn!, cutHeadtst0);
-
-    // console.log('exporter ele ->', exporter);
-    // exporter!.addEventListener("click", (e) => {
-    //   e.preventDefault();
-    //   // if (cutHead.isBrush) {
-    //   if (cutHeadtst0 instanceof THREE.Group) {
-    //     // const exportedMesh = exportMeshToOBJ(cutHead);
-    //     // console.log('exportedMesh geometry -> ', getAttributes(exportedMesh));
-    //     // console.log('exportedMesh geometry position -> ', exportedMesh.geometry.attributes.position);
-    //     // console.log('exportedMesh material -> ', exportedMesh.material);
-    //     const scaledCutHeadGrp = scaleGroupToHeight(cutHeadtst0);
-    //     exportObjectToOBJ(scaledCutHeadGrp);
-    //   }
-    // });
-
-    // const exportCutHead = (
-    //   exporterEle: Element,
-    //   cutHead2Export: THREE.Object3D
-    // ): void => {
-    //   exporterEle.addEventListener("click", (e) => {
-    //     e.preventDefault();
-    //     // if (cutHead.isBrush) {
-    //     if (cutHead2Export instanceof THREE.Group) {
-    //       const scaledCutHeadGrp = scaleGroupToHeight(cutHead2Export);
-    //       exportObjectToOBJ(scaledCutHeadGrp);
-    //     }
-    //   });
-    // };
 
     return;
 
