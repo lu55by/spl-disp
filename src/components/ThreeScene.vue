@@ -3,36 +3,35 @@
 </template>
 
 <script setup lang="ts">
-import GUI from "lil-gui";
-import { AxesHelper } from "three";
-import { type Brush } from "three-bvh-csg";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import * as THREE from "three/webgpu";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import GUI from "lil-gui";
+import {AxesHelper} from "three";
+import {type Brush} from "three-bvh-csg";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+import {UltraHDRLoader} from "three/examples/jsm/Addons.js";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 import {
   BasicMat,
   CameraProps,
-  Colors,
   DirectionalLightIntensity,
   ModelPaths,
   NodeNames,
   OffsetPosNegPercentages,
   type PhongMesh
 } from "../three/constants";
-import { csgSubtract } from "../three/csg";
-import { exportObjectToOBJ } from "../three/exporters";
-import { addTransformDebug } from "../three/gui";
-import { loadObj } from "../three/loaders/ModelLoader";
-import { loadTexture } from "../three/loaders/TextureLoader";
+import {csgSubtract} from "../three/csg";
+import {exportObjectToOBJ} from "../three/exporters";
+import {addTransformDebug} from "../three/gui";
+import {loadObj} from "../three/loaders/ModelLoader";
+import {loadTexture} from "../three/loaders/TextureLoader";
 import {
-  applyDebugTransformation, applyMaterialWireframe,
+  applyDebugTransformation,
   combineMeshesToGroup,
   exportCutHead,
   modifyNewVerticesUv,
   scaleGroupToHeight
 } from "../three/meshOps";
-import { getCutHead, getCutHeadV2 } from "../three/utils/csgCutHead";
+import {getCutHeadV2} from "../three/utils/csgCutHead";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -463,176 +462,6 @@ const init = () => {
     });
   };
 
-  const csgCutHeadFnTst = async () => {
-    const loadedHeadModel: THREE.Object3D = await loadObj(
-      // ModelPaths.HeadMaleLs.Model
-      ModelPaths.HeadFemale.Model
-    );
-    console.log("loadedHeadModel -> ", loadedHeadModel);
-    const headNode = loadedHeadModel.children[0] as PhongMesh;
-    // const cutHeadTst1 = csgSubtract(headNode);
-    applyDebugTransformation(cutHeadTst1);
-    applyMaterialWireframe(cutHeadTst1, Colors.Cyan);
-    scene.add(cutHeadTst1);
-    // return;
-
-    // Male
-    const headMaleColTex = await loadTexture(
-      ModelPaths.HeadMale.Texture.HeadColorTex
-    );
-    const eyeLMaleColTex = await loadTexture(
-      ModelPaths.HeadMale.Texture.EyeLColTex
-    );
-    const eyeRMaleColTex = await loadTexture(
-      ModelPaths.HeadMale.Texture.EyeRColTex
-    );
-
-    const headMaleNode = loadedHeadModel.getObjectByName(
-      NodeNames.HeadNames.Head
-    ) as PhongMesh;
-    const eyeLMaleNode = loadedHeadModel.getObjectByName(
-      NodeNames.HeadNames.EyeL
-    ) as PhongMesh;
-    const eyeRMaleNode = loadedHeadModel.getObjectByName(
-      NodeNames.HeadNames.EyeR
-    ) as PhongMesh;
-
-    const applyTexturesToLoadedHeadMaleLs = () => {
-      headMaleNode.material.map = headMaleColTex;
-      eyeLMaleNode.material.map = eyeLMaleColTex;
-      eyeRMaleNode.material.map = eyeRMaleColTex;
-    };
-    applyTexturesToLoadedHeadMaleLs();
-
-    const debugCutterOralCavity = async () => {
-      const headNode = loadedHeadModel.getObjectByName(
-        "head_lod0_mesh"
-      ) as THREE.Mesh;
-      // applyDebugTransformation(headNode);
-      // loadedHeadModel.updateMatrixWorld(true);
-      // headNode.geometry.applyMatrix4(loadedHeadModel.matrixWorld);
-      // applyMaterialWireframe(headNode, new THREE.Color("#0ff"));
-      // scene.add(headNode);
-
-      // Add the cutter oral cavity to the scene
-      const cutterOralCavityModel: THREE.Object3D = await loadObj(
-        ModelPaths.Cutters.OralCavity
-      );
-      // console.log("cutterOralCavityModel -> ", cutterOralCavityModel);
-      const cutterOralCavityNode = cutterOralCavityModel
-        .children[0] as THREE.Mesh;
-      // applyDebugTransformation(cutterOralCavityNode, new THREE.Vector3(0, 0, -.01));
-      // cutterOralCavityModel.updateMatrixWorld(true);
-      // cutterOralCavityNode.geometry.applyMatrix4(cutterOralCavityModel.matrixWorld);
-      // applyMaterialWireframe(cutterOralCavityNode, Colors.Yellow);
-      // scene.add(cutterOralCavityNode);
-
-      // Perform CSG Subtract
-      let cutHeadObj = csgSubtract(headNode, cutterOralCavityNode, true);
-      // applyDebugTransformation(cutHeadObj, new THREE.Vector3(5, 0, 0));
-      // applyDebugTransformation(cutHeadObj);
-      // applyMaterialWireframe(cutHeadObj, Colors.White);
-      // addTransformDebug("CutHead_OralCavity", gui, cutHeadObj, {
-      //   showScale: true,
-      // });
-      // scene.add(cutHeadObj);
-      // return;
-
-      // 加载切割模型
-      const loadedCuttersModel: THREE.Object3D = await loadObj(
-        ModelPaths.Cutters.ClyinderStrcLinesRmvd
-      );
-      // const loadedCutterCylStrcLineRmvdModel: THREE.Object3D = await loadObj(
-      //   // ModelPaths.Cutters.CylinderMod
-      //   // ModelPaths.Cutters.CylinderStrLineRmvdMod
-      //   ModelPaths.Cutters.CylinderStrCloseLineRmvdMod
-      // );
-      const sphereCutterNode = loadedCuttersModel.children[0] as THREE.Mesh;
-      const cylinderCutterNode = loadedCuttersModel.children[1] as THREE.Mesh;
-      // const cylinderCutterNode = loadedCutterCylStrcLineRmvdModel
-      //   .children[0] as THREE.Mesh;
-      // cylinderCutterNode.geometry.translate(0, 0, .7);
-
-      // Debug - only show cutters
-
-      // applyDebugTransformation(sphereCutterNode);
-      // applyMaterialWireframe(sphereCutterNode, new THREE.Color("#f00"));
-      // // scene.add(sphereCutterNode);
-
-      // addTransformDebug("Cutter_Cylinder", gui, cylinderCutterNode, {
-      //   showScale: true,
-      // });
-      // applyDebugTransformation(cylinderCutterNode);
-      // applyMaterialWireframe(cylinderCutterNode, new THREE.Color("#0ff"));
-      // scene.add(cylinderCutterNode);
-      // return;
-
-      // 切割操作
-
-      const beforeCylCutHeadCloneObjGeo0 = cutHeadObj.geometry.clone();
-
-      cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
-      modifyNewVerticesUv(
-        new THREE.Mesh(
-          beforeCylCutHeadCloneObjGeo0,
-          new THREE.MeshBasicMaterial()
-        ),
-        cutHeadObj,
-        0,
-        0.08
-      );
-
-      // applyDebugTransformation(cutHeadObj);
-      // applyMaterialWireframe(cutHeadObj, Colors.White);
-      // addTransformDebug("CutHead_Sphere", gui, cutHeadObj, {
-      //   showScale: true,
-      // });
-      // scene.add(cutHeadObj);
-
-      const beforeCylCutHeadCloneObjGeo1 = cutHeadObj.geometry.clone();
-
-      cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
-      const ofssetNegativeFemale = 0.046;
-      const ofssetNegativeMale = 0.044;
-      modifyNewVerticesUv(
-        new THREE.Mesh(
-          beforeCylCutHeadCloneObjGeo1,
-          new THREE.MeshBasicMaterial()
-        ),
-        // headNode,
-        cutHeadObj,
-        0,
-        // ofssetNegativeFemale,
-        ofssetNegativeMale
-      );
-
-      // applyDebugTransformation(cylinderCutterNode);
-      // applyMaterialWireframe(cylinderCutterNode, new THREE.Color("#fff"));
-      // scene.add(cylinderCutterNode);
-
-      applyDebugTransformation(cutHeadObj);
-      applyMaterialWireframe(cutHeadObj, Colors.Cyan);
-
-      scene.add(cutHeadObj);
-    };
-    await debugCutterOralCavity();
-
-    return;
-
-    // getCutHead Fn Tst
-
-    const cutHead = await getCutHead(
-      loadedHeadModel,
-      ModelPaths.Cutters.OralCavity,
-      ModelPaths.Cutters.CylinderMod
-    );
-
-    console.log("Cut Head -> ", cutHead);
-    applyDebugTransformation(cutHead);
-    applyMaterialWireframe(cutHead, new THREE.Color("#ff0"));
-    scene.add(cutHead);
-  };
-
   const csgCutHeadFnTst2 = async () => {
     const isModelFeMale = true;
     const headModelPath = isModelFeMale
@@ -783,8 +612,6 @@ const init = () => {
   // loadExportHeadTst();
 
   // loadBodyTst();
-
-  // csgCutHeadFnTst();
 
   csgCutHeadFnTst2();
 
