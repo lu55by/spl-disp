@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import ThreeScene from "./components/ThreeScene.vue";
+import ThreeScene from "./components/three/ThreeScene.vue";
+import MainUI from "./components/ui/MainUI.vue";
 </script>
 
 <template>
-<!--  <div class="w-full h-full">-->
-<!--    <ThreeScene />-->
-<!--  </div>-->
-  <div class="w-full h-full grid grid-cols-[auto_1fr]">
-    <div class="p-3">
-      <button class="exporter bg-stone-800 text-stone-100 p-2 rounded-md">Export</button>
-    </div>
+<!--  <div class="w-full h-full grid grid-cols-[auto_1fr]">-->
+  <div class="w-full h-[100svh] bg-[linear-gradient(90deg,rgb(27,27,37),rgb(54,54,72),rgb(27,27,37))]">
+    <MainUI />
     <ThreeScene />
   </div>
 </template>

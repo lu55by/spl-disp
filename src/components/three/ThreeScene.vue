@@ -18,20 +18,20 @@ import {
   NodeNames,
   OffsetPosNegPercentages,
   type PhongMesh
-} from "../three/constants";
-import {csgSubtract} from "../three/csg";
-import {exportObjectToOBJ} from "../three/exporters";
-import {addTransformDebug} from "../three/gui";
-import {loadObj} from "../three/loaders/ModelLoader";
-import {loadTexture} from "../three/loaders/TextureLoader";
+} from "../../three/constants";
+import {csgSubtract} from "../../three/csg";
+import {exportObjectToOBJ} from "../../three/exporters";
+import {addTransformDebug} from "../../three/gui";
+import {loadObj} from "../../three/loaders/ModelLoader.ts";
+import {loadTexture} from "../../three/loaders/TextureLoader.ts";
 import {
   applyDebugTransformation,
   combineMeshesToGroup,
   exportCutHead,
   modifyNewVerticesUv,
   scaleGroupToHeight
-} from "../three/meshOps";
-import {getCutHeadV2} from "../three/utils/csgCutHead";
+} from "../../three/meshOps";
+import {getCutHeadV2} from "../../three/utils/csgCutHead.ts";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -74,7 +74,7 @@ const init = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(width, height);
   renderer.setAnimationLoop(animate);
-  renderer.setClearColor("#000");
+  renderer.setClearColor("#000", 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
@@ -95,27 +95,27 @@ const init = () => {
   scene.add(directionalLight);
 
   // default material
-  const defaultMat = new THREE.MeshStandardNodeMaterial({ color: "#ff622e" });
+  const defaultStandardNodeMat = new THREE.MeshStandardNodeMaterial({ color: "#ff622e" });
 
   // Test Objects
   const tstObjectsFn = () => {
     const torusKnot = new THREE.Mesh(
       new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32),
-      defaultMat
+      defaultStandardNodeMat
     );
     torusKnot.position.set(3, 0, 0);
     scene.add(torusKnot);
 
     const sphere = new THREE.Mesh(
       new THREE.SphereGeometry(1, 64, 64),
-      defaultMat
+      defaultStandardNodeMat
     );
     sphere.position.set(0, 0, 0);
     scene.add(sphere);
 
     const box = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1, 16, 16),
-      defaultMat
+      defaultStandardNodeMat
     );
     box.position.set(-3, 0, 0);
     scene.add(box);
@@ -534,7 +534,7 @@ const init = () => {
      Exporter
    */
     const exporterBtn = document.querySelector(".exporter");
-    exportCutHead(exporterBtn!, cutHeadtst0);
+    exportCutHead(exporterBtn, cutHeadtst0);
 
     return;
 
@@ -613,7 +613,7 @@ const init = () => {
 
   // loadBodyTst();
 
-  csgCutHeadFnTst2();
+  // csgCutHeadFnTst2();
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement);
