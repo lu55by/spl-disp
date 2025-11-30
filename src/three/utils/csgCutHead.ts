@@ -136,7 +136,7 @@ export async function getCutHeadV2(
 ): Promise<THREE.Object3D> {
   // 加载切割模型
   const loadedCuttersModel: THREE.Object3D = await loadObj(cuttersPath);
-  console.log("loadedCuttersModel ->", loadedCuttersModel);
+  // console.log("loadedCuttersModel ->", loadedCuttersModel);
   // return headModel;
   const cuttersLen = loadedCuttersModel.children.length;
 

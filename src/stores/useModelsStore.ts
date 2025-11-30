@@ -1,17 +1,38 @@
 import {defineStore} from "pinia";
 import * as THREE from 'three';
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
+import {MaxModelLength} from "../constants";
+import {CutHeadDebugProps, ModelPaths} from "../three/constants";
+import {loadObj} from "../three/loaders/ModelLoader.ts";
+import {getCutHeadV2} from "../three/utils/csgCutHead.ts";
+import {addTransformDebug} from "../three/gui";
+import GUI from "lil-gui";
 
-const OBJ_LOADER = new OBJLoader();
+const ObjLoader = new OBJLoader();
+
+// Load the default head
+
+// Male
+const loadDefaultHeadAsync = async () => {
+    const loadedMaleHeadModel: THREE.Object3D = await loadObj(
+        ModelPaths.HeadMale.Model
+    );
+    const cutHead = await getCutHeadV2(loadedMaleHeadModel, ModelPaths.Cutters.OralSphereCylinderCombined);
+    cutHead.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
+    addTransformDebug('Cut Head', new GUI(), cutHead, {showScale: true});
+    return cutHead;
+}
+
+const DefaultCutHead = await loadDefaultHeadAsync();
 
 export const useModelsStore = defineStore(
     'models', {
         state: () => ({
-            group: new THREE.Group as THREE.Group,
+            group: new THREE.Group().add(DefaultCutHead) as THREE.Group,
         }),
 
         getters: {
-            groupLen: state => state.group.children.length,
+            groupLen: (state): number => state.group.children.length,
         },
 
         actions: {
@@ -30,9 +51,9 @@ export const useModelsStore = defineStore(
             },
 
             async importObj(file: File) {
-                if (this.group.children.length >= 3) return;
+                if (this.group.children.length >= MaxModelLength) return;
                 const text = await file.text();
-                const object = OBJ_LOADER.parse(text);
+                const object = ObjLoader.parse(text);
 
                 this.group.add(object);
             },
