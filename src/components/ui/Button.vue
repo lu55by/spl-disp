@@ -1,6 +1,9 @@
 <template>
   <button :type="type" :disabled="disabled" :class="customClass"
-          class="exporter pointer-events-auto bg-stone-100 text-stone-800 p-2 rounded-md font-medium">
+          class="exporter w-1/2 pointer-events-auto
+          bg-stone-100
+          text-stone-800 p-2 rounded-md font-medium cursor-pointer
+          disabled:cursor-not-allowed disabled:opacity-70">
     <slot/>
   </button>
 </template>

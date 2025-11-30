@@ -32,9 +32,13 @@ import {
   scaleGroupToHeight
 } from "../../three/meshOps";
 import {getCutHeadV2} from "../../three/utils/csgCutHead.ts";
+import {useModelsStore} from "../../stores/useModelsStore.ts";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
+
+const {group: globalGroup} = useModelsStore();
+console.log('Global Group ->', globalGroup);
 
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
@@ -145,6 +149,10 @@ const init = () => {
   /*
     Load Models
   */
+
+  // Add the global group
+  scene.add(globalGroup);
+
   // Test Fn
   const loadHairTst = async () => {
     const loadedHairModel: THREE.Object3D = await loadObj(
