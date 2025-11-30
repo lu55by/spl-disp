@@ -30,6 +30,7 @@ export const useModelsStore = defineStore(
             },
 
             async importObj(file: File) {
+                if (this.group.children.length >= 3) return;
                 const text = await file.text();
                 const object = OBJ_LOADER.parse(text);
 

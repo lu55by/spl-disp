@@ -26,13 +26,15 @@
 import {computed, ref} from "vue";
 import Button from "./Button.vue";
 import {useModelsStore} from "../../stores/useModelsStore";
+import {toast} from "vue3-toastify";
 
+// Get the store
 const modelStore = useModelsStore();
 
 // Disable logic
-const isImportBtnDisabled = computed(() => modelStore.groupLen === 3);
-const isExportBtnDisabled = computed(() => modelStore.groupLen !== 3);
-const isClearBtnDisabled = computed(() => modelStore.groupLen === 0);
+const isImportBtnDisabled = computed(() => modelStore.groupLen >= 3);
+const isExportBtnDisabled = computed(() => modelStore.groupLen < 3);
+const isClearBtnDisabled = computed(() => modelStore.groupLen <= 0);
 
 // Hidden input reference
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -53,7 +55,17 @@ const handleFileChange = async (e: Event) => {
 
   // clear input so selecting same file works
   target.value = "";
+
+  toast("Model imported!", {
+    autoClose: 1000,
+  });
 };
 
-const clearModels = modelStore.clear;
+const clearModels = () => {
+  modelStore.clear();
+
+  toast("Model cleared!", {
+    autoClose: 1000,
+  });
+};
 </script>
