@@ -9,9 +9,9 @@
 </template>
 <script setup lang="ts">
 const props = defineProps<{
-  type?: 'button' | 'submit' | 'reset'
-  disabled?: boolean
-  customClass?: string
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  customClass?: string;
 }>();
 
 const {

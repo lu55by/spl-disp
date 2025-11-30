@@ -41,10 +41,11 @@ export const useModelsStore = defineStore(
             },
 
             clear() {
+                if (this.group.children.length === 0) return;
                 this.group.traverse((child: THREE.Object3D<THREE.Object3DEventMap>) => {
                     if (child instanceof THREE.Mesh) {
                         child.geometry.dispose();
-                        if (child.material instanceof THREE.MeshPhongMaterial) child.material.dispose();
+                        if (child.material instanceof THREE.Material) child.material.dispose();
                     }
                     this.group.clear();
                 })
