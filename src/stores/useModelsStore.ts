@@ -1,6 +1,8 @@
 import {defineStore} from "pinia";
 import * as THREE from 'three';
-import type {MeshOf} from "../three/constants";
+import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
+
+const OBJ_LOADER = new OBJLoader();
 
 export const useModelsStore = defineStore(
     'models', {
@@ -13,17 +15,26 @@ export const useModelsStore = defineStore(
         },
 
         actions: {
-            addChild(child: THREE.Mesh) {
+            addChild(child: THREE.Object3D) {
                 this.group.add(child);
             },
 
             clear() {
-                this.group.traverse((child: MeshOf<THREE.Material>) => {
-                    child.geometry.dispose();
-                    child.material.dispose();
-                    this.group.remove(child);
+                this.group.traverse((child: THREE.Object3D<THREE.Object3DEventMap>) => {
+                    if (child instanceof THREE.Mesh) {
+                        child.geometry.dispose();
+                        if (child.material instanceof THREE.MeshPhongMaterial) child.material.dispose();
+                    }
+                    this.group.clear();
                 })
-            }
+            },
+
+            async importObj(file: File) {
+                const text = await file.text();
+                const object = OBJ_LOADER.parse(text);
+
+                this.group.add(object);
+            },
         }
     }
 );
