@@ -39,7 +39,7 @@ import {storeToRefs} from "pinia";
 const store = useModelsStore();
 const {group} = storeToRefs(store);
 
-
+// TODO: Fix the non-reactive group length.
 console.log('groupLen ->', group.value.children.length);
 
 // Disable logic
