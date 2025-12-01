@@ -12,13 +12,13 @@ import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
-    BasicMat,
-    CameraProps,
-    DirectionalLightIntensity,
-    ModelPaths,
-    NodeNames,
-    OffsetPosNegPercentages,
-    type PhongMesh,
+  BasicMat,
+  CameraProps,
+  DirectionalLightIntensity,
+  ModelPaths,
+  NodeNames,
+  OffsetPosNegPercentages,
+  type PhongMesh
 } from "../../three/constants";
 import { csgSubtract } from "../../three/csg";
 import { exportObjectToOBJ } from "../../three/exporters";
@@ -26,11 +26,12 @@ import { addTransformDebug } from "../../three/gui";
 import { loadObj } from "../../three/loaders/ModelLoader";
 import { loadTexture } from "../../three/loaders/TextureLoader";
 import {
-    applyDebugTransformation,
-    combineMeshesToGroup,
-    exportCutHead,
-    modifyNewVerticesUv,
-    scaleGroupToHeight,
+  applyDebugTransformation,
+  applySRGBColorSpace,
+  combineMeshesToGroup,
+  exportCutHead,
+  modifyNewVerticesUv,
+  scaleGroupToHeight
 } from "../../three/meshOps";
 import { getCutHeadV3 } from "../../three/utils/csgCutHead";
 
@@ -473,13 +474,14 @@ const init = () => {
   };
 
   const csgCutHeadFnTst2 = async () => {
-    const isModelFeMale = true;
+    const isModelFeMale = false;
     const headModelPath = isModelFeMale
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
 
     const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath);
     console.log("loadedHeadModel -> ", loadedHeadModel);
+    // return;
 
     // const headNode = loadedHeadModel.children[0] as PhongMesh;
     const headNode = loadedHeadModel.getObjectByName(
@@ -512,11 +514,14 @@ const init = () => {
     };
     await applyTexture();
 
-    // const cutHeadtst0 = await getCutHead(
-    //   loadedHeadModel,
-    //   ModelPaths.Cutters.OralCavity,
-    //   ModelPaths.Cutters.ClyinderStrcLinesRmvd
-    // );
+    const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
+    // applyMaterialWireframe(cutHead, Colors.Yellow);
+    applyDebugTransformation(cutHead);
+    applySRGBColorSpace(cutHead);
+    // applyMaterialWireframe(cutHead);
+    scene.add(cutHead);
+    return;
+
     const cutHeadtst0 = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
     // return;
     applyDebugTransformation(cutHeadtst0);

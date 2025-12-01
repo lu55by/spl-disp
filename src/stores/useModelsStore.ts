@@ -25,7 +25,8 @@ const loadDefaultHeadAsync = async () => {
   );
   const cutHead = await getCutHeadV3(loadedHeadModel, loadedCuttersModel);
   cutHead.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
-  addTransformDebug("Cut Head", GUIGlobal, cutHead, { showScale: true });
+  if (GUIGlobal)
+    addTransformDebug("Cut Head", GUIGlobal, cutHead, { showScale: true });
   return cutHead;
 };
 

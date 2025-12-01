@@ -6,8 +6,10 @@ import {
   Material,
   Mesh,
   type MeshPhongMaterial,
+  MeshStandardMaterial,
   type NormalBufferAttributes,
   Object3D,
+  SRGBColorSpace,
   Vector3,
 } from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -74,6 +76,22 @@ export function applyDebugTransformation(
     CutHeadDebugProps.Pos.z + z
   );
   obj?.scale.setScalar(CutHeadDebugProps.Scalar);
+}
+
+export function applySRGBColorSpace(obj: Object3D) {
+  if (!(obj instanceof Group)) return;
+  obj.traverse((m: Object3D) => {
+    if (m instanceof Mesh) {
+      const mesh = m as any;
+      const map = mesh.material.map;
+      mesh.material = new MeshStandardMaterial({
+        roughness: 0.8,
+        metalness: 0.2,
+      });
+      mesh.material.map = map;
+      mesh.material.map.colorSpace = SRGBColorSpace;
+    }
+  });
 }
 
 /**
@@ -227,7 +245,6 @@ export const exportCutHead = (
 export function disposeGeoMat(obj3D: Object3D) {
   if (!(obj3D instanceof Group)) return;
   console.log("obj3D 2 dispose ->", obj3D);
-
 
   obj3D.traverse((m) => {
     if (m instanceof Mesh) {

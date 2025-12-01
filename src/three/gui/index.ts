@@ -1,5 +1,5 @@
 import GUI from "lil-gui";
-import {Object3D} from "three";
+import { Object3D } from "three";
 
 /**
  * Add lil-gui controls to debug a obj's transform.
@@ -9,49 +9,70 @@ import {Object3D} from "three";
  * @param options - Optional configuration.
  */
 export function addTransformDebug(
-    guiTitle: string,
-    gui: GUI,
-    obj: Object3D,
-    options?: { showRotation?: boolean; showScale?: boolean }
+  guiTitle: string,
+  gui: GUI,
+  obj: Object3D,
+  options?: {
+    showRotation?: boolean;
+    showScale?: boolean;
+    posMin?: number;
+    posMax?: number;
+  }
 ) {
-    const folder = gui.addFolder(obj.name || guiTitle)
+  const folder = gui.addFolder(obj.name || guiTitle);
 
-    // --- Position controls ---
-    const posFolder = folder.addFolder('Position')
-    posFolder.add(obj.position, 'x', -10, 10, 0.01).name('X').onChange(() => obj.updateMatrixWorld())
-    posFolder.add(obj.position, 'y', -10, 10, 0.01).name('Y').onChange(() => obj.updateMatrixWorld())
-    posFolder.add(obj.position, 'z', -10, 10, 0.01).name('Z').onChange(() => obj.updateMatrixWorld())
+  let posMinimum: number = -10;
+  let posMaximum: number = 10;
+  if (options && options.posMin && options.posMax) {
+    posMinimum = options.posMin;
+    posMaximum = options.posMax;
+  }
 
-    // --- Rotation controls ---
-    if (options?.showRotation) {
-        const rotFolder = folder.addFolder('Rotation')
-        rotFolder.add(obj.rotation, 'x', -Math.PI, Math.PI, 0.01).name('Rot X')
-        rotFolder.add(obj.rotation, 'y', -Math.PI, Math.PI, 0.01).name('Rot Y')
-        rotFolder.add(obj.rotation, 'z', -Math.PI, Math.PI, 0.01).name('Rot Z')
-    }
+  // --- Position controls ---
+  const posFolder = folder.addFolder("Position");
+  posFolder
+    .add(obj.position, "x", posMinimum, posMaximum, 0.01)
+    .name("X")
+    .onChange(() => obj.updateMatrixWorld());
+  posFolder
+    .add(obj.position, "y", posMinimum, posMaximum, 0.01)
+    .name("Y")
+    .onChange(() => obj.updateMatrixWorld());
+  posFolder
+    .add(obj.position, "z", posMinimum, posMaximum, 0.01)
+    .name("Z")
+    .onChange(() => obj.updateMatrixWorld());
 
-    // --- Scale controls ---
-    if (options?.showScale) {
-        const scaleFolder = folder.addFolder('Scale')
-        // scaleFolder.add(obj.scale, 'x', 0.01, 10, 0.01).name('Scale X')
-        // scaleFolder.add(obj.scale, 'y', 0.01, 10, 0.01).name('Scale Y')
-        // scaleFolder.add(obj.scale, 'z', 0.01, 10, 0.01).name('Scale Z')
+  // --- Rotation controls ---
+  if (options?.showRotation) {
+    const rotFolder = folder.addFolder("Rotation");
+    rotFolder.add(obj.rotation, "x", -Math.PI, Math.PI, 0.01).name("Rot X");
+    rotFolder.add(obj.rotation, "y", -Math.PI, Math.PI, 0.01).name("Rot Y");
+    rotFolder.add(obj.rotation, "z", -Math.PI, Math.PI, 0.01).name("Rot Z");
+  }
 
-        // Store a local scalar value for GUI
-        const scaleState = {
-            scalar: obj.scale.x  // assumes uniform at start, safe for setScalar
-        };
+  // --- Scale controls ---
+  if (options?.showScale) {
+    const scaleFolder = folder.addFolder("Scale");
+    // scaleFolder.add(obj.scale, 'x', 0.01, 10, 0.01).name('Scale X')
+    // scaleFolder.add(obj.scale, 'y', 0.01, 10, 0.01).name('Scale Y')
+    // scaleFolder.add(obj.scale, 'z', 0.01, 10, 0.01).name('Scale Z')
 
-        scaleFolder
-            .add(scaleState, "scalar", 0.001, .1, 0.0001)
-            .name("uniformScale")
-            .onChange((v: number) => {
-                obj.scale.setScalar(v);
-            });
-    }
+    // Store a local scalar value for GUI
+    const scaleState = {
+      scalar: obj.scale.x, // assumes uniform at start, safe for setScalar
+    };
 
-    // TODO: Fix the issue.
-    /*
+    scaleFolder
+      .add(scaleState, "scalar", 0.001, 0.1, 0.0001)
+      .name("uniformScale")
+      .onChange((v: number) => {
+        obj.scale.setScalar(v);
+      });
+  }
+
+  // TODO: Fix the issue.
+  /*
     if (obj instanceof Group) {
         const wireframeState = {
             showWireframe: false,
@@ -75,9 +96,5 @@ export function addTransformDebug(
     }
     */
 
-    folder.open()
+  folder.open();
 }
-
-
-
-
