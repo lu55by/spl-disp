@@ -3,6 +3,7 @@ import {
   BufferGeometry,
   Color,
   Group,
+  Material,
   Mesh,
   type MeshPhongMaterial,
   type NormalBufferAttributes,
@@ -222,3 +223,43 @@ export const exportCutHead = (
     }
   });
 };
+
+export function disposeGeoMat(obj3D: Object3D) {
+  if (!(obj3D instanceof Group)) return;
+  console.log("obj3D 2 dispose ->", obj3D);
+
+  obj3D.traverse((m) => {
+    if (m instanceof Mesh) {
+      // console.log("Ready to dispose the geometry and material of mesh ->", m);
+
+      // 1. Dispose GPU resources
+      m.geometry.dispose();
+
+      // 2. Dispose material resources (and potentially textures)
+      if (Array.isArray(m.material)) {
+        m.material.forEach((material: Material) => material.dispose());
+      } else {
+        m.material.dispose();
+      }
+
+      // console.log("Disposed the geometry and material of mesh ->", m);
+
+      // Optional: Explicitly remove JS references if you don't need the mesh object anymore
+      m.geometry = undefined as any; // Cast might be needed for TS
+      m.material = undefined as any;
+
+      // console.log("Disposed the geometry and material of mesh ->", m);
+    }
+  });
+
+  // 3. Remove the entire group from the scene
+  if (obj3D.parent) {
+    console.log("Ready to remove the entire group from the scene...");
+    obj3D.parent.remove(obj3D);
+  }
+
+  obj3D.clear();
+
+  // 4. Set original variable reference to null,
+  // e.g., myModelGroup = null; to allow the JS garbage collector to clean up the mesh objects themselves.
+}

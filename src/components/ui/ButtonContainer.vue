@@ -1,62 +1,65 @@
 <template>
-  <div class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4">
+  <div
+    class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
+  >
     <!-- Import -->
     <Button :disabled="isImportBtnDisabled" @click="openFilePicker">
-      Import
+      导入
     </Button>
 
     <!-- Export (not implemented here) -->
-    <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">Export</Button>
+    <Button :disabled="isExportBtnDisabled" :customClass="`exporter`"
+      >导出</Button
+    >
 
     <!-- Clear -->
-    <Button :disabled="isClearBtnDisabled" @click="clearModels">Clear</Button>
+    <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
 
-    <p class="text-stone-100">Current Length: {{ groupLen }}</p>
+    <p class="text-stone-100">当前模型组长度: {{ groupLen }}</p>
 
     <!-- Hidden file input -->
     <input
-        type="file"
-        ref="fileInput"
-        accept=".obj"
-        class="hidden"
-        @change="handleFileChange"
+      type="file"
+      ref="fileInput"
+      accept=".obj"
+      class="hidden"
+      @change="handleFileChange"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import { computed, ref, watch } from "vue";
 import Button from "./Button.vue";
-import {useModelsStore} from "../../stores/useModelsStore";
-import {toast} from "vue3-toastify";
+import { useModelsStore } from "../../stores/useModelsStore";
+import { toast } from "vue3-toastify";
 import {
   MaxModelLength,
   ModelClearedReminderContent,
   ModelEmptyReminderContent,
   ModelImportedReminderContent,
-  ModelImportMaxLenReminderContent
+  ModelImportMaxLenReminderContent,
 } from "../../constants";
-import {storeToRefs} from "pinia";
+import { storeToRefs } from "pinia";
 
 // Get the store
 const store = useModelsStore();
-const {groupLen} = storeToRefs(store);
+const { groupLen } = storeToRefs(store);
 
 // TODO: Fix the non-reactive group length.
-console.log('groupLen ->', groupLen.value);
+console.log("groupLen ->", groupLen.value);
 
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
 watch(groupLen, (newLength, oldLength) => {
   console.log(`groupLen changed from ${oldLength} to ${newLength}`);
 });
 
-
 // Disable logic
 let isImportBtnDisabled = computed(() => groupLen.value === MaxModelLength);
 let isExportBtnDisabled = computed(() => groupLen.value < MaxModelLength);
 let isClearBtnDisabled = computed(() => groupLen.value === 0);
 
-console.log('isClearBtnDisabled ->', isClearBtnDisabled.value);
+console.log("isClearBtnDisabled ->", isClearBtnDisabled.value);
 
 // Hidden input reference
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -68,7 +71,7 @@ const openFilePicker = () => {
 
 // When file selected → import it
 const handleFileChange = async (e: Event) => {
-  console.log('groupLen before import ->', groupLen.value);
+  console.log("groupLen before import ->", groupLen.value);
   let toastContent: string = ModelImportedReminderContent;
   if (groupLen.value === MaxModelLength) {
     toastContent = ModelImportMaxLenReminderContent;
@@ -89,14 +92,13 @@ const handleFileChange = async (e: Event) => {
   // clear input so selecting same file works
   target.value = "";
 
-
   toast(toastContent, {
     autoClose: 1000,
   });
 };
 
 const clearModels = () => {
-  console.log('groupLen before clear ->', groupLen.value);
+  console.log("groupLen before clear ->", groupLen.value);
   let toastContent: string = ModelClearedReminderContent;
   if (groupLen.value === 0) {
     toastContent = ModelEmptyReminderContent;

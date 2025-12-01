@@ -1,27 +1,28 @@
+import GUI from "lil-gui";
 import { defineStore } from "pinia";
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { MaxModelLength } from "../constants";
 import { CutHeadDebugProps, ModelPaths } from "../three/constants";
-import { loadObj } from "../three/loaders/ModelLoader.ts";
-import { getCutHeadV2 } from "../three/utils/csgCutHead.ts";
 import { addTransformDebug } from "../three/gui";
-import GUI from "lil-gui";
+import { loadObj } from "../three/loaders/ModelLoader.ts";
+import { disposeGeoMat } from "../three/meshOps/index.ts";
+import { getCutHeadV2 } from "../three/utils/csgCutHead.ts";
 
 const ObjLoader = new OBJLoader();
 const GUIGlobal = new GUI();
 
 // Load the default head
 
-// Male
 const loadDefaultHeadAsync = async () => {
-  const loadedMaleHeadModel: THREE.Object3D = await loadObj(
+  const loadedHeadModel: THREE.Object3D = await loadObj(
+    // Male
     ModelPaths.HeadMale.Model
   );
-  const cutHead = await getCutHeadV2(
-    loadedMaleHeadModel,
+  const loadedCuttersModel: THREE.Object3D = await loadObj(
     ModelPaths.Cutters.OralSphereCylinderCombined
   );
+  const cutHead = await getCutHeadV2(loadedHeadModel, loadedCuttersModel);
   cutHead.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   addTransformDebug("Cut Head", GUIGlobal, cutHead, { showScale: true });
   return cutHead;
@@ -46,14 +47,7 @@ export const useModelsStore = defineStore("models", {
 
     clear() {
       if (this.group.children.length === 0) return;
-      this.group.traverse((child: THREE.Object3D<THREE.Object3DEventMap>) => {
-        if (child instanceof THREE.Mesh) {
-          child.geometry.dispose();
-          if (child.material instanceof THREE.Material)
-            child.material.dispose();
-        }
-        this.group.clear();
-      });
+      disposeGeoMat(this.group);
     },
 
     async importObj(file: File) {
