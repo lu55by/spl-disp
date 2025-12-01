@@ -153,11 +153,13 @@ export async function getCutHeadV2(
   // 头部节点
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
   // 左眼节点
-  const eyeLNode = headModel.getObjectByName("eyeLeft_lod0_mesh") as THREE.Mesh;
+  const eyeLNode = headModel
+    .getObjectByName("eyeLeft_lod0_mesh")
+    .clone() as THREE.Mesh;
   // 右眼节点
-  const eyeRNode = headModel.getObjectByName(
-    "eyeRight_lod0_mesh"
-  ) as THREE.Mesh;
+  const eyeRNode = headModel
+    .getObjectByName("eyeRight_lod0_mesh")
+    .clone() as THREE.Mesh;
 
   let cutHeadObj: Brush | THREE.Mesh;
 
@@ -265,14 +267,50 @@ export async function getCutHeadV2(
 
 function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap>) {
   if (!(obj3D instanceof THREE.Group)) return;
+  console.log("obj3D 2 dispose ->", obj3D);
+  // obj3D.traverse((m) => {
+  //   if (m instanceof THREE.Mesh) {
+  //     console.log("Ready to dispose the geometry and material of mesh ->", m);
+  //     m.geometry.dispose();
+  //     m.material.dispose();
+  //     console.log("Disposed the geometry and material of mesh ->", m);
+  //   }
+  // });
   obj3D.traverse((m) => {
     if (m instanceof THREE.Mesh) {
       console.log("Ready to dispose the geometry and material of mesh ->", m);
+
+      // 1. Dispose GPU resources
       m.geometry.dispose();
-      m.material.dispose();
+
+      // 2. Dispose material resources (and potentially textures)
+      if (Array.isArray(m.material)) {
+        m.material.forEach((material: THREE.Material) => material.dispose());
+      } else {
+        m.material.dispose();
+      }
+
+      // console.log("Disposed the geometry and material of mesh ->", m);
+
+      // Optional: Explicitly remove JS references if you don't need the mesh object anymore
+      m.geometry = undefined as any; // Cast might be needed for TS
+      m.material = undefined as any;
+
       console.log("Disposed the geometry and material of mesh ->", m);
     }
   });
+
+  // 3. Remove the entire group from the scene
+  if (obj3D.parent) {
+    obj3D.parent.remove(obj3D);
+  }
+
+  // 4. Set original variable reference to null,
+  // e.g., myModelGroup = null; to allow the JS garbage collector to clean up the mesh objects themselves.
+  obj3D.clear();
+  console.log("Disposed obj3D after clear ->", obj3D);
+  obj3D = null;
+  console.log("Disposed obj3D after null ->", obj3D);
 }
 
 interface LoadObjOptions {
