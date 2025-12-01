@@ -19,7 +19,7 @@ import {
   ModelPaths,
   NodeNames,
   OffsetPosNegPercentages,
-  type PhongMesh
+  type PhongMesh,
 } from "../../three/constants";
 import { csgSubtract } from "../../three/csg";
 import { exportObjectToOBJ } from "../../three/exporters";
@@ -32,7 +32,7 @@ import {
   combineMeshesToGroup,
   exportCutHead,
   modifyNewVerticesUv,
-  scaleGroupToHeight
+  scaleGroupToHeight,
 } from "../../three/meshOps";
 import { getCutHeadV3 } from "../../three/utils/csgCutHead";
 
@@ -54,12 +54,17 @@ const height = window.innerHeight;
 
 // Init scene fn
 const init = () => {
-  //   gui = new GUI();
-  gui = guiGlobal as GUI;
-
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
 
+  /**
+   * GUI
+   */
+  gui = guiGlobal as GUI;
+
+  /**
+   * Camera
+   */
   camera = new THREE.PerspectiveCamera(
     CameraProps.Fov,
     width / height,
@@ -69,11 +74,19 @@ const init = () => {
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
   addTransformDebug("Camera", gui, camera);
 
+  /**
+   * Scene
+   */
   scene = new THREE.Scene();
 
+  /**
+   * Clock
+   */
   clock = new THREE.Clock();
 
-  // Renderer
+  /**
+   * Renderer
+   */
   renderer = new THREE.WebGPURenderer({
     canvas: canvasEle.value!,
     antialias: true,
@@ -90,7 +103,9 @@ const init = () => {
   // renderer.inspector = new Inspector()
   // const gui = renderer.inspector.createParameters("Parameters")
 
-  // Lights
+  /**
+   * Lights
+   */
   const ambientLight = new THREE.AmbientLight("#fff", 3);
   scene.add(ambientLight);
 
@@ -101,35 +116,18 @@ const init = () => {
   directionalLight.position.set(4, 3, 1);
   scene.add(directionalLight);
 
-  // default material
-  const defaultStandardNodeMat = new THREE.MeshStandardNodeMaterial({
-    color: "#ff622e",
-  });
+  /**
+   * Controls
+   */
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  // controls.minDistance = .1
+  // controls.maxDistance = 50
 
-  // Test Objects
-  const tstObjectsFn = () => {
-    const torusKnot = new THREE.Mesh(
-      new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32),
-      defaultStandardNodeMat
-    );
-    torusKnot.position.set(3, 0, 0);
-    scene.add(torusKnot);
-
-    const sphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 64, 64),
-      defaultStandardNodeMat
-    );
-    sphere.position.set(0, 0, 0);
-    scene.add(sphere);
-
-    const box = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1, 16, 16),
-      defaultStandardNodeMat
-    );
-    box.position.set(-3, 0, 0);
-    scene.add(box);
-  };
-  // tstObjectsFn();
+  /**
+   * Axes Helper
+   */
+  scene.add(new AxesHelper(20));
 
   /**
    * Load Hdr
@@ -156,9 +154,9 @@ const init = () => {
   */
 
   // Add the global group
-  scene.add(globalGroup);
+  // scene.add(globalGroup);
 
-  // Test Fn
+  // Test Fns
   const loadHairTst = async () => {
     const loadedHairModel: THREE.Object3D = await loadObj(
       ModelPaths.Hair.Model
@@ -475,12 +473,19 @@ const init = () => {
   };
 
   const csgCutHeadFnTst2 = async () => {
-    const isModelFeMale = false;
+    const isModelFeMale = true;
+
+    // Head Model Path
     const headModelPath = isModelFeMale
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
 
-    const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath);
+    // Head mtl Path
+    const headMtlPath = isModelFeMale ? ModelPaths.HeadFemale.MTLPath : "";
+
+    const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath, {
+      mtlPath: headMtlPath,
+    });
     console.log("loadedHeadModel -> ", loadedHeadModel);
     // return;
 
@@ -513,10 +518,9 @@ const init = () => {
       eyeLNode.material.map = eyeLColTex;
       eyeRNode.material.map = eyeRColTex;
     };
-    await applyTexture();
+    // await applyTexture();
 
     const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
-    // applyMaterialWireframe(cutHead, Colors.Yellow);
     applyDebugTransformation(cutHead);
     applySRGBColorSpace(cutHead);
     // applyMaterialWireframe(cutHead);
@@ -626,18 +630,7 @@ const init = () => {
 
   // loadBodyTst();
 
-  // csgCutHeadFnTst2();
-
-  // Controls
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  // controls.minDistance = .1
-  // controls.maxDistance = 50
-
-  // Axes Helper
-  scene.add(new AxesHelper(20));
-
-  // window.addEventListener('resize', onWindowResize)
+  csgCutHeadFnTst2();
 };
 
 // Resize fn
@@ -673,7 +666,7 @@ const animate = async () => {
   renderer.render(scene, camera);
 };
 
-onMounted(() => {
+onMounted(async () => {
   init();
   animate();
   window.addEventListener("resize", onWindowResize);

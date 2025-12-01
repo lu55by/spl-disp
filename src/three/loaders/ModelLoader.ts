@@ -9,6 +9,12 @@ export interface LoadObjOptions {
     scale?: THREE.Vector3 | number;
 }
 
+/**
+ * Load the obj file with some options.
+ * @param path OBJ file path
+ * @param options Optional options contains mtlPath(mtl file path) | position, rotation, scale(the position, rotation, scale set to the loaded model) 
+ * @returns Loaded obj with the type of THREE.Object3D
+ */
 export async function loadObj(path: string, options: LoadObjOptions = {}): Promise<THREE.Object3D> {
     const {mtlPath, scale, position, rotation} = options;
 

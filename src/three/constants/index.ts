@@ -75,11 +75,30 @@ export const NodeNames = {
 };
 
 // Model Paths
+
+// Models Prefix
 const ModelsPathPrefix = "./models";
+
+// Hair Prefix
 const HairPathPrefix = `${ModelsPathPrefix}/hair`;
+
+// Head Prefix
 const HeadPathPrefix = `${ModelsPathPrefix}/head`;
-const HeadMalePathPrefix = `${ModelsPathPrefix}/head/headMale`;
+
+// Head Male Prefix
+const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
+// Head Male sub path
+const HeadMaleSubPath = `/cutHead-issue-01`;
+
+// Head Female Prefix
+const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
+// Head Female sub path
+const HeadFeMaleSubPath = `/default`;
+
+// Body Prefix
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
+
+// Cutter Prefix
 const CutterPathPrefix = `${ModelsPathPrefix}/cutters`;
 export const ModelPaths = {
   Hair: {
@@ -87,25 +106,22 @@ export const ModelPaths = {
     Texture: { ColorTex: `${HairPathPrefix}/map.png` },
   },
   HeadFemale: {
-    Model: `${HeadPathPrefix}/final.obj`,
+    Model: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/model.obj`,
     Texture: {
-      HeadColTex: `${HeadPathPrefix}/headColor.png`,
-      EyeLColTex: `${HeadPathPrefix}/eyeColorL.png`,
-      EyeRColTex: `${HeadPathPrefix}/eyeColorR.png`,
-      TeethColTex: `${HeadPathPrefix}/TeethColor.png`,
+      HeadColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/headColor.png`,
+      EyeLColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/eyeColorL.png`,
+      EyeRColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/eyeColorR.png`,
+      TeethColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/TeethColor.png`,
     },
+    MTLPath: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/metaHumanLod0.mtl`,
   },
   HeadMale: {
-    Model: `${HeadMalePathPrefix}/cutHead-issue-01/head-generated.obj`,
+    Model: `${HeadMalePathPrefix}${HeadMaleSubPath}/model.obj`,
     Texture: {
-      HeadColorTex: `${HeadMalePathPrefix}/cutHead-issue-01/headColor.png`,
-      EyeLColTex: `${HeadMalePathPrefix}/cutHead-issue-01/eyeColorL.png`,
-      EyeRColTex: `${HeadMalePathPrefix}/cutHead-issue-01/eyeColorR.png`,
+      HeadColorTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/headColor.png`,
+      EyeLColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/eyeColorL.png`,
+      EyeRColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/eyeColorR.png`,
     },
-    MTLPath: `${HeadMalePathPrefix}/metaHumanLod0.mtl`,
-  },
-  HeadMaleLs: {
-    Model: `${HeadPathPrefix}/headMaleLs/headMaleLs.obj`,
   },
   Body: {
     Model: `${BodyPathPrefix}/mold.obj`,
