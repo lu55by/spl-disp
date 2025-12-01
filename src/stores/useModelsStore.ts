@@ -5,24 +5,25 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { MaxModelLength } from "../constants";
 import { CutHeadDebugProps, ModelPaths } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
-import { loadObj } from "../three/loaders/ModelLoader.ts";
 import { disposeGeoMat } from "../three/meshOps/index.ts";
-import { getCutHeadV2 } from "../three/utils/csgCutHead.ts";
+import { getCutHeadV3 } from "../three/utils/csgCutHead.ts";
 
 const ObjLoader = new OBJLoader();
 const GUIGlobal = new GUI();
 
 // Load the default head
 
+// Cutters Model
+const loadedCuttersModel: THREE.Object3D = await ObjLoader.loadAsync(
+  ModelPaths.Cutters.OralSphereCylinderCombined
+);
+
 const loadDefaultHeadAsync = async () => {
-  const loadedHeadModel: THREE.Object3D = await loadObj(
+  const loadedHeadModel: THREE.Object3D = await ObjLoader.loadAsync(
     // Male
     ModelPaths.HeadMale.Model
   );
-  const loadedCuttersModel: THREE.Object3D = await loadObj(
-    ModelPaths.Cutters.OralSphereCylinderCombined
-  );
-  const cutHead = await getCutHeadV2(loadedHeadModel, loadedCuttersModel);
+  const cutHead = await getCutHeadV3(loadedHeadModel, loadedCuttersModel);
   cutHead.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   addTransformDebug("Cut Head", GUIGlobal, cutHead, { showScale: true });
   return cutHead;
@@ -33,6 +34,7 @@ const DefaultCutHead = await loadDefaultHeadAsync();
 export const useModelsStore = defineStore("models", {
   state: () => ({
     guiGlobal: GUIGlobal as GUI,
+    cuttersModelGlobal: loadedCuttersModel as THREE.Object3D,
     group: new THREE.Group().add(DefaultCutHead) as THREE.Group,
   }),
 

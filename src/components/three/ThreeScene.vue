@@ -3,66 +3,66 @@
 </template>
 
 <script setup lang="ts">
-import * as THREE from "three/webgpu";
 import GUI from "lil-gui";
-import {AxesHelper} from "three";
-import {type Brush} from "three-bvh-csg";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
-import {UltraHDRLoader} from "three/examples/jsm/Addons.js";
-import {onBeforeUnmount, onMounted, ref} from "vue";
+import { AxesHelper } from "three";
+import { type Brush } from "three-bvh-csg";
+import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import * as THREE from "three/webgpu";
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import { useModelsStore } from "../../stores/useModelsStore";
 import {
-  BasicMat,
-  CameraProps,
-  DirectionalLightIntensity,
-  ModelPaths,
-  NodeNames,
-  OffsetPosNegPercentages,
-  type PhongMesh
+    BasicMat,
+    CameraProps,
+    DirectionalLightIntensity,
+    ModelPaths,
+    NodeNames,
+    OffsetPosNegPercentages,
+    type PhongMesh,
 } from "../../three/constants";
-import {csgSubtract} from "../../three/csg";
-import {exportObjectToOBJ} from "../../three/exporters";
-import {addTransformDebug} from "../../three/gui";
-import {loadObj} from "../../three/loaders/ModelLoader";
-import {loadTexture} from "../../three/loaders/TextureLoader";
+import { csgSubtract } from "../../three/csg";
+import { exportObjectToOBJ } from "../../three/exporters";
+import { addTransformDebug } from "../../three/gui";
+import { loadObj } from "../../three/loaders/ModelLoader";
+import { loadTexture } from "../../three/loaders/TextureLoader";
 import {
-  applyDebugTransformation,
-  combineMeshesToGroup,
-  exportCutHead,
-  modifyNewVerticesUv,
-  scaleGroupToHeight
+    applyDebugTransformation,
+    combineMeshesToGroup,
+    exportCutHead,
+    modifyNewVerticesUv,
+    scaleGroupToHeight,
 } from "../../three/meshOps";
-import {getCutHeadV2} from "../../three/utils/csgCutHead";
-import {useModelsStore} from "../../stores/useModelsStore";
+import { getCutHeadV3 } from "../../three/utils/csgCutHead";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const {group: globalGroup, guiGlobal} = useModelsStore();
-console.log('Global Group ->', globalGroup);
+const { group: globalGroup, guiGlobal, cuttersModelGlobal } = useModelsStore();
+console.log("Global Group ->", globalGroup);
 
 let camera: THREE.PerspectiveCamera,
-    scene: THREE.Scene,
-    renderer: THREE.WebGPURenderer,
-    controls: OrbitControls,
-    clock: THREE.Clock,
-    gui: GUI;
+  scene: THREE.Scene,
+  renderer: THREE.WebGPURenderer,
+  controls: OrbitControls,
+  clock: THREE.Clock,
+  gui: GUI;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
 
 // Init scene fn
 const init = () => {
-//   gui = new GUI();
+  //   gui = new GUI();
   gui = guiGlobal as GUI;
 
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
 
   camera = new THREE.PerspectiveCamera(
-      CameraProps.Fov,
-      width / height,
-      CameraProps.Near,
-      CameraProps.Far
+    CameraProps.Fov,
+    width / height,
+    CameraProps.Near,
+    CameraProps.Far
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
   addTransformDebug("Camera", gui, camera);
@@ -93,34 +93,36 @@ const init = () => {
   scene.add(ambientLight);
 
   const directionalLight = new THREE.DirectionalLight(
-      "#fff",
-      DirectionalLightIntensity
+    "#fff",
+    DirectionalLightIntensity
   );
   directionalLight.position.set(4, 3, 1);
   scene.add(directionalLight);
 
   // default material
-  const defaultStandardNodeMat = new THREE.MeshStandardNodeMaterial({color: "#ff622e"});
+  const defaultStandardNodeMat = new THREE.MeshStandardNodeMaterial({
+    color: "#ff622e",
+  });
 
   // Test Objects
   const tstObjectsFn = () => {
     const torusKnot = new THREE.Mesh(
-        new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32),
-        defaultStandardNodeMat
+      new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32),
+      defaultStandardNodeMat
     );
     torusKnot.position.set(3, 0, 0);
     scene.add(torusKnot);
 
     const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 64, 64),
-        defaultStandardNodeMat
+      new THREE.SphereGeometry(1, 64, 64),
+      defaultStandardNodeMat
     );
     sphere.position.set(0, 0, 0);
     scene.add(sphere);
 
     const box = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1, 16, 16),
-        defaultStandardNodeMat
+      new THREE.BoxGeometry(1, 1, 1, 16, 16),
+      defaultStandardNodeMat
     );
     box.position.set(-3, 0, 0);
     scene.add(box);
@@ -154,11 +156,10 @@ const init = () => {
   // Add the global group
   scene.add(globalGroup);
 
-
   // Test Fn
   const loadHairTst = async () => {
     const loadedHairModel: THREE.Object3D = await loadObj(
-        ModelPaths.Hair.Model
+      ModelPaths.Hair.Model
     );
     // console.log('loadedHairModel -> ', loadedHairModel);
     const hairTex = await loadTexture(ModelPaths.Hair.Texture.ColorTex);
@@ -172,73 +173,73 @@ const init = () => {
 
   const loadHeadTst = async () => {
     const loadedFemaleHeadModel: THREE.Object3D = await loadObj(
-        ModelPaths.HeadFemale.Model
+      ModelPaths.HeadFemale.Model
     );
     const loadedMaleHeadModel: THREE.Object3D = await loadObj(
-        ModelPaths.HeadMale.Model
+      ModelPaths.HeadMale.Model
     );
     const loadedCuttersModel: THREE.Object3D = await loadObj(
-        ModelPaths.Cutters.CylinderMod
+      ModelPaths.Cutters.CylinderMod
     );
 
     // Load Textures
 
     // Female
     const headFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.HeadColTex
+      ModelPaths.HeadFemale.Texture.HeadColTex
     );
     const teethFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.TeethColTex
+      ModelPaths.HeadFemale.Texture.TeethColTex
     );
     const eyeLFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.EyeLColTex
+      ModelPaths.HeadFemale.Texture.EyeLColTex
     );
     const eyeRFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.EyeRColTex
+      ModelPaths.HeadFemale.Texture.EyeRColTex
     );
 
     // Male
     const headMaleColTex = await loadTexture(
-        ModelPaths.HeadMale.Texture.HeadColorTex
+      ModelPaths.HeadMale.Texture.HeadColorTex
     );
     const eyeLMaleColTex = await loadTexture(
-        ModelPaths.HeadMale.Texture.EyeLColTex
+      ModelPaths.HeadMale.Texture.EyeLColTex
     );
     const eyeRMaleColTex = await loadTexture(
-        ModelPaths.HeadMale.Texture.EyeRColTex
+      ModelPaths.HeadMale.Texture.EyeRColTex
     );
 
     // Retrieve Nodes
 
     // Female
     const headFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.Head
+      NodeNames.HeadNames.Head
     ) as PhongMesh;
     const teethFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.Teeth
+      NodeNames.HeadNames.Teeth
     ) as PhongMesh;
     const eyeLFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeL
+      NodeNames.HeadNames.EyeL
     ) as PhongMesh;
     const eyeRFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeR
+      NodeNames.HeadNames.EyeR
     ) as PhongMesh;
 
     // Male
     const headMaleNode = loadedMaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.Head
+      NodeNames.HeadNames.Head
     ) as PhongMesh;
     const eyeLMaleNode = loadedMaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeL
+      NodeNames.HeadNames.EyeL
     ) as PhongMesh;
     const eyeRMaleNode = loadedMaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeR
+      NodeNames.HeadNames.EyeR
     ) as PhongMesh;
 
     // Cutters
     // Sphere Cutter
     const sphereCutterNode = loadedCuttersModel.getObjectByName(
-        NodeNames.CuttersNames.Sphere
+      NodeNames.CuttersNames.Sphere
     ) as PhongMesh;
     // sphereCutterNode.position.y -= 1;
     // sphereCutterNode.updateMatrixWorld(true);
@@ -246,7 +247,7 @@ const init = () => {
 
     // Cylinder Cutter
     const cylinderCutterNode = loadedCuttersModel.getObjectByName(
-        NodeNames.CuttersNames.Cylinder
+      NodeNames.CuttersNames.Cylinder
     ) as PhongMesh;
 
     // Map the texture
@@ -300,79 +301,79 @@ const init = () => {
 
     // scene.add(cutHead);
     scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
-    addTransformDebug("CutHead", gui, cutHead, {showScale: true});
+    addTransformDebug("CutHead", gui, cutHead, { showScale: true });
   };
 
   const loadExportHeadTst = async () => {
     const loadedFemaleHeadModel: THREE.Object3D = await loadObj(
-        ModelPaths.HeadFemale.Model
+      ModelPaths.HeadFemale.Model
     );
     console.log("loadedFemaleHeadModel ->", loadedFemaleHeadModel);
     const loadedMaleHeadModel: THREE.Object3D = await loadObj(
-        ModelPaths.HeadMale.Model
+      ModelPaths.HeadMale.Model
     );
     const loadedCuttersModel: THREE.Object3D = await loadObj(
-        ModelPaths.Cutters.CylinderMod
+      ModelPaths.Cutters.CylinderMod
     );
 
     // Load Textures
 
     // Female
     const headFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.HeadColTex
+      ModelPaths.HeadFemale.Texture.HeadColTex
     );
     const teethFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.TeethColTex
+      ModelPaths.HeadFemale.Texture.TeethColTex
     );
     const eyeLFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.EyeLColTex
+      ModelPaths.HeadFemale.Texture.EyeLColTex
     );
     const eyeRFemaleColTex = await loadTexture(
-        ModelPaths.HeadFemale.Texture.EyeRColTex
+      ModelPaths.HeadFemale.Texture.EyeRColTex
     );
 
     // Male
     const headMaleColTex = await loadTexture(
-        ModelPaths.HeadMale.Texture.HeadColorTex
+      ModelPaths.HeadMale.Texture.HeadColorTex
     );
     const eyeLMaleColTex = await loadTexture(
-        ModelPaths.HeadMale.Texture.EyeLColTex
+      ModelPaths.HeadMale.Texture.EyeLColTex
     );
     const eyeRMaleColTex = await loadTexture(
-        ModelPaths.HeadMale.Texture.EyeRColTex
+      ModelPaths.HeadMale.Texture.EyeRColTex
     );
 
     // Retrieve Nodes
 
     // Female
     const headFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.Head
+      NodeNames.HeadNames.Head
     ) as PhongMesh;
     const teethFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.Teeth
+      NodeNames.HeadNames.Teeth
     ) as PhongMesh;
     const eyeLFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeL
+      NodeNames.HeadNames.EyeL
     ) as PhongMesh;
     const eyeRFemaleNode = loadedFemaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeR
+      NodeNames.HeadNames.EyeR
     ) as PhongMesh;
 
     // Male
     const headMaleNode = loadedMaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.Head
+      NodeNames.HeadNames.Head
     ) as PhongMesh;
     const eyeLMaleNode = loadedMaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeL
+      NodeNames.HeadNames.EyeL
     ) as PhongMesh;
     const eyeRMaleNode = loadedMaleHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeR
+      NodeNames.HeadNames.EyeR
     ) as PhongMesh;
 
     // Cutters
     // Sphere Cutter
     const sphereCutterNode = loadedCuttersModel.getObjectByName(
-        NodeNames.CuttersNames.Sphere
+      NodeNames.CuttersNames.Sphere
     ) as PhongMesh;
     // sphereCutterNode.position.y -= 1;
     // sphereCutterNode.updateMatrixWorld(true);
@@ -380,7 +381,7 @@ const init = () => {
 
     // Cylinder Cutter
     const cylinderCutterNode = loadedCuttersModel.getObjectByName(
-        NodeNames.CuttersNames.Cylinder
+      NodeNames.CuttersNames.Cylinder
     ) as PhongMesh;
 
     // Map the texture
@@ -435,7 +436,7 @@ const init = () => {
 
     // scene.add(cutHead);
     // scene.add(cutHead, eyeLMaleNode, eyeRMaleNode);
-    addTransformDebug("CutHead", gui, cutHead, {showScale: true});
+    addTransformDebug("CutHead", gui, cutHead, { showScale: true });
 
     // Combine meshes to be exported
     // const combinedCutHead2Export = combineMeshes([cutHead, eyeLMaleNode, eyeRMaleNode]);
@@ -444,10 +445,10 @@ const init = () => {
     // camera.updateMatrixWorld();
 
     const combinedCutHeadEyesGrp: THREE.Group = combineMeshesToGroup(
-        "cutHeadEyesCombinedGrp",
-        cutHead,
-        eyeLMaleNode,
-        eyeRMaleNode
+      "cutHeadEyesCombinedGrp",
+      cutHead,
+      eyeLMaleNode,
+      eyeRMaleNode
     );
     console.log("combinedCutHead2Export ->", combinedCutHeadEyesGrp);
     scene.add(combinedCutHeadEyesGrp);
@@ -475,33 +476,33 @@ const init = () => {
   const csgCutHeadFnTst2 = async () => {
     const isModelFeMale = true;
     const headModelPath = isModelFeMale
-        ? ModelPaths.HeadFemale.Model
-        : ModelPaths.HeadMale.Model;
+      ? ModelPaths.HeadFemale.Model
+      : ModelPaths.HeadMale.Model;
 
     const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath);
     console.log("loadedHeadModel -> ", loadedHeadModel);
 
     // const headNode = loadedHeadModel.children[0] as PhongMesh;
     const headNode = loadedHeadModel.getObjectByName(
-        NodeNames.HeadNames.Head
+      NodeNames.HeadNames.Head
     ) as PhongMesh;
     const eyeLNode = loadedHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeL
+      NodeNames.HeadNames.EyeL
     ) as PhongMesh;
     const eyeRNode = loadedHeadModel.getObjectByName(
-        NodeNames.HeadNames.EyeR
+      NodeNames.HeadNames.EyeR
     ) as PhongMesh;
 
     const applyTexture = async (): Promise<void> => {
       const headColTexPath = isModelFeMale
-          ? ModelPaths.HeadFemale.Texture.HeadColTex
-          : ModelPaths.HeadMale.Texture.HeadColorTex;
+        ? ModelPaths.HeadFemale.Texture.HeadColTex
+        : ModelPaths.HeadMale.Texture.HeadColorTex;
       const eyeLColTexPath = isModelFeMale
-          ? ModelPaths.HeadFemale.Texture.EyeLColTex
-          : ModelPaths.HeadMale.Texture.EyeLColTex;
+        ? ModelPaths.HeadFemale.Texture.EyeLColTex
+        : ModelPaths.HeadMale.Texture.EyeLColTex;
       const eyeRColTexPath = isModelFeMale
-          ? ModelPaths.HeadFemale.Texture.EyeRColTex
-          : ModelPaths.HeadMale.Texture.EyeRColTex;
+        ? ModelPaths.HeadFemale.Texture.EyeRColTex
+        : ModelPaths.HeadMale.Texture.EyeRColTex;
       const headColTex = await loadTexture(headColTexPath);
       const eyeLColTex = await loadTexture(eyeLColTexPath);
       const eyeRColTex = await loadTexture(eyeRColTexPath);
@@ -517,10 +518,7 @@ const init = () => {
     //   ModelPaths.Cutters.OralCavity,
     //   ModelPaths.Cutters.ClyinderStrcLinesRmvd
     // );
-    const cutHeadtst0 = await getCutHeadV2(
-        loadedHeadModel,
-        ModelPaths.Cutters.OralSphereCylinderCombined
-    );
+    const cutHeadtst0 = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
     // return;
     applyDebugTransformation(cutHeadtst0);
 
@@ -550,51 +548,51 @@ const init = () => {
 
     // The cutter oral cavity
     const cutterOralCavityModel: THREE.Object3D = await loadObj(
-        ModelPaths.Cutters.OralCavity
+      ModelPaths.Cutters.OralCavity
     );
     // console.log("cutterOralCavityModel -> ", cutterOralCavityModel);
 
     const cuttersSphCylModel: THREE.Object3D = await loadObj(
-        ModelPaths.Cutters.ClyinderStrcLinesRmvd
+      ModelPaths.Cutters.ClyinderStrcLinesRmvd
     );
 
     const cutterOralCavityNode = cutterOralCavityModel
-        .children[0] as THREE.Mesh;
+      .children[0] as THREE.Mesh;
     const cutterSphereNode = cuttersSphCylModel.children[0] as THREE.Mesh;
     const cutterCylinderNode = cuttersSphCylModel.children[1] as THREE.Mesh;
 
     // Perform CSG Subtract
-    const {PostSphere, PostCylinder} = OffsetPosNegPercentages;
-    const {pos: sphereOffsetPosPercentage, neg: sphereOffsetNegPercentage} =
-        PostSphere;
-    const {Female, Male} = PostCylinder;
+    const { PostSphere, PostCylinder } = OffsetPosNegPercentages;
+    const { pos: sphereOffsetPosPercentage, neg: sphereOffsetNegPercentage } =
+      PostSphere;
+    const { Female, Male } = PostCylinder;
     const {
       pos: cylOffsetPosPercentageFemale,
       neg: cylOffsetNegPercentageFemale,
     } = Female;
-    const {pos: cylOffsetPosPercentageMale, neg: cylOffsetNegPercentageMale} =
-        Male;
+    const { pos: cylOffsetPosPercentageMale, neg: cylOffsetNegPercentageMale } =
+      Male;
 
     let cutHeadObj = csgSubtract(headNode, cutterOralCavityNode, true);
     const beforeCylCutHeadGeoCloned0 = cutHeadObj.geometry.clone();
     cutHeadObj = csgSubtract(cutHeadObj, cutterSphereNode, false);
     modifyNewVerticesUv(
-        new THREE.Mesh(beforeCylCutHeadGeoCloned0, BasicMat),
-        cutHeadObj,
-        sphereOffsetPosPercentage,
-        sphereOffsetNegPercentage
+      new THREE.Mesh(beforeCylCutHeadGeoCloned0, BasicMat),
+      cutHeadObj,
+      sphereOffsetPosPercentage,
+      sphereOffsetNegPercentage
     );
     const beforeCylCutHeadGeoCloned1 = cutHeadObj.geometry.clone();
     cutHeadObj = csgSubtract(cutHeadObj, cutterCylinderNode, false);
     const isFemale = isModelFeMale;
     const ofsset = isFemale
-        ? {pos: cylOffsetPosPercentageFemale, neg: cylOffsetNegPercentageFemale}
-        : {pos: cylOffsetPosPercentageMale, neg: cylOffsetNegPercentageMale};
+      ? { pos: cylOffsetPosPercentageFemale, neg: cylOffsetNegPercentageFemale }
+      : { pos: cylOffsetPosPercentageMale, neg: cylOffsetNegPercentageMale };
     modifyNewVerticesUv(
-        new THREE.Mesh(beforeCylCutHeadGeoCloned1, BasicMat),
-        cutHeadObj,
-        ofsset.pos,
-        ofsset.neg
+      new THREE.Mesh(beforeCylCutHeadGeoCloned1, BasicMat),
+      cutHeadObj,
+      ofsset.pos,
+      ofsset.neg
     );
     applyDebugTransformation(cutHeadObj);
     // applyMaterialWireframe(cutHeadObj, Colors.Cyan);
@@ -603,7 +601,7 @@ const init = () => {
 
   const loadBodyTst = async () => {
     const loadedBodyModel: THREE.Object3D = await loadObj(
-        ModelPaths.Body.Model
+      ModelPaths.Body.Model
     );
     // console.log('loadedBody -> ', loadedBodyModel);
     const bodyTex = await loadTexture(ModelPaths.Body.Texture.ColorTex);
