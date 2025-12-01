@@ -49,6 +49,7 @@ export const useModelsStore = defineStore("models", {
 
     clear() {
       if (this.group.children.length === 0) return;
+      // TODO: Clear the Hair and Body except the CutHead.
       disposeGeoMat(this.group);
     },
 

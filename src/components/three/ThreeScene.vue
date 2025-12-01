@@ -418,7 +418,6 @@ const init = () => {
     modifyNewVerticesUv(headFemaleNode, cutHead, 0, 0.07033);
 
     cutHead = csgSubtract(cutHead, cylinderCutterNode, false);
-    // TODO: Try to pass the cutHead as the first arg of modifyNewVerticesUv.
     modifyNewVerticesUv(headFemaleNode, cutHead, 0.11, 0);
     console.log("cutHead -> ", cutHead);
 

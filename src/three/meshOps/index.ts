@@ -228,6 +228,7 @@ export function disposeGeoMat(obj3D: Object3D) {
   if (!(obj3D instanceof Group)) return;
   console.log("obj3D 2 dispose ->", obj3D);
 
+
   obj3D.traverse((m) => {
     if (m instanceof Mesh) {
       // console.log("Ready to dispose the geometry and material of mesh ->", m);
