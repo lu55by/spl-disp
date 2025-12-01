@@ -6,7 +6,7 @@
     </Button>
 
     <!-- Export (not implemented here) -->
-    <Button :disabled="isExportBtnDisabled">Export</Button>
+    <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">Export</Button>
 
     <!-- Clear -->
     <Button :disabled="isClearBtnDisabled" @click="clearModels">Clear</Button>

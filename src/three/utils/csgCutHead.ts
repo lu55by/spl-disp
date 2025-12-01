@@ -163,10 +163,17 @@ export async function getCutHeadV2(
 
   // 一个切割节点，直接切
   if (cuttersLen === 1) {
-    const cutter = loadedCuttersModel.children[0] as THREE.Mesh;
+    const cutter = loadedCuttersModel.children[0] as THREE.Mesh<
+      THREE.BufferGeometry,
+      THREE.Material
+    >;
     cutHeadObj = csgSubtract(headNode, cutter, false);
     // cutHeadObj = csgSubtract(cutHeadObj, cutter, false);
     cutHeadObj.name = "CutHead";
+    // 释放资源
+    disposeGeoMat(headModel);
+    disposeGeoMat(loadedCuttersModel);
+    // 返回切割过后的头部节点，左眼节点和右眼节点组
     return combineMeshesToGroup(
       "CutHeadEyesNodeCombinedGrp",
       cutHeadObj,
@@ -244,6 +251,9 @@ export async function getCutHeadV2(
   // 修改 cutHead 名称
   cutHeadObj!.name = "CutHead";
 
+  // 释放资源
+  disposeGeoMat(headModel);
+  disposeGeoMat(loadedCuttersModel);
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
     "cutHeadEyesCombinedGrp",
@@ -251,6 +261,18 @@ export async function getCutHeadV2(
     eyeLNode,
     eyeRNode
   );
+}
+
+function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap>) {
+  if (!(obj3D instanceof THREE.Group)) return;
+  obj3D.traverse((m) => {
+    if (m instanceof THREE.Mesh) {
+      console.log("Ready to dispose the geometry and material of mesh ->", m);
+      m.geometry.dispose();
+      m.material.dispose();
+      console.log("Disposed the geometry and material of mesh ->", m);
+    }
+  });
 }
 
 interface LoadObjOptions {

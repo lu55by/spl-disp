@@ -22,8 +22,8 @@ import {
 import {csgSubtract} from "../../three/csg";
 import {exportObjectToOBJ} from "../../three/exporters";
 import {addTransformDebug} from "../../three/gui";
-import {loadObj} from "../../three/loaders/ModelLoader.ts";
-import {loadTexture} from "../../three/loaders/TextureLoader.ts";
+import {loadObj} from "../../three/loaders/ModelLoader";
+import {loadTexture} from "../../three/loaders/TextureLoader";
 import {
   applyDebugTransformation,
   combineMeshesToGroup,
@@ -31,13 +31,13 @@ import {
   modifyNewVerticesUv,
   scaleGroupToHeight
 } from "../../three/meshOps";
-import {getCutHeadV2} from "../../three/utils/csgCutHead.ts";
-import {useModelsStore} from "../../stores/useModelsStore.ts";
+import {getCutHeadV2} from "../../three/utils/csgCutHead";
+import {useModelsStore} from "../../stores/useModelsStore";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const {group: globalGroup} = useModelsStore();
+const {group: globalGroup, guiGlobal} = useModelsStore();
 console.log('Global Group ->', globalGroup);
 
 let camera: THREE.PerspectiveCamera,
@@ -52,7 +52,8 @@ const height = window.innerHeight;
 
 // Init scene fn
 const init = () => {
-  gui = new GUI();
+//   gui = new GUI();
+  gui = guiGlobal as GUI;
 
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
