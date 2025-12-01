@@ -14,6 +14,7 @@ import { useModelsStore } from "../../stores/useModelsStore";
 import {
   BasicMat,
   CameraProps,
+  CutHeadEyesCombinedGroupName,
   DirectionalLightIntensity,
   ModelPaths,
   NodeNames,
@@ -445,7 +446,7 @@ const init = () => {
     // camera.updateMatrixWorld();
 
     const combinedCutHeadEyesGrp: THREE.Group = combineMeshesToGroup(
-      "cutHeadEyesCombinedGrp",
+      CutHeadEyesCombinedGroupName,
       cutHead,
       eyeLMaleNode,
       eyeRMaleNode

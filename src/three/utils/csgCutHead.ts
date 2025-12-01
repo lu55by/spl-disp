@@ -123,7 +123,7 @@ export async function getCutHead(
 
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
-    "cutHeadEyesCombinedGrp",
+    "CutHeadEyesCombinedGrp",
     cutHeadObj!,
     eyeLNode,
     eyeRNode
@@ -258,7 +258,7 @@ export async function getCutHeadV2(
   disposeGeoMat(loadedCuttersModel);
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
-    "cutHeadEyesCombinedGrp",
+    "CutHeadEyesCombinedGrp",
     cutHeadObj!,
     eyeLNode,
     eyeRNode
@@ -391,7 +391,7 @@ export async function getCutHeadV3(
   disposeGeoMat(headModel);
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
-    "cutHeadEyesCombinedGrp",
+    "CutHeadEyesCombinedGrp",
     cutHeadObj!,
     eyeLNode,
     eyeRNode

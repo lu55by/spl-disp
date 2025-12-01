@@ -55,6 +55,9 @@ export const OffsetPosNegPercentages = {
   },
 };
 
+export const CutHeadEyesCombinedGroupName = "CutHeadEyesCombinedGrp";
+
+// Material
 export const BasicMatWireframe = new MeshBasicMaterial({ wireframe: true });
 export const BasicMat = new MeshBasicMaterial();
 

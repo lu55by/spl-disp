@@ -114,7 +114,7 @@ export async function getCutHeadV2(
 
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
-    "cutHeadEyesCombinedGrp",
+    "CutHeadEyesCombinedGrp",
     cutHeadObj!,
     eyeLNode,
     eyeRNode
