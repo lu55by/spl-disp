@@ -473,7 +473,7 @@ const init = () => {
   };
 
   const csgCutHeadFnTst2 = async () => {
-    const isModelFeMale = true;
+    const isModelFeMale = false;
 
     // Head Model Path
     const headModelPath = isModelFeMale
@@ -481,7 +481,8 @@ const init = () => {
       : ModelPaths.HeadMale.Model;
 
     // Head mtl Path
-    const headMtlPath = isModelFeMale ? ModelPaths.HeadFemale.MTLPath : "";
+    // const headMtlPath = isModelFeMale ? ModelPaths.HeadFemale.MTLPath : undefined;
+    const headMtlPath = undefined;
 
     const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath, {
       mtlPath: headMtlPath,
@@ -518,7 +519,7 @@ const init = () => {
       eyeLNode.material.map = eyeLColTex;
       eyeRNode.material.map = eyeRColTex;
     };
-    // await applyTexture();
+    await applyTexture();
 
     const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
     applyDebugTransformation(cutHead);

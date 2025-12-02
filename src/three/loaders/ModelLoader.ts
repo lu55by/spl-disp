@@ -3,10 +3,10 @@ import {MTLLoader} from "three/examples/jsm/loaders/MTLLoader.js";
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
 
 export interface LoadObjOptions {
-    mtlPath?: string;
-    position?: THREE.Vector3;
-    rotation?: THREE.Euler;
-    scale?: THREE.Vector3 | number;
+  mtlPath?: string | undefined;
+  position?: THREE.Vector3;
+  rotation?: THREE.Euler;
+  scale?: THREE.Vector3 | number;
 }
 
 /**

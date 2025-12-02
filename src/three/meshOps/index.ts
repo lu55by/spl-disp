@@ -80,15 +80,17 @@ export function applyDebugTransformation(
 
 export function applySRGBColorSpace(obj: Object3D) {
   if (!(obj instanceof Group)) return;
+  // console.log("Model to be applied for SRGBColorSpace ->", obj);
   obj.traverse((m: Object3D) => {
     if (m instanceof Mesh) {
       const mesh = m as any;
       const map = mesh.material.map;
+      // console.log("Mesh map prop ->", map);
       mesh.material = new MeshStandardMaterial({
         roughness: 0.8,
         metalness: 0.2,
+        map,
       });
-      mesh.material.map = map;
       mesh.material.map.colorSpace = SRGBColorSpace;
     }
   });
