@@ -338,7 +338,7 @@ export async function getCutHeadV3(
     "cutting03"
   ) as THREE.Mesh;
 
-  // 执行切割操作
+  // !! 执行切割操作
 
   // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
   cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true);
