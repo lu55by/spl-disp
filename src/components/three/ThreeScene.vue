@@ -14,6 +14,7 @@ import { useModelsStore } from "../../stores/useModelsStore";
 import {
   BasicMat,
   CameraProps,
+  Colors,
   CutHeadEyesCombinedGroupName,
   DirectionalLightIntensity,
   ModelPaths,
@@ -28,6 +29,7 @@ import { loadObj } from "../../three/loaders/ModelLoader";
 import { loadTexture } from "../../three/loaders/TextureLoader";
 import {
   applyDebugTransformation,
+  applyMaterialWireframe,
   applySRGBColorSpace,
   combineMeshesToGroup,
   exportCutHead,
@@ -524,7 +526,7 @@ const init = () => {
     const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
     applyDebugTransformation(cutHead);
     applySRGBColorSpace(cutHead);
-    // applyMaterialWireframe(cutHead);
+    // applyMaterialWireframe(cutHead, Colors.Yellow);
     scene.add(cutHead);
     return;
 

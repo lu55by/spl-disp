@@ -88,7 +88,7 @@ const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 // Head Male Prefix
 const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
-const HeadMaleSubPath = `/cutHead-issue-01`;
+const HeadMaleSubPath = `/cutHead-issue-02`;
 
 // Head Female Prefix
 const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;

@@ -342,6 +342,7 @@ export async function getCutHeadV3(
 
   // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
   cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true);
+  // DEBUG hollow cut.
   // return new THREE.Group().add(cutHeadObj);
 
   /* 
@@ -369,6 +370,8 @@ export async function getCutHeadV3(
     postSphereCutOffest.pos,
     postSphereCutOffest.neg
   );
+  // DEBUG sph cut.
+  // return new THREE.Group().add(cutHeadObj);
 
   // 切割之前克隆几何体
   const cylCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
@@ -383,6 +386,8 @@ export async function getCutHeadV3(
     postCylinderCutOffest.pos,
     postCylinderCutOffest.neg
   );
+  // DEBUG cyl cut.
+  return new THREE.Group().add(cutHeadObj);
 
   // 修改 cutHead 名称
   cutHeadObj!.name = "CutHead";
