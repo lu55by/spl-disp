@@ -86,14 +86,14 @@ const HairPathPrefix = `${ModelsPathPrefix}/hair`;
 const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 
 // Head Male Prefix
-const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
+export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
-const HeadMaleSubPath = `/cutHead-issue-02`;
+export const HeadMaleSubPath = `/default`;
 
 // Head Female Prefix
-const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
+export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
 // Head Female sub path
-const HeadFeMaleSubPath = `/default`;
+export const HeadFeMaleSubPath = `/default`;
 
 // Body Prefix
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;

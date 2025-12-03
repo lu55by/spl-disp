@@ -96,7 +96,7 @@ export async function getCutHead(
   const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
   cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
-  const postSphereCutOffest = { pos: 0, neg: 0.08 };
+  const postSphereCutOffest = { pos: 0, neg: -0.08 };
   modifyNewVerticesUv(
     new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -109,8 +109,8 @@ export async function getCutHead(
   cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postCylinderCutOffest = isFemale
-    ? { pos: 0, neg: 0.046 }
-    : { pos: 0, neg: 0.044 };
+    ? { pos: 0, neg: -0.046 }
+    : { pos: 0, neg: -0.044 };
   modifyNewVerticesUv(
     new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -228,7 +228,7 @@ export async function getCutHeadV2(
   const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
   cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
-  const postSphereCutOffest = { pos: 0, neg: 0.08 };
+  const postSphereCutOffest = { pos: 0, neg: -0.08 };
   modifyNewVerticesUv(
     new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -241,8 +241,8 @@ export async function getCutHeadV2(
   cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postCylinderCutOffest = isFemale
-    ? { pos: 0, neg: 0.046 }
-    : { pos: 0, neg: 0.044 };
+    ? { pos: 0, neg: -0.046 }
+    : { pos: 0, neg: -0.044 };
   modifyNewVerticesUv(
     new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -354,7 +354,7 @@ export async function getCutHeadV3(
         (pos -> 基于切割之前的顶点数量作为开始索引向切割后的几何体 UV 数组 [后] 寻找新增顶点)
         (neg -> 基于切割之前的顶点数量作为开始索引向切割后的几何体 UV 数组 [前] 寻找新增顶点)
   */
-  const isFemale = true;
+  const isFemale = false;
 
   // 基础材质，只为创建新网格使用
   const basicMat = new THREE.MeshBasicMaterial();
@@ -363,7 +363,10 @@ export async function getCutHeadV3(
   const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
   cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
-  const postSphereCutOffest = { pos: 0, neg: 0.08 };
+  // const postSphereCutOffest = { pos: 0, neg: 0.08 };
+  const postSphereCutOffest = isFemale
+    ? { pos: 0, neg: -0.08 }
+    : { pos: 0, neg: -0.0725 };
   modifyNewVerticesUv(
     new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -378,8 +381,9 @@ export async function getCutHeadV3(
   cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postCylinderCutOffest = isFemale
-    ? { pos: 0, neg: 0.046 }
-    : { pos: 0, neg: 0.044 };
+    ? { pos: 0, neg: -0.046 }
+    : { pos: 0, neg: -0.044 };
+  console.log("postCylinderCutOffest ->", postCylinderCutOffest);
   modifyNewVerticesUv(
     new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -534,7 +538,7 @@ function csgSubtract(
  * @param originalNode Original Node before csg operation.
  * @param cutObj Cut Object after csg operation.
  * @param offsetPositivePercentage 0 ~ 1 value of the positive offset of the uv start idx based on the original node vertices count.
- * @param offsetNegativePercentage 0 ~ 1 value of the negative offset of the uv start idx based on the original node vertices count.
+ * @param offsetNegativePercentage -1 ~ 0 value of the negative offset of the uv start idx based on the original node vertices count.
  */
 function modifyNewVerticesUv(
   originalNode: Brush | THREE.Mesh,
@@ -556,8 +560,9 @@ function modifyNewVerticesUv(
   const orgCountOffsetPositive = Math.floor(
     newVerticesCount * offsetPositivePercentage
   );
-  const orgCountOffsetNegative =
-    Math.floor(orgCount * offsetNegativePercentage) * -1;
+  const orgCountOffsetNegative = Math.floor(
+    orgCount * offsetNegativePercentage
+  );
 
   const offsetCount =
     orgCount + orgCountOffsetPositive + orgCountOffsetNegative;

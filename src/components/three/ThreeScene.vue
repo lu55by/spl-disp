@@ -17,6 +17,8 @@ import {
   Colors,
   CutHeadEyesCombinedGroupName,
   DirectionalLightIntensity,
+  HeadFeMaleSubPath,
+  HeadMaleSubPath,
   ModelPaths,
   NodeNames,
   OffsetPosNegPercentages,
@@ -74,7 +76,7 @@ const init = () => {
     CameraProps.Far
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  addTransformDebug("Camera", gui, camera);
+  // addTransformDebug("Camera", gui, camera);
 
   /**
    * Scene
@@ -474,13 +476,22 @@ const init = () => {
     });
   };
 
-  const csgCutHeadFnTst2 = async () => {
-    const isModelFeMale = false;
+  const csgCutHeadFnTst2 = async (
+    modelSubPath: string,
+    isFamele: boolean = false,
+    debugPosOffset: THREE.Vector3 = new THREE.Vector3()
+  ) => {
+    const isModelFeMale = isFamele;
 
     // Head Model Path
-    const headModelPath = isModelFeMale
+    let headModelPath = isModelFeMale
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
+    // const headModelPath = modelPath;
+    const subPath2Search = isModelFeMale ? HeadFeMaleSubPath : HeadMaleSubPath;
+    headModelPath = headModelPath.replace(subPath2Search, modelSubPath);
+
+    console.log('headModelPath ->', headModelPath);
 
     // Head mtl Path
     // const headMtlPath = isModelFeMale ? ModelPaths.HeadFemale.MTLPath : undefined;
@@ -505,14 +516,32 @@ const init = () => {
 
     const applyTexture = async (): Promise<void> => {
       const headColTexPath = isModelFeMale
-        ? ModelPaths.HeadFemale.Texture.HeadColTex
-        : ModelPaths.HeadMale.Texture.HeadColorTex;
+        ? ModelPaths.HeadFemale.Texture.HeadColTex.replace(
+            subPath2Search,
+            modelSubPath
+          )
+        : ModelPaths.HeadMale.Texture.HeadColorTex.replace(
+            subPath2Search,
+            modelSubPath
+          );
       const eyeLColTexPath = isModelFeMale
-        ? ModelPaths.HeadFemale.Texture.EyeLColTex
-        : ModelPaths.HeadMale.Texture.EyeLColTex;
+        ? ModelPaths.HeadFemale.Texture.EyeLColTex.replace(
+            subPath2Search,
+            modelSubPath
+          )
+        : ModelPaths.HeadMale.Texture.EyeLColTex.replace(
+            subPath2Search,
+            modelSubPath
+          );
       const eyeRColTexPath = isModelFeMale
-        ? ModelPaths.HeadFemale.Texture.EyeRColTex
-        : ModelPaths.HeadMale.Texture.EyeRColTex;
+        ? ModelPaths.HeadFemale.Texture.EyeRColTex.replace(
+            subPath2Search,
+            modelSubPath
+          )
+        : ModelPaths.HeadMale.Texture.EyeRColTex.replace(
+            subPath2Search,
+            modelSubPath
+          );
       const headColTex = await loadTexture(headColTexPath);
       const eyeLColTex = await loadTexture(eyeLColTexPath);
       const eyeRColTex = await loadTexture(eyeRColTexPath);
@@ -524,7 +553,7 @@ const init = () => {
     await applyTexture();
 
     const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
-    applyDebugTransformation(cutHead);
+    applyDebugTransformation(cutHead, debugPosOffset);
     applySRGBColorSpace(cutHead);
     // applyMaterialWireframe(cutHead, Colors.Yellow);
     scene.add(cutHead);
@@ -552,7 +581,21 @@ const init = () => {
 
   // loadBodyTst();
 
-  csgCutHeadFnTst2();
+  csgCutHeadFnTst2(
+    "/cutHead-uv-issue-01-isspd01",
+    false,
+    new THREE.Vector3(-0.3, 0, 0)
+  );
+  csgCutHeadFnTst2(
+    "/cutHead-uv-issue-02-sasha01",
+    false,
+    new THREE.Vector3(0, 0, 0)
+  );
+  csgCutHeadFnTst2(
+    "/default",
+    false,
+    new THREE.Vector3(0.3, 0, 0)
+  );
 };
 
 // Resize fn
