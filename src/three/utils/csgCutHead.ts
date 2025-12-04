@@ -267,10 +267,12 @@ export async function getCutHeadV2(
 
 export async function getCutHeadV3(
   headModel: THREE.Object3D,
-  cuttersModel: THREE.Object3D
+  cutters: THREE.Object3D | string,
+  isFemale: boolean
 ): Promise<THREE.Object3D> {
   // 切割模型
-  const loadedCuttersModel: THREE.Object3D = cuttersModel;
+  const loadedCuttersModel: THREE.Object3D =
+    cutters instanceof THREE.Object3D ? cutters : await loadObj(cutters);
   // console.log("loadedCuttersModel ->", loadedCuttersModel);
   // return headModel;
   const cuttersLen = loadedCuttersModel.children.length;
@@ -350,11 +352,11 @@ export async function getCutHeadV3(
       需要区分，因为目前男女头新增顶点在 UV 数组中索引不同，有可能只有 0.002 (开始索引位置偏移百分比) 的差别.
       目前仅能基于调试无误后的 [固定值] 进行新增顶点的获取.
       eg.
-        const postCylinderCutOffest = isFemale ? { pos: 0, neg: 0.046 } : { pos: 0, neg: 0.044 };
+        const postCylinderCutOffest = isFemale ? { pos: 0, neg: -0.046 } : { pos: 0, neg: -0.044 };
         (pos -> 基于切割之前的顶点数量作为开始索引向切割后的几何体 UV 数组 [后] 寻找新增顶点)
         (neg -> 基于切割之前的顶点数量作为开始索引向切割后的几何体 UV 数组 [前] 寻找新增顶点)
   */
-  const isFemale = false;
+  // const isFemale = isFemale;
 
   // 基础材质，只为创建新网格使用
   const basicMat = new THREE.MeshBasicMaterial();
@@ -363,9 +365,8 @@ export async function getCutHeadV3(
   const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
   cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
   // UV 修改 (基于前一个切割几何体顶点数量)
-  // const postSphereCutOffest = { pos: 0, neg: 0.08 };
   const postSphereCutOffest = isFemale
-    ? { pos: 0, neg: -0.08 }
+    ? { pos: 0, neg: -0.07705 }
     : { pos: 0, neg: -0.0725 };
   modifyNewVerticesUv(
     new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),

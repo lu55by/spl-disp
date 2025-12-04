@@ -491,7 +491,7 @@ const init = () => {
     const subPath2Search = isModelFeMale ? HeadFeMaleSubPath : HeadMaleSubPath;
     headModelPath = headModelPath.replace(subPath2Search, modelSubPath);
 
-    console.log('headModelPath ->', headModelPath);
+    console.log("headModelPath ->", headModelPath);
 
     // Head mtl Path
     // const headMtlPath = isModelFeMale ? ModelPaths.HeadFemale.MTLPath : undefined;
@@ -500,6 +500,7 @@ const init = () => {
     const loadedHeadModel: THREE.Object3D = await loadObj(headModelPath, {
       mtlPath: headMtlPath,
     });
+    loadedHeadModel.name = "female";
     console.log("loadedHeadModel -> ", loadedHeadModel);
     // return;
 
@@ -552,7 +553,7 @@ const init = () => {
     };
     await applyTexture();
 
-    const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal);
+    const cutHead = await getCutHeadV3(loadedHeadModel, cuttersModelGlobal, isModelFeMale);
     applyDebugTransformation(cutHead, debugPosOffset);
     applySRGBColorSpace(cutHead);
     // applyMaterialWireframe(cutHead, Colors.Yellow);
@@ -581,21 +582,18 @@ const init = () => {
 
   // loadBodyTst();
 
-  csgCutHeadFnTst2(
-    "/cutHead-uv-issue-01-isspd01",
-    false,
-    new THREE.Vector3(-0.3, 0, 0)
-  );
-  csgCutHeadFnTst2(
-    "/cutHead-uv-issue-02-sasha01",
-    false,
-    new THREE.Vector3(0, 0, 0)
-  );
-  csgCutHeadFnTst2(
-    "/default",
-    false,
-    new THREE.Vector3(0.3, 0, 0)
-  );
+  // csgCutHeadFnTst2(
+  //   "/cutHead-uv-issue-01-isspd01",
+  //   false,
+  //   new THREE.Vector3(-0.3, 0, 0)
+  // );
+  // csgCutHeadFnTst2(
+  //   "/cutHead-uv-issue-02-sasha01",
+  //   false,
+  //   new THREE.Vector3(0, 0, 0)
+  // );
+  csgCutHeadFnTst2("/ellie01", true, new THREE.Vector3(-0.15, 0, 0));
+  csgCutHeadFnTst2("/default", true, new THREE.Vector3(0.15, 0, 0));
 };
 
 // Resize fn
