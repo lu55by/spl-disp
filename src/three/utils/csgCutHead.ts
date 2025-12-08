@@ -581,8 +581,8 @@ export async function getCutHeadV4(
     null,
     "Sphere Cutter Node Hollow Subtraction."
   );
-  // 切割之前克隆几何体
-  const sphCutHeadGeoPreCloned = sphHollowCutHead.geometry;
+  // 切割之前获取孔洞切割几何体
+  const sphHollowCutHeadGeo = sphHollowCutHead.geometry;
   cutHeadObj = csgSubtract(
     cutHeadObj,
     sphereCutterNode,
@@ -594,7 +594,7 @@ export async function getCutHeadV4(
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postSphereCutOffest = { pos: 0, neg: 0 };
   modifyNewVerticesUv(
-    new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
+    new THREE.Mesh(sphHollowCutHeadGeo, basicMat),
     cutHeadObj,
     postSphereCutOffest.pos,
     postSphereCutOffest.neg
@@ -611,9 +611,8 @@ export async function getCutHeadV4(
     null,
     "Cylinder Cutter Node Hollow Subtraction."
   );
-  // 切割之前克隆几何体
-  // const cylCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
-  const cylCutHeadGeoPreCloned = cylHollowCutHead.geometry;
+  // 切割之前获取孔洞切割几何体
+  const cylHollowCutHeadGeo = cylHollowCutHead.geometry;
   cutHeadObj = csgSubtract(
     cutHeadObj,
     cylinderCutterNode,
@@ -626,7 +625,7 @@ export async function getCutHeadV4(
   const postCylinderCutOffest = { pos: 0, neg: 0 };
   console.log("postCylinderCutOffest ->", postCylinderCutOffest);
   modifyNewVerticesUv(
-    new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
+    new THREE.Mesh(cylHollowCutHeadGeo, basicMat),
     cutHeadObj,
     postCylinderCutOffest.pos,
     postCylinderCutOffest.neg
@@ -821,7 +820,7 @@ function modifyNewVerticesUv(
   const offsetCount =
     orgCount + orgCountOffsetPositive + orgCountOffsetNegative;
 
-  // 新增顶点 uv 坐标更新
+  // 新增顶点的 uv 坐标更新
 
   const uvCoordinateMod = new THREE.Vector2(0.1, 0.1);
 
@@ -838,7 +837,6 @@ function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
 
 /**
  * Combines multiple meshes into a THREE.Group.
- *
  * @param name Optional name for the group.
  * @param meshes List of meshes to combine.
  * @returns THREE.Group containing all meshes.

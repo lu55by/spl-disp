@@ -6,7 +6,7 @@ import { MaxModelLength } from "../constants";
 import { CutHeadDebugProps, ModelPaths } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
 import { disposeGeoMat } from "../three/meshOps/index.ts";
-import { getCutHeadV3 } from "../three/utils/csgCutHead.ts";
+import { getCutHeadV4 } from "../three/utils/csgCutHead.ts";
 
 const ObjLoader = new OBJLoader();
 const GUIGlobal = new GUI();
@@ -23,7 +23,7 @@ const loadDefaultHeadAsync = async () => {
     // Male
     ModelPaths.HeadMale.Model
   );
-  const cutHead = await getCutHeadV3(loadedHeadModel, loadedCuttersModel);
+  const cutHead = await getCutHeadV4(loadedHeadModel, loadedCuttersModel);
   cutHead.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   if (GUIGlobal)
     addTransformDebug("Cut Head", GUIGlobal, cutHead, { showScale: true });
