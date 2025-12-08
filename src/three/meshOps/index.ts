@@ -2,6 +2,7 @@ import {
   Box3,
   BufferGeometry,
   Color,
+  DoubleSide,
   Group,
   Material,
   Mesh,
@@ -92,6 +93,17 @@ export function applySRGBColorSpace(obj: Object3D) {
         map,
       });
       mesh.material.map.colorSpace = SRGBColorSpace;
+    }
+  });
+}
+
+export function applyDoubleSide(obj: Object3D) {
+  console.log("\n -- applyDoubleSide -- obj ->", obj);
+  if (!(obj instanceof Group)) return;
+  obj.traverse((m: Object3D) => {
+    if (m instanceof Mesh) {
+      const mesh = m as any;
+      mesh.material.side = DoubleSide;
     }
   });
 }

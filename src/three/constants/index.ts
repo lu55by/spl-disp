@@ -135,6 +135,6 @@ export const ModelPaths = {
     SphereLineTranslated: `${CutterPathPrefix}/cutters-sph-line-translated.obj`,
     CylinderStrCloseLineTranslated: `${CutterPathPrefix}/cutters-cly-strc-close-line-translated.obj`,
     ClyinderStrcLinesRmvd: `${CutterPathPrefix}/cutters-cyl-strc-lines-rmvd.obj`,
-    OralSphereCylinderCombined: `${CutterPathPrefix}/cutters-oral-sph-cyl-combined.obj`,
+    OralSphereCylinderCombined: `${CutterPathPrefix}/cutters-mod-oral-vt-1.obj`,
   },
 };

@@ -31,6 +31,7 @@ import { loadObj } from "../../three/loaders/ModelLoader";
 import { loadTexture } from "../../three/loaders/TextureLoader";
 import {
   applyDebugTransformation,
+  applyDoubleSide,
   applyMaterialWireframe,
   applySRGBColorSpace,
   combineMeshesToGroup,
@@ -644,7 +645,8 @@ const init = () => {
     const cutHead = await getCutHeadV4(loadedHeadModel, cuttersModelGlobal);
     applyDebugTransformation(cutHead, debugPosOffset);
     applySRGBColorSpace(cutHead);
-    // applyMaterialWireframe(cutHead, Colors.Yellow);
+    applyDoubleSide(cutHead);
+    // applyMaterialWireframe(cutHead, Colors.White);
     scene.add(cutHead);
   };
 
@@ -676,7 +678,7 @@ const init = () => {
   csgCutHeadFnTstV2(
     "/cutHead-hollow-issue-02-seki",
     false,
-    new THREE.Vector3(-0.3, 0, 0)
+    new THREE.Vector3(-.3, 0, 0)
   );
   csgCutHeadFnTstV2(
     "/cutHead-uv-issue-01-isspd01",
@@ -692,8 +694,8 @@ const init = () => {
   /*
     Female Heads
    */
-  // csgCutHeadFnTstV2("/default", true, new THREE.Vector3(-0.3, 0, 0.3));
-  // csgCutHeadFnTstV2("/ellie01", true, new THREE.Vector3(0, 0, 0.3));
+  csgCutHeadFnTstV2("/default", true, new THREE.Vector3(-0.3, 0, 0.3));
+  csgCutHeadFnTstV2("/ellie01", true, new THREE.Vector3(0, 0, 0.3));
 };
 
 // Resize fn
