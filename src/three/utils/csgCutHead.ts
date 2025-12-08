@@ -265,6 +265,13 @@ export async function getCutHeadV2(
   );
 }
 
+/**
+ * 接收头模对象，布尔切割后返回
+ * @param headModel 头模对象 (THREE.Object3D)
+ * @param cutters 布尔切割口腔顶点模型或路径 [切割口腔后部顶点防止出现孔洞问题] (THREE.Object3D | string)
+ * @param isFemale 男头摸或女头摸 (boolean)
+ * @returns
+ */
 export async function getCutHeadV3(
   headModel: THREE.Object3D,
   cutters: THREE.Object3D | string,
@@ -306,7 +313,14 @@ export async function getCutHeadV3(
       THREE.BufferGeometry,
       THREE.Material
     >;
-    cutHeadObj = csgSubtract(headNode, cutter, false);
+    cutHeadObj = csgSubtract(
+      headNode,
+      cutter,
+      false,
+      null,
+      null,
+      "One single Cutter Node Subtraction."
+    );
     // cutHeadObj = csgSubtract(cutHeadObj, cutter, false);
     cutHeadObj.name = "CutHead";
     // 释放资源
@@ -343,7 +357,14 @@ export async function getCutHeadV3(
   // !! 执行切割操作
 
   // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
-  cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true);
+  cutHeadObj = csgSubtract(
+    headNode,
+    cutter4OralCavityNode,
+    true,
+    null,
+    null,
+    "Oral Cavity Cutter Node Hollow Subtraction."
+  );
   // DEBUG hollow cut.
   // return new THREE.Group().add(cutHeadObj);
 
@@ -361,13 +382,32 @@ export async function getCutHeadV3(
   // 基础材质，只为创建新网格使用
   const basicMat = new THREE.MeshBasicMaterial();
 
+  // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
+  const sphHollowCutHead = csgSubtract(
+    cutHeadObj,
+    sphereCutterNode,
+    true,
+    ["position"],
+    null,
+    "Sphere Cutter Node Hollow Subtraction."
+  );
   // 切割之前克隆几何体
-  const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
-  cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false);
+  // const sphCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
+  const sphCutHeadGeoPreCloned = sphHollowCutHead.geometry;
+  cutHeadObj = csgSubtract(
+    cutHeadObj,
+    sphereCutterNode,
+    false,
+    null,
+    null,
+    "Sphere Cutter Node Subtraction."
+  );
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postSphereCutOffest = isFemale
-    ? { pos: 0, neg: -0.07705 }
-    : { pos: 0, neg: -0.0725 };
+    ? // ? { pos: 0, neg: -0.07705 }
+      // : { pos: 0, neg: -0.0725 };
+      { pos: 0, neg: 0 }
+    : { pos: 0, neg: 0 };
   modifyNewVerticesUv(
     new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
     cutHeadObj,
@@ -377,13 +417,213 @@ export async function getCutHeadV3(
   // DEBUG sph cut.
   // return new THREE.Group().add(cutHeadObj);
 
+  // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
+  const cylHollowCutHead = csgSubtract(
+    cutHeadObj,
+    cylinderCutterNode,
+    true,
+    ["position"],
+    null,
+    "Cylinder Cutter Node Hollow Subtraction."
+  );
   // 切割之前克隆几何体
-  const cylCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
-  cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false);
+  // const cylCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
+  const cylCutHeadGeoPreCloned = cylHollowCutHead.geometry;
+  cutHeadObj = csgSubtract(
+    cutHeadObj,
+    cylinderCutterNode,
+    false,
+    null,
+    null,
+    "Cylinder Cutter Node Subtraction."
+  );
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postCylinderCutOffest = isFemale
-    ? { pos: 0, neg: -0.046 }
-    : { pos: 0, neg: -0.044 };
+    ? // ? { pos: 0, neg: -0.046 }
+      // : { pos: 0, neg: -0.044 };
+      { pos: 0, neg: 0 }
+    : { pos: 0, neg: 0 };
+  console.log("postCylinderCutOffest ->", postCylinderCutOffest);
+  modifyNewVerticesUv(
+    new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
+    cutHeadObj,
+    postCylinderCutOffest.pos,
+    postCylinderCutOffest.neg
+  );
+  // DEBUG cyl cut.
+  return new THREE.Group().add(cutHeadObj);
+
+  // 修改 cutHead 名称
+  cutHeadObj!.name = "CutHead";
+
+  // 释放资源
+  disposeGeoMat(headModel);
+  // 返回切割过后的头部节点，左眼节点和右眼节点组
+  return combineMeshesToGroup(
+    "CutHeadEyesCombinedGrp",
+    cutHeadObj!,
+    eyeLNode,
+    eyeRNode
+  );
+}
+
+/**
+ * 接收头模对象，布尔切割后返回
+ * 切割步骤:
+ *  1. 口腔顶点切割
+ *  2. 底座椭圆孔洞切割 (获取顶点数量以精确修改 UV)
+ *  3. 底座椭圆切割
+ *  4. 圆柱孔洞切割 (获取顶点数量以精确修改 UV)
+ *  5. 圆柱切割
+ * @param headModel 头模对象 (THREE.Object3D)
+ * @param cutters 布尔切割口腔顶点模型或路径 [切割口腔后部顶点防止出现孔洞问题] (THREE.Object3D | string)
+ * @returns 切割后的头模对象 (THREE.Object3D)
+ */
+export async function getCutHeadV4(
+  headModel: THREE.Object3D,
+  cutters: THREE.Object3D | string
+): Promise<THREE.Object3D> {
+  // 切割模型
+  const loadedCuttersModel: THREE.Object3D =
+    cutters instanceof THREE.Object3D ? cutters : await loadObj(cutters);
+  // console.log("loadedCuttersModel ->", loadedCuttersModel);
+  // return headModel;
+  const cuttersLen = loadedCuttersModel.children.length;
+
+  // 没有切割节点，返回头模
+  if (cuttersLen === 0) {
+    console.warn("No cutters found.");
+    return headModel;
+  }
+
+  // 加载口腔切割模型
+
+  // 获取节点
+
+  // 头部节点
+  const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
+  // 左眼节点
+  const eyeLNode = headModel
+    .getObjectByName("eyeLeft_lod0_mesh")
+    .clone() as THREE.Mesh;
+  // 右眼节点
+  const eyeRNode = headModel
+    .getObjectByName("eyeRight_lod0_mesh")
+    .clone() as THREE.Mesh;
+
+  let cutHeadObj: Brush | THREE.Mesh;
+
+  // 一个切割节点，直接切
+  if (cuttersLen === 1) {
+    const cutter = loadedCuttersModel.children[0] as THREE.Mesh<
+      THREE.BufferGeometry,
+      THREE.Material
+    >;
+    cutHeadObj = csgSubtract(
+      headNode,
+      cutter,
+      false,
+      null,
+      null,
+      "One single Cutter Node Subtraction."
+    );
+    cutHeadObj.name = "CutHead";
+    // 释放资源
+    disposeGeoMat(headModel);
+    // 返回切割过后的头部节点，左眼节点和右眼节点组
+    return combineMeshesToGroup(
+      "CutHeadEyesNodeCombinedGrp",
+      cutHeadObj,
+      eyeLNode,
+      eyeRNode
+    );
+  }
+
+  // 切割节点 (根据索引获取 -> 改为根据名称获取)
+
+  // 口腔切割节点
+  const cutter4OralCavityNode = loadedCuttersModel.getObjectByName(
+    "cutting01"
+  ) as THREE.Mesh;
+
+  // Sphere Cutter
+  const sphereCutterNode = loadedCuttersModel.getObjectByName(
+    "cutting02"
+  ) as THREE.Mesh;
+  // Cylinder Cutter
+  const cylinderCutterNode = loadedCuttersModel.getObjectByName(
+    "cutting03"
+  ) as THREE.Mesh;
+
+  // !! 执行切割操作
+
+  // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
+  cutHeadObj = csgSubtract(
+    headNode,
+    cutter4OralCavityNode,
+    true,
+    null,
+    null,
+    "Oral Cavity Cutter Node Hollow Subtraction."
+  );
+  // DEBUG hollow cut.
+  // return new THREE.Group().add(cutHeadObj);
+
+  // 基础材质，只为创建新网格使用
+  const basicMat = new THREE.MeshBasicMaterial();
+
+  // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
+  const sphHollowCutHead = csgSubtract(
+    cutHeadObj,
+    sphereCutterNode,
+    true,
+    ["position"],
+    null,
+    "Sphere Cutter Node Hollow Subtraction."
+  );
+  // 切割之前克隆几何体
+  const sphCutHeadGeoPreCloned = sphHollowCutHead.geometry;
+  cutHeadObj = csgSubtract(
+    cutHeadObj,
+    sphereCutterNode,
+    false,
+    null,
+    null,
+    "Sphere Cutter Node Subtraction."
+  );
+  // UV 修改 (基于前一个切割几何体顶点数量)
+  const postSphereCutOffest = { pos: 0, neg: 0 };
+  modifyNewVerticesUv(
+    new THREE.Mesh(sphCutHeadGeoPreCloned, basicMat),
+    cutHeadObj,
+    postSphereCutOffest.pos,
+    postSphereCutOffest.neg
+  );
+  // DEBUG sph cut.
+  // return new THREE.Group().add(cutHeadObj);
+
+  // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
+  const cylHollowCutHead = csgSubtract(
+    cutHeadObj,
+    cylinderCutterNode,
+    true,
+    ["position"],
+    null,
+    "Cylinder Cutter Node Hollow Subtraction."
+  );
+  // 切割之前克隆几何体
+  // const cylCutHeadGeoPreCloned = cutHeadObj.geometry.clone();
+  const cylCutHeadGeoPreCloned = cylHollowCutHead.geometry;
+  cutHeadObj = csgSubtract(
+    cutHeadObj,
+    cylinderCutterNode,
+    false,
+    null,
+    null,
+    "Cylinder Cutter Node Subtraction."
+  );
+  // UV 修改 (基于前一个切割几何体顶点数量)
+  const postCylinderCutOffest = { pos: 0, neg: 0 };
   console.log("postCylinderCutOffest ->", postCylinderCutOffest);
   modifyNewVerticesUv(
     new THREE.Mesh(cylCutHeadGeoPreCloned, basicMat),
@@ -507,14 +747,17 @@ async function loadObj(
 let CSGEvaluator = new Evaluator();
 // csgEvaluator.attributes = ['position', 'normal'];
 // csgEvaluator.attributes = ['position', 'uv'];
-CSGEvaluator.attributes = ["position", "normal", "uv"];
+// CSGEvaluator.attributes = ["position", "normal", "uv"];
 CSGEvaluator.useGroups = false;
+const DefaultCSGEvaluatorAttributes = ["position", "normal", "uv"];
 
 function csgSubtract(
   obj2Cut: THREE.Mesh | Brush,
   cutter: THREE.Mesh | Brush,
   isHollowSub: boolean,
-  material?: THREE.Material
+  evaluatorAttributes?: string[] | null,
+  material?: THREE.Material | null,
+  operationLog?: string
 ) {
   const brushObj2Cut = new Brush(
     obj2Cut.geometry,
@@ -524,6 +767,16 @@ function csgSubtract(
 
   const brushCutter = new Brush(cutter.geometry, material || cutter.material);
   brushCutter.updateMatrixWorld();
+
+  CSGEvaluator.attributes = evaluatorAttributes
+    ? evaluatorAttributes
+    : DefaultCSGEvaluatorAttributes;
+
+  console.log("\n -- csgSubtract -- operationLog ->", operationLog);
+  console.log(
+    "\n -- csgSubtract -- CSGEvaluator.attributes ->",
+    CSGEvaluator.attributes
+  );
 
   const rs = CSGEvaluator.evaluate(
     brushObj2Cut,
