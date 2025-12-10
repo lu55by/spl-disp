@@ -6,7 +6,8 @@ import {
   Group,
   Material,
   Mesh,
-  type MeshPhongMaterial,
+  MeshPhongMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   type NormalBufferAttributes,
   Object3D,
@@ -79,26 +80,28 @@ export function applyDebugTransformation(
   obj?.scale.setScalar(CutHeadDebugProps.Scalar);
 }
 
-export function applySRGBColorSpace(obj: Object3D) {
-  if (!(obj instanceof Group)) return;
-  // console.log("Model to be applied for SRGBColorSpace ->", obj);
-  obj.traverse((m: Object3D) => {
-    if (m instanceof Mesh) {
-      const mesh = m as any;
-      const map = mesh.material.map;
-      // console.log("Mesh map prop ->", map);
-      mesh.material = new MeshStandardMaterial({
-        roughness: 0.8,
-        metalness: 0.2,
-        map,
-      });
-      mesh.material.map.colorSpace = SRGBColorSpace;
+export function applyPBRMaterialAndSRGBColorSpace(
+  obj: Object3D,
+  isStandard: boolean
+): void {
+  obj.traverse((m) => {
+    if (m instanceof Mesh && m.material instanceof MeshPhongMaterial) {
+      const orgMat = m.material;
+      m.material = isStandard
+        ? new MeshStandardMaterial({
+            map: orgMat.map,
+          })
+        : new MeshPhysicalMaterial({
+            map: orgMat.map,
+          });
+      m.material.map.colorSpace = SRGBColorSpace;
+      orgMat.dispose();
     }
   });
 }
 
 export function applyDoubleSide(obj: Object3D) {
-  console.log("\n -- applyDoubleSide -- obj ->", obj);
+  // console.log("\n -- applyDoubleSide -- obj ->", obj);
   if (!(obj instanceof Group)) return;
   obj.traverse((m: Object3D) => {
     if (m instanceof Mesh) {

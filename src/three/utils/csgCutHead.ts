@@ -623,7 +623,7 @@ export async function getCutHeadV4(
   );
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postCylinderCutOffest = { pos: 0, neg: 0 };
-  console.log("postCylinderCutOffest ->", postCylinderCutOffest);
+  // console.log("postCylinderCutOffest ->", postCylinderCutOffest);
   modifyNewVerticesUv(
     new THREE.Mesh(cylHollowCutHeadGeo, basicMat),
     cutHeadObj,
@@ -631,7 +631,7 @@ export async function getCutHeadV4(
     postCylinderCutOffest.neg
   );
   // DEBUG cyl cut.
-  return new THREE.Group().add(cutHeadObj);
+  // return new THREE.Group().add(cutHeadObj);
 
   // 修改 cutHead 名称
   cutHeadObj!.name = "CutHead";
@@ -771,11 +771,11 @@ function csgSubtract(
     ? evaluatorAttributes
     : DefaultCSGEvaluatorAttributes;
 
-  console.log("\n -- csgSubtract -- operationLog ->", operationLog);
-  console.log(
-    "\n -- csgSubtract -- CSGEvaluator.attributes ->",
-    CSGEvaluator.attributes
-  );
+  // console.log("\n -- csgSubtract -- operationLog ->", operationLog);
+  // console.log(
+  //   "\n -- csgSubtract -- CSGEvaluator.attributes ->",
+  //   CSGEvaluator.attributes
+  // );
 
   const rs = CSGEvaluator.evaluate(
     brushObj2Cut,

@@ -33,7 +33,7 @@ import {
   applyDebugTransformation,
   applyDoubleSide,
   applyMaterialWireframe,
-  applySRGBColorSpace,
+  applyPBRMaterialAndSRGBColorSpace,
   combineMeshesToGroup,
   exportCutHead,
   modifyNewVerticesUv,
@@ -99,7 +99,7 @@ const init = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(width, height);
   renderer.setAnimationLoop(animate);
-  renderer.setClearColor("#000", 0);
+  // renderer.setClearColor("#000", 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
@@ -147,7 +147,7 @@ const init = () => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       texture.needsUpdate = true;
 
-      // scene.background = texture;
+      scene.background = texture;
       scene.environment = texture;
     });
   };
@@ -560,7 +560,7 @@ const init = () => {
       isModelFeMale
     );
     applyDebugTransformation(cutHead, debugPosOffset);
-    applySRGBColorSpace(cutHead);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, false);
     // applyMaterialWireframe(cutHead, Colors.Yellow);
     scene.add(cutHead);
   };
@@ -644,8 +644,9 @@ const init = () => {
 
     const cutHead = await getCutHeadV4(loadedHeadModel, cuttersModelGlobal);
     applyDebugTransformation(cutHead, debugPosOffset);
-    applySRGBColorSpace(cutHead);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, false);
     applyDoubleSide(cutHead);
+    console.log("\n cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);
     scene.add(cutHead);
   };
@@ -675,11 +676,8 @@ const init = () => {
   /*
     Male Heads
    */
-  csgCutHeadFnTstV2(
-    "/cutHead-hollow-issue-02-seki",
-    false,
-    new THREE.Vector3(-.3, 0, 0)
-  );
+
+  csgCutHeadFnTstV2("/bigHead-01", false, new THREE.Vector3(-0.3, 0, 0));
   csgCutHeadFnTstV2(
     "/cutHead-uv-issue-01-isspd01",
     false,
@@ -690,12 +688,13 @@ const init = () => {
     false,
     new THREE.Vector3(0.3, 0, 0)
   );
+  csgCutHeadFnTstV2("/ukn-01", false, new THREE.Vector3(0.6, 0, 0));
 
   /*
     Female Heads
    */
-  csgCutHeadFnTstV2("/default", true, new THREE.Vector3(-0.3, 0, 0.3));
-  csgCutHeadFnTstV2("/ellie01", true, new THREE.Vector3(0, 0, 0.3));
+  // csgCutHeadFnTstV2("/default", true, new THREE.Vector3(-0.3, 0, 0.3));
+  // csgCutHeadFnTstV2("/ellie01", true, new THREE.Vector3(0, 0, 0.3));
 };
 
 // Resize fn
