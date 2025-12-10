@@ -17,6 +17,7 @@ import {
   Colors,
   CutHeadEyesCombinedGroupName,
   DirectionalLightIntensity,
+  HDRPath,
   HeadFeMaleSubPath,
   HeadMaleSubPath,
   ModelPaths,
@@ -111,15 +112,15 @@ const init = () => {
   /**
    * Lights
    */
-  const ambientLight = new THREE.AmbientLight("#fff", 3);
-  scene.add(ambientLight);
+  // const ambientLight = new THREE.AmbientLight("#fff", 3);
+  // scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(
-    "#fff",
-    DirectionalLightIntensity
-  );
-  directionalLight.position.set(4, 3, 1);
-  scene.add(directionalLight);
+  // const directionalLight = new THREE.DirectionalLight(
+  //   "#fff",
+  //   DirectionalLightIntensity
+  // );
+  // directionalLight.position.set(4, 3, 1);
+  // scene.add(directionalLight);
 
   /**
    * Controls
@@ -143,7 +144,7 @@ const init = () => {
   const loadEnvironment = () => {
     ultraHDRLoader.setDataType(THREE.HalfFloatType);
 
-    ultraHDRLoader.load(`hdrs/spruit_sunrise_2k.hdr.jpg`, (texture) => {
+    ultraHDRLoader.load(HDRPath, (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       texture.needsUpdate = true;
 

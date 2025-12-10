@@ -21,6 +21,10 @@ export const DirectionalLightIntensity = 5;
 // UV Coordinate to modify on both x and y
 export const UVCoordinateMod = new Vector2(0, 0.2);
 
+// HDR Path
+export const HDRPath = "hdrs/spruit_sunrise_2k.hdr.jpg";
+// export const HDRPath = "hdrs/moon_lab_2k.jpg";
+
 // Colors
 export const Colors = {
   White: new Color("#eee"),
