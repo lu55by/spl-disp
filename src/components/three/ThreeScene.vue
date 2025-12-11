@@ -12,17 +12,13 @@ import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
-  BasicMat,
   CameraProps,
-  Colors,
   CutHeadEyesCombinedGroupName,
-  DirectionalLightIntensity,
   HDRPath,
   HeadFeMaleSubPath,
   HeadMaleSubPath,
   ModelPaths,
   NodeNames,
-  OffsetPosNegPercentages,
   type PhongMesh,
 } from "../../three/constants";
 import { csgSubtract } from "../../three/csg";
@@ -33,14 +29,13 @@ import { loadTexture } from "../../three/loaders/TextureLoader";
 import {
   applyDebugTransformation,
   applyDoubleSide,
-  applyMaterialWireframe,
   applyPBRMaterialAndSRGBColorSpace,
   combineMeshesToGroup,
-  exportCutHead,
   modifyNewVerticesUv,
   scaleGroupToHeight,
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
+import { getCutHead } from "../../three/utils/csgCutHeadV2";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -652,6 +647,92 @@ const init = () => {
     scene.add(cutHead);
   };
 
+  const csgCutHeadFnTstV3 = async (
+    modelSubPath: string,
+    isFamele: boolean = false,
+    debugPosOffset: THREE.Vector3 = new THREE.Vector3()
+  ) => {
+    const isModelFeMale = isFamele;
+
+    // Head Model Path
+    let headModelPath = isModelFeMale
+      ? ModelPaths.HeadFemale.Model
+      : ModelPaths.HeadMale.Model;
+    // const headModelPath = modelPath;
+    const subPath2Search = isModelFeMale ? HeadFeMaleSubPath : HeadMaleSubPath;
+    headModelPath = headModelPath.replace(subPath2Search, modelSubPath);
+
+    console.log("headModelPath ->", headModelPath);
+
+    // Head mtl Path
+    // const headMtlPath = isModelFeMale ? ModelPaths.HeadFemale.MTLPath : undefined;
+    const headMtlPath = undefined;
+
+    const loadedHeadModel: THREE.Group = await loadObj(headModelPath, {
+      mtlPath: headMtlPath,
+    });
+    loadedHeadModel.name = "female";
+    console.log("loadedHeadModel -> ", loadedHeadModel);
+    // return;
+
+    // const headNode = loadedHeadModel.children[0] as PhongMesh;
+    const headNode = loadedHeadModel.getObjectByName(
+      NodeNames.HeadNames.Head
+    ) as PhongMesh;
+    const eyeLNode = loadedHeadModel.getObjectByName(
+      NodeNames.HeadNames.EyeL
+    ) as PhongMesh;
+    const eyeRNode = loadedHeadModel.getObjectByName(
+      NodeNames.HeadNames.EyeR
+    ) as PhongMesh;
+
+    const applyTexture = async (): Promise<void> => {
+      const headColTexPath = isModelFeMale
+        ? ModelPaths.HeadFemale.Texture.HeadColTex.replace(
+            subPath2Search,
+            modelSubPath
+          )
+        : ModelPaths.HeadMale.Texture.HeadColorTex.replace(
+            subPath2Search,
+            modelSubPath
+          );
+      const eyeLColTexPath = isModelFeMale
+        ? ModelPaths.HeadFemale.Texture.EyeLColTex.replace(
+            subPath2Search,
+            modelSubPath
+          )
+        : ModelPaths.HeadMale.Texture.EyeLColTex.replace(
+            subPath2Search,
+            modelSubPath
+          );
+      const eyeRColTexPath = isModelFeMale
+        ? ModelPaths.HeadFemale.Texture.EyeRColTex.replace(
+            subPath2Search,
+            modelSubPath
+          )
+        : ModelPaths.HeadMale.Texture.EyeRColTex.replace(
+            subPath2Search,
+            modelSubPath
+          );
+      const headColTex = await loadTexture(headColTexPath);
+      const eyeLColTex = await loadTexture(eyeLColTexPath);
+      const eyeRColTex = await loadTexture(eyeRColTexPath);
+
+      headNode.material.map = headColTex;
+      eyeLNode.material.map = eyeLColTex;
+      eyeRNode.material.map = eyeRColTex;
+    };
+    await applyTexture();
+
+    const cutHead = await getCutHead(loadedHeadModel, cuttersModelGlobal);
+    applyDebugTransformation(cutHead, debugPosOffset);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, false);
+    applyDoubleSide(cutHead);
+    console.log("\n cutHead ->", cutHead);
+    // applyMaterialWireframe(cutHead, Colors.White);
+    scene.add(cutHead);
+  };
+
   const loadBodyTst = async () => {
     const loadedBodyModel: THREE.Object3D = await loadObj(
       ModelPaths.Body.Model
@@ -678,18 +759,18 @@ const init = () => {
     Male Heads
    */
 
-  csgCutHeadFnTstV2("/bigHead-01", false, new THREE.Vector3(-0.3, 0, 0));
-  csgCutHeadFnTstV2(
+  csgCutHeadFnTstV3("/bigHead-01", false, new THREE.Vector3(-0.3, 0, 0));
+  csgCutHeadFnTstV3(
     "/cutHead-uv-issue-01-isspd01",
     false,
     new THREE.Vector3(0, 0, 0)
   );
-  csgCutHeadFnTstV2(
+  csgCutHeadFnTstV3(
     "/cutHead-uv-issue-02-sasha01",
     false,
     new THREE.Vector3(0.3, 0, 0)
   );
-  csgCutHeadFnTstV2("/ukn-01", false, new THREE.Vector3(0.6, 0, 0));
+  csgCutHeadFnTstV3("/ukn-01", false, new THREE.Vector3(0.6, 0, 0));
 
   /*
     Female Heads

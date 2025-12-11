@@ -647,6 +647,188 @@ export async function getCutHeadV4(
   );
 }
 
+/**
+ * 接收头模对象，布尔切割后返回
+ * 切割步骤:
+ *  1. 口腔顶点切割
+ *  2. 底座椭圆孔洞切割 (获取顶点数量以精确修改 UV)
+ *  3. 底座椭圆切割
+ *  4. 圆柱孔洞切割 (获取顶点数量以精确修改 UV)
+ *  5. 圆柱切割
+ * @param {THREE.Group} headModel 头模对象
+ * @param {THREE.Group | string} cutters 布尔切割口腔顶点模型或路径 [切割口腔后部顶点防止出现孔洞问题]
+ * @returns {Promise<THREE.Group<THREE.Object3DEventMap>>} 切割后的头模对象
+ */
+export async function getCutHeadV5(
+  headModel: THREE.Group,
+  cutters: THREE.Group | string
+): Promise<THREE.Group<THREE.Object3DEventMap>> {
+  // 切割模型
+  const loadedCuttersModel: THREE.Object3D =
+    cutters instanceof THREE.Group ? cutters : await loadObj(cutters);
+  // console.log("loadedCuttersModel ->", loadedCuttersModel);
+  // return headModel;
+  const cuttersLen = loadedCuttersModel.children.length;
+
+  // 没有切割节点，返回头模
+  if (cuttersLen === 0) {
+    console.warn("No cutters found.");
+    return headModel;
+  }
+
+  // 加载口腔切割模型
+
+  // 获取节点
+
+  // 头部节点
+  const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
+  // 左眼节点
+  const eyeLNode = headModel
+    .getObjectByName("eyeLeft_lod0_mesh")
+    .clone() as THREE.Mesh;
+  // 右眼节点
+  const eyeRNode = headModel
+    .getObjectByName("eyeRight_lod0_mesh")
+    .clone() as THREE.Mesh;
+
+  let cutHeadObj: Brush | THREE.Mesh;
+
+  // 一个切割节点，直接切
+  if (cuttersLen === 1) {
+    const cutter = loadedCuttersModel.children[0] as THREE.Mesh<
+      THREE.BufferGeometry,
+      THREE.Material
+    >;
+    cutHeadObj = csgSubtract(
+      headNode,
+      cutter,
+      false,
+      null,
+      null,
+      "One single Cutter Node Subtraction."
+    );
+    cutHeadObj.name = "CutHead";
+    // 释放资源
+    disposeGeoMat(headModel);
+    // 返回切割过后的头部节点，左眼节点和右眼节点组
+    return combineMeshesToGroup(
+      "CutHeadEyesNodeCombinedGrp",
+      cutHeadObj,
+      eyeLNode,
+      eyeRNode
+    );
+  }
+
+  // 切割节点 (根据索引获取 -> 改为根据名称获取)
+
+  // 口腔切割节点
+  const cutter4OralCavityNode = loadedCuttersModel.getObjectByName(
+    "cutting01"
+  ) as THREE.Mesh;
+
+  // Sphere Cutter
+  const sphereCutterNode = loadedCuttersModel.getObjectByName(
+    "cutting02"
+  ) as THREE.Mesh;
+  // Cylinder Cutter
+  const cylinderCutterNode = loadedCuttersModel.getObjectByName(
+    "cutting03"
+  ) as THREE.Mesh;
+
+  // !! 执行切割操作
+
+  // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
+  cutHeadObj = csgSubtract(
+    headNode,
+    cutter4OralCavityNode,
+    true,
+    null,
+    null,
+    "Oral Cavity Cutter Node Hollow Subtraction."
+  );
+  // DEBUG hollow cut.
+  // return new THREE.Group().add(cutHeadObj);
+
+  // 基础材质，只为创建新网格使用
+  const basicMat = new THREE.MeshBasicMaterial();
+
+  // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
+  const sphHollowCutHead = csgSubtract(
+    cutHeadObj,
+    sphereCutterNode,
+    true,
+    ["position"],
+    null,
+    "Sphere Cutter Node Hollow Subtraction."
+  );
+  // 切割之前获取孔洞切割几何体
+  const sphHollowCutHeadGeo = sphHollowCutHead.geometry;
+  // 执行底座椭圆切割
+  cutHeadObj = csgSubtract(
+    cutHeadObj,
+    sphereCutterNode,
+    false,
+    null,
+    null,
+    "Sphere Cutter Node Subtraction."
+  );
+  // UV 修改 (基于前一个切割几何体顶点数量)
+  const postSphereCutOffest = { pos: 0, neg: 0 };
+  modifyNewVerticesUv(
+    new THREE.Mesh(sphHollowCutHeadGeo, basicMat),
+    cutHeadObj,
+    postSphereCutOffest.pos,
+    postSphereCutOffest.neg
+  );
+  // DEBUG sph cut.
+  // return new THREE.Group().add(cutHeadObj);
+
+  // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
+  const cylHollowCutHead = csgSubtract(
+    cutHeadObj,
+    cylinderCutterNode,
+    true,
+    ["position"],
+    null,
+    "Cylinder Cutter Node Hollow Subtraction."
+  );
+  // 切割之前获取孔洞切割几何体
+  const cylHollowCutHeadGeo = cylHollowCutHead.geometry;
+  // 执行圆柱切割
+  cutHeadObj = csgSubtract(
+    cutHeadObj,
+    cylinderCutterNode,
+    false,
+    null,
+    null,
+    "Cylinder Cutter Node Subtraction."
+  );
+  // UV 修改 (基于前一个切割几何体顶点数量)
+  const postCylinderCutOffest = { pos: 0, neg: 0 };
+  // console.log("postCylinderCutOffest ->", postCylinderCutOffest);
+  modifyNewVerticesUv(
+    new THREE.Mesh(cylHollowCutHeadGeo, basicMat),
+    cutHeadObj,
+    postCylinderCutOffest.pos,
+    postCylinderCutOffest.neg
+  );
+  // DEBUG cyl cut.
+  // return new THREE.Group().add(cutHeadObj);
+
+  // 修改 cutHead 名称
+  cutHeadObj!.name = "CutHead";
+
+  // 释放资源
+  disposeGeoMat(headModel);
+  // 返回切割过后的头部节点，左眼节点和右眼节点组
+  return combineMeshesToGroup(
+    "CutHeadEyesCombinedGrp",
+    cutHeadObj!,
+    eyeLNode,
+    eyeRNode
+  );
+}
+
 function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap>) {
   if (!(obj3D instanceof THREE.Group)) return;
   console.log("obj3D 2 dispose ->", obj3D);
@@ -844,7 +1026,7 @@ function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
 export function combineMeshesToGroup(
   name: string,
   ...meshes: THREE.Mesh[]
-): THREE.Group {
+): THREE.Group<THREE.Object3DEventMap> {
   const group = new THREE.Group();
   group.name = name;
 
