@@ -54,7 +54,7 @@ const width = window.innerWidth;
 const height = window.innerHeight;
 
 // Init scene fn
-const init = () => {
+const init = async () => {
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
 
@@ -651,7 +651,7 @@ const init = () => {
     modelSubPath: string,
     isFamele: boolean = false,
     debugPosOffset: THREE.Vector3 = new THREE.Vector3()
-  ) => {
+  ): Promise<THREE.Group<THREE.Object3DEventMap>> => {
     const isModelFeMale = isFamele;
 
     // Head Model Path
@@ -731,6 +731,7 @@ const init = () => {
     console.log("\n cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);
     scene.add(cutHead);
+    return cutHead;
   };
 
   const loadBodyTst = async () => {
@@ -755,28 +756,44 @@ const init = () => {
 
   // loadBodyTst();
 
-  /*
-    Male Heads
-   */
+  const loadMultipleCutHeads = async () => {
+    /**
+     * Load multiple heads
+     */
+    const baseOffsetX = -0.35;
 
-  csgCutHeadFnTstV3("/bigHead-01", false, new THREE.Vector3(-0.3, 0, 0));
-  csgCutHeadFnTstV3(
-    "/cutHead-uv-issue-01-isspd01",
-    false,
-    new THREE.Vector3(0, 0, 0)
-  );
-  csgCutHeadFnTstV3(
-    "/cutHead-uv-issue-02-sasha01",
-    false,
-    new THREE.Vector3(0.3, 0, 0)
-  );
-  csgCutHeadFnTstV3("/ukn-01", false, new THREE.Vector3(0.6, 0, 0));
+    /*
+      Male Heads
+    */
+    const headMale2CutPaths = [
+      "/bigHead-01",
+      "/cutHead-uv-issue-01-isspd01",
+      "/cutHead-uv-issue-02-sasha01",
+      "/ukn-01",
+    ];
 
-  /*
-    Female Heads
-   */
-  // csgCutHeadFnTstV2("/default", true, new THREE.Vector3(-0.3, 0, 0.3));
-  // csgCutHeadFnTstV2("/ellie01", true, new THREE.Vector3(0, 0, 0.3));
+    for (let i = 0; i < headMale2CutPaths.length; i++) {
+      await csgCutHeadFnTstV3(
+        headMale2CutPaths[i],
+        false,
+        new THREE.Vector3(baseOffsetX + i * 0.3, 0, 0)
+      );
+    }
+
+    /*
+      Female Heads
+    */
+    const headFemale2CutPaths = ["/default", "/ellie01"];
+    for (let i = 0; i < headFemale2CutPaths.length; i++) {
+      await csgCutHeadFnTstV3(
+        headFemale2CutPaths[i],
+        true,
+        new THREE.Vector3(baseOffsetX + i * 0.3, 0, 0.3)
+      );
+    }
+  };
+
+  loadMultipleCutHeads();
 };
 
 // Resize fn
