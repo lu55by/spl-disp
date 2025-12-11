@@ -35,7 +35,7 @@ import {
   scaleGroupToHeight,
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
-import { getCutHead } from "../../three/utils/csgCutHeadV2";
+import { getCutHead } from "../../three/utils/csgCutHeadV3";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);

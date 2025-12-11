@@ -79,7 +79,7 @@ export async function getCutHead(
     .getObjectByName("eyeRight_lod0_mesh")
     .clone() as THREE.Mesh;
 
-  let cutHeadObj: Brush | THREE.Mesh;
+  let cutHeadBrush: Brush;
 
   // 一个切割节点，直接切
   if (cuttersLen === 1) {
@@ -87,17 +87,21 @@ export async function getCutHead(
       THREE.BufferGeometry,
       THREE.Material
     >;
-    cutHeadObj = csgSubtract(headNode, cutter, false, null, null, {
+    // Pre-create brush for cutter
+    const cutterBrush = new Brush(cutter.geometry, cutter.material);
+    cutterBrush.updateMatrixWorld();
+
+    cutHeadBrush = csgSubtract(headNode, cutterBrush, false, null, null, {
       isLog: IsCSGOperationLog,
       value: "One single Cutter Node Subtraction.",
     });
-    cutHeadObj.name = "CutHead";
+    cutHeadBrush.name = "CutHead";
     // 释放资源
     disposeGeoMat(headModel);
     // 返回切割过后的头部节点，左眼节点和右眼节点组
     return combineMeshesToGroup(
       "CutHeadEyesNodeCombinedGrp",
-      cutHeadObj,
+      cutHeadBrush,
       eyeLNode,
       eyeRNode
     );
@@ -119,10 +123,40 @@ export async function getCutHead(
     "cutting03"
   ) as THREE.Mesh;
 
+  // Pre-create Brushes for cutters to avoid repeated instantiation
+  const oralCavityBrush = new Brush(
+    cutter4OralCavityNode.geometry,
+    cutter4OralCavityNode.material
+  );
+  oralCavityBrush.updateMatrixWorld();
+
+  /*
+    Reuse the same brush for sphere cutter to operate csgSubtract two times
+    TIME 1: HOLLOW Subtraction
+    TIME 2: Solid Subtraction
+   */
+  const sphereCutterBrush = new Brush(
+    sphereCutterNode.geometry,
+    sphereCutterNode.material
+  );
+  sphereCutterBrush.updateMatrixWorld();
+
+  /*
+    Reuse the same brush for cylinder cutter to operate csgSubtract two times
+    TIME 1: HOLLOW Subtraction
+    TIME 2: Solid Subtraction
+   */
+  const cylinderCutterBrush = new Brush(
+    cylinderCutterNode.geometry,
+    cylinderCutterNode.material
+  );
+  cylinderCutterBrush.updateMatrixWorld();
+
   // !! 执行切割操作
 
   // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
-  cutHeadObj = csgSubtract(headNode, cutter4OralCavityNode, true, null, null, {
+  // Note: first operand (headNode) is a Mesh, csgSubtract will convert it to a Brush.
+  cutHeadBrush = csgSubtract(headNode, oralCavityBrush, true, null, null, {
     isLog: IsCSGOperationLog,
     value: "Oral Cavity Cutter Node Hollow Subtraction.",
   });
@@ -130,12 +164,12 @@ export async function getCutHead(
   // return new THREE.Group().add(cutHeadObj);
 
   // 基础材质，只为创建新网格使用
-  const basicMat = new THREE.MeshBasicMaterial();
+  // const basicMat = new THREE.MeshBasicMaterial();
 
   // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
   const sphHollowCutHead = csgSubtract(
-    cutHeadObj,
-    sphereCutterNode,
+    cutHeadBrush,
+    sphereCutterBrush,
     true,
     ["position"],
     null,
@@ -144,18 +178,25 @@ export async function getCutHead(
       value: "Sphere Cutter Node Hollow Subtraction.",
     }
   );
-  // 切割之前获取孔洞切割几何体
-  const sphHollowCutHeadGeo = sphHollowCutHead.geometry;
+
   // 执行底座椭圆切割
-  cutHeadObj = csgSubtract(cutHeadObj, sphereCutterNode, false, null, null, {
-    isLog: IsCSGOperationLog,
-    value: "Sphere Cutter Node Subtraction.",
-  });
+  cutHeadBrush = csgSubtract(
+    cutHeadBrush,
+    sphereCutterBrush,
+    false,
+    null,
+    null,
+    {
+      isLog: IsCSGOperationLog,
+      value: "Sphere Cutter Node Subtraction.",
+    }
+  );
+
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postSphereCutOffest = { pos: 0, neg: 0 };
   modifyNewVerticesUv(
-    new THREE.Mesh(sphHollowCutHeadGeo, basicMat),
-    cutHeadObj,
+    sphHollowCutHead, // Pass the hollow cut Brush directly as the "originalNode" reference for count
+    cutHeadBrush,
     postSphereCutOffest.pos,
     postSphereCutOffest.neg
   );
@@ -164,8 +205,8 @@ export async function getCutHead(
 
   // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
   const cylHollowCutHead = csgSubtract(
-    cutHeadObj,
-    cylinderCutterNode,
+    cutHeadBrush,
+    cylinderCutterBrush,
     true,
     ["position"],
     null,
@@ -174,34 +215,38 @@ export async function getCutHead(
       value: "Cylinder Cutter Node Hollow Subtraction.",
     }
   );
-  // 切割之前获取孔洞切割几何体
-  const cylHollowCutHeadGeo = cylHollowCutHead.geometry;
+
   // 执行圆柱切割
-  cutHeadObj = csgSubtract(cutHeadObj, cylinderCutterNode, false, null, null, {
-    isLog: IsCSGOperationLog,
-    value: "Cylinder Cutter Node Subtraction.",
-  });
+  cutHeadBrush = csgSubtract(
+    cutHeadBrush,
+    cylinderCutterBrush,
+    false,
+    null,
+    null,
+    {
+      isLog: IsCSGOperationLog,
+      value: "Cylinder Cutter Node Subtraction.",
+    }
+  );
+
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postCylinderCutOffest = { pos: 0, neg: 0 };
-  // console.log("postCylinderCutOffest ->", postCylinderCutOffest);
   modifyNewVerticesUv(
-    new THREE.Mesh(cylHollowCutHeadGeo, basicMat),
-    cutHeadObj,
+    cylHollowCutHead, // Pass the hollow cut Brush directly
+    cutHeadBrush,
     postCylinderCutOffest.pos,
     postCylinderCutOffest.neg
   );
-  // DEBUG cyl cut.
-  // return new THREE.Group().add(cutHeadObj);
 
   // 修改 cutHead 名称
-  cutHeadObj!.name = "CutHead";
+  cutHeadBrush.name = "CutHead";
 
   // 释放资源
   disposeGeoMat(headModel);
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
     "CutHeadEyesCombinedGrp",
-    cutHeadObj!,
+    cutHeadBrush,
     eyeLNode,
     eyeRNode
   );
@@ -225,14 +270,26 @@ function csgSubtract(
   material?: THREE.Material | null,
   operationLog?: CSGOperationLog
 ): Brush {
-  const brushObj2Cut = new Brush(
-    obj2Cut.geometry,
-    material || obj2Cut.material
-  );
-  brushObj2Cut.updateMatrixWorld();
+  // Opt: Reuse Brush if passed
+  let brushObj2Cut: Brush;
+  if (obj2Cut instanceof Brush) {
+    brushObj2Cut = obj2Cut;
+    // Ensure material is updated if one is provided
+    if (material) brushObj2Cut.material = material;
+  } else {
+    brushObj2Cut = new Brush(obj2Cut.geometry, material || obj2Cut.material);
+    brushObj2Cut.updateMatrixWorld();
+  }
 
-  const brushCutter = new Brush(cutter.geometry, material || cutter.material);
-  brushCutter.updateMatrixWorld();
+  // Opt: Reuse Brush if passed
+  let brushCutter: Brush;
+  if (cutter instanceof Brush) {
+    brushCutter = cutter;
+    if (material) brushCutter.material = material;
+  } else {
+    brushCutter = new Brush(cutter.geometry, material || cutter.material);
+    brushCutter.updateMatrixWorld();
+  }
 
   CSGEvaluator.attributes = evaluatorAttributes
     ? evaluatorAttributes
@@ -241,7 +298,7 @@ function csgSubtract(
   /*
     Operation Logs
   */
-  if (operationLog.isLog) {
+  if (operationLog && operationLog.isLog) {
     console.log("\n -- csgSubtract -- operationLog ->", operationLog);
     console.log(
       "\n -- csgSubtract -- CSGEvaluator.attributes ->",
@@ -307,45 +364,35 @@ function modifyNewVerticesUv(
  * Dispose the geometry and material of the object.
  * @param {THREE.Object3D<THREE.Object3DEventMap>} obj3D The object to dispose.
  */
-function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap>) {
-  if (!(obj3D instanceof THREE.Group)) return;
-  console.log("obj3D 2 dispose ->", obj3D);
+function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap> | null) {
+  if (!obj3D || !(obj3D instanceof THREE.Group)) return;
+  // console.log("obj3D 2 dispose ->", obj3D);
 
   obj3D.traverse((m) => {
     if (m instanceof THREE.Mesh) {
-      // console.log("Ready to dispose the geometry and material of mesh ->", m);
-
       // 1. Dispose GPU resources
-      m.geometry.dispose();
+      if (m.geometry) m.geometry.dispose();
 
-      // 2. Dispose material resources (and potentially textures)
-      if (Array.isArray(m.material)) {
-        m.material.forEach((material: THREE.Material) => material.dispose());
-      } else {
-        m.material.dispose();
+      // 2. Dispose material resources
+      if (m.material) {
+        if (Array.isArray(m.material)) {
+          m.material.forEach((material: THREE.Material) => material.dispose());
+        } else {
+          m.material.dispose();
+        }
       }
 
-      // console.log("Disposed the geometry and material of mesh ->", m);
-
-      // Optional: Explicitly remove JS references if you don't need the mesh object anymore
-      m.geometry = undefined as any; // Cast might be needed for TS
+      m.geometry = undefined as any;
       m.material = undefined as any;
-
-      // console.log("Disposed the geometry and material of mesh ->", m);
     }
   });
 
-  // 3. Remove the entire group from the scene
   if (obj3D.parent) {
     obj3D.parent.remove(obj3D);
   }
 
-  // 4. Set original variable reference to null,
-  // e.g., myModelGroup = null; to allow the JS garbage collector to clean up the mesh objects themselves.
   obj3D.clear();
-  // console.log("Disposed obj3D after clear ->", obj3D);
   obj3D = null;
-  // console.log("Disposed obj3D after null ->", obj3D);
 }
 
 /**

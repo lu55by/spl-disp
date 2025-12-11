@@ -6,7 +6,7 @@ import { MaxModelLength } from "../constants";
 import { CutHeadDebugProps, ModelPaths } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
 import { disposeGeoMat } from "../three/meshOps/index.ts";
-import { getCutHead } from "../three/utils/csgCutHeadV2.ts";
+import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 const ObjLoader = new OBJLoader();
 const GUIGlobal = new GUI();
