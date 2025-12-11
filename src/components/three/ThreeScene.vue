@@ -143,7 +143,7 @@ const init = () => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       texture.needsUpdate = true;
 
-      scene.background = texture;
+      // scene.background = texture;
       scene.environment = texture;
     });
   };
