@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import MainUI from "./components/ui/MainUI.vue";
+import LoadingOverlay from "./components/ui/LoadingOverlay.vue";
+
 import ThreeScene from "./components/three/ThreeScene.vue";
 </script>
 
@@ -7,6 +9,8 @@ import ThreeScene from "./components/three/ThreeScene.vue";
 <!--  <div class="w-full h-full grid grid-cols-[auto_1fr]">-->
   <div class="w-full h-svh bg-[linear-gradient(90deg,rgb(27,27,37),rgb(54,54,72),rgb(27,27,37))]">
     <MainUI />
+    <LoadingOverlay />
+
     <ThreeScene />
   </div>
 </template>

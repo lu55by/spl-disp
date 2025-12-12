@@ -23,6 +23,7 @@ import {
 import { csgSubtract } from "../../three/csg";
 import { exportObjectToOBJ } from "../../three/exporters";
 import { addTransformDebug } from "../../three/gui";
+import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { loadObj } from "../../three/loaders/ModelLoader";
 import { loadTexture } from "../../three/loaders/TextureLoader";
 import {
@@ -133,7 +134,7 @@ const init = async () => {
   /**
    * Load Hdr
    */
-  const ultraHDRLoader = new UltraHDRLoader();
+  const ultraHDRLoader = new UltraHDRLoader(GlobalLoadingManager);
   ultraHDRLoader.setDataType(THREE.FloatType);
 
   const loadEnvironment = () => {
