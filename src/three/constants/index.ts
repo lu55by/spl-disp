@@ -6,32 +6,58 @@ import {
   MeshBasicMaterial,
   MeshPhongMaterial,
   Vector2,
+  TextureLoader,
 } from "three";
 import { OBJLoader } from "three/examples/jsm/Addons.js";
 import { GlobalLoadingManager } from "../managers/GlobalLoadingManager";
-import { TextureLoader } from "three";
+
+/*
+ * -----------------------------------------------------------------------------
+ * Loaders
+ * -----------------------------------------------------------------------------
+ */
 
 export const OBJLoaderInstance = new OBJLoader(GlobalLoadingManager);
 export const TextureLoaderInstance = new TextureLoader(GlobalLoadingManager);
+
+/*
+ * -----------------------------------------------------------------------------
+ * Helper Types
+ * -----------------------------------------------------------------------------
+ */
 
 export type MeshOf<M extends Material> = Mesh<BufferGeometry, M>;
 
 export type PhongMesh = MeshOf<MeshPhongMaterial>;
 
-// Lights
+/*
+ * -----------------------------------------------------------------------------
+ * Constants
+ * -----------------------------------------------------------------------------
+ */
+
+/**
+ * Lights
+ */
 export const DirectionalLightIntensity = 5;
 
-// Head Scalar
+// Head Scalar (Deprecated/Unused)
 // export const HeadScalar = .0107;
 
-// UV Coordinate to modify on both x and y
+/**
+ * UV Coordinate to modify on both x and y
+ */
 export const UVCoordinateMod = new Vector2(0, 0.2);
 
-// HDR Path
+/**
+ * HDR Path
+ */
 export const HDRPath = "hdrs/royal_esplanade_2k.hdr.jpg";
 // export const HDRPath = "hdrs/moon_lab_2k.jpg";
 
-// Colors
+/**
+ * Colors
+ */
 export const Colors = {
   White: new Color("#eee"),
   Red: new Color("#f00"),
@@ -42,7 +68,9 @@ export const Colors = {
   Cyan: new Color("#0ff"),
 };
 
-// Camera
+/**
+ * Camera Configuration
+ */
 export const CameraProps = {
   Pos: { x: 1, y: 1, z: 1 },
   Fov: 75,
@@ -50,7 +78,12 @@ export const CameraProps = {
   Far: 500,
 };
 
-// CutHead
+/*
+ * -----------------------------------------------------------------------------
+ * CutHead Config
+ * -----------------------------------------------------------------------------
+ */
+
 export const CutHeadDebugProps = {
   Pos: { x: 0.05, y: -1.78, z: 0.05 },
   Scalar: 0.0132,
@@ -67,9 +100,20 @@ export const OffsetPosNegPercentages = {
 
 export const CutHeadEyesCombinedGroupName = "CutHeadEyesCombinedGrp";
 
-// Material
+/*
+ * -----------------------------------------------------------------------------
+ * Materials
+ * -----------------------------------------------------------------------------
+ */
+
 export const BasicMatWireframe = new MeshBasicMaterial({ wireframe: true });
 export const BasicMat = new MeshBasicMaterial();
+
+/*
+ * -----------------------------------------------------------------------------
+ * Node Names
+ * -----------------------------------------------------------------------------
+ */
 
 export const NodeNames = {
   HeadNames: {
@@ -84,32 +128,37 @@ export const NodeNames = {
   },
 };
 
-// Model Paths
+/*
+ * -----------------------------------------------------------------------------
+ * Model Paths
+ * -----------------------------------------------------------------------------
+ */
 
-// Models Prefix
+// --- Models Prefix ---
 const ModelsPathPrefix = "./models";
 
-// Hair Prefix
+// --- Hair Prefix ---
 const HairPathPrefix = `${ModelsPathPrefix}/hair`;
 
-// Head Prefix
+// --- Head Prefix ---
 const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 
-// Head Male Prefix
+// --- Head Male Prefix ---
 export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
 export const HeadMaleSubPath = `/default`;
 
-// Head Female Prefix
+// --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
 // Head Female sub path
 export const HeadFeMaleSubPath = `/default`;
 
-// Body Prefix
+// --- Body Prefix ---
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
 
-// Cutter Prefix
+// --- Cutter Prefix ---
 const CutterPathPrefix = `${ModelsPathPrefix}/cutters`;
+
 export const ModelPaths = {
   Hair: {
     Model: `${HairPathPrefix}/mold.obj`,
