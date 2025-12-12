@@ -3,7 +3,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { AxesHelper } from "three";
 import { type Brush } from "three-bvh-csg";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
@@ -731,7 +730,7 @@ const init = async () => {
     applyDoubleSide(cutHead);
     console.log("\n cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);
-    scene.add(cutHead);
+    // scene.add(cutHead);
     return cutHead;
   };
 
@@ -763,6 +762,9 @@ const init = async () => {
      */
     const baseOffsetX = -0.35;
 
+    // Create a THREE.Group to store the loaded heads
+    const headsGroup = new THREE.Group();
+
     /*
       Male Heads
     */
@@ -774,11 +776,12 @@ const init = async () => {
     ];
 
     for (let i = 0; i < headMale2CutPaths.length; i++) {
-      await csgCutHeadFnTstV3(
+      const cutHead = await csgCutHeadFnTstV3(
         headMale2CutPaths[i],
         false,
         new THREE.Vector3(baseOffsetX + i * 0.3, 0, 0)
       );
+      headsGroup.add(cutHead);
     }
 
     /*
@@ -786,12 +789,23 @@ const init = async () => {
     */
     const headFemale2CutPaths = ["/default", "/ellie01"];
     for (let i = 0; i < headFemale2CutPaths.length; i++) {
-      await csgCutHeadFnTstV3(
+      const cutHead = await csgCutHeadFnTstV3(
         headFemale2CutPaths[i],
         true,
         new THREE.Vector3(baseOffsetX + i * 0.3, 0, 0.3)
       );
+      headsGroup.add(cutHead);
     }
+
+    scene.add(headsGroup);
+
+    // Add the heads group to be tweakable
+    addTransformDebug(`Cut Head Grp`, gui, headsGroup, {
+      showRotation: true,
+      showScale: true,
+      posMin: -10,
+      posMax: 10,
+    });
   };
 
   loadMultipleCutHeads();

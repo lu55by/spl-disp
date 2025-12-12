@@ -19,7 +19,8 @@ export function addTransformDebug(
     posMax?: number;
   }
 ) {
-  const folder = gui.addFolder({ title: obj.name || guiTitle });
+  // const folder = gui.addFolder({ title: obj.name || guiTitle });
+  const folder = gui.addFolder({ title: guiTitle });
 
   let posMinimum: number = -10;
   let posMaximum: number = 10;
@@ -86,7 +87,7 @@ export function addTransformDebug(
     scaleFolder
       .addBinding(scaleState, "scalar", {
         min: 0.001,
-        max: 0.1,
+        max: 1,
         step: 0.0001,
         label: "uniformScale",
       })
