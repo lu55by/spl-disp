@@ -731,7 +731,7 @@ const init = async () => {
     applyDoubleSide(cutHead);
     console.log("\n cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);
-    // scene.add(cutHead);
+    scene.add(cutHead);
     return cutHead;
   };
 
@@ -764,49 +764,55 @@ const init = async () => {
     const baseOffsetX = -0.35;
 
     // Create a THREE.Group to store the loaded heads
-    const headsGroup = new THREE.Group();
+    // const headsGroup = new THREE.Group();
 
-    /*
-      Male Heads
-    */
     const headMale2CutPaths = [
+      // Male Heads
       "/bigHead-01",
       "/cutHead-uv-issue-01-isspd01",
       "/cutHead-uv-issue-02-sasha01",
       "/ukn-01",
+      // Female Heads
+      "/default",
+      "/ellie01",
     ];
+    const femaleHeadStartIdx = 4;
+    let isFemale: boolean;
 
     for (let i = 0; i < headMale2CutPaths.length; i++) {
+      isFemale = i >= femaleHeadStartIdx;
       const cutHead = await csgCutHeadFnTstV3(
         headMale2CutPaths[i],
-        false,
-        new THREE.Vector3(baseOffsetX + i * 0.3, 0, 0)
+        isFemale,
+        new THREE.Vector3(
+          baseOffsetX + (isFemale ? (i - femaleHeadStartIdx) : i) * 0.3,
+          0,
+          isFemale ? 0.3 : 0
+        )
       );
-      headsGroup.add(cutHead);
+      // headsGroup.add(cutHead);
+      addTransformDebug(
+        `Cut Head ${isFemale ? "Female" : "Male"}-${i}`,
+        gui,
+        cutHead,
+        {
+          showRotation: true,
+          showScale: true,
+          posMin: -10,
+          posMax: 10,
+        }
+      );
     }
 
-    /*
-      Female Heads
-    */
-    const headFemale2CutPaths = ["/default", "/ellie01"];
-    for (let i = 0; i < headFemale2CutPaths.length; i++) {
-      const cutHead = await csgCutHeadFnTstV3(
-        headFemale2CutPaths[i],
-        true,
-        new THREE.Vector3(baseOffsetX + i * 0.3, 0, 0.3)
-      );
-      headsGroup.add(cutHead);
-    }
-
-    scene.add(headsGroup);
+    // scene.add(headsGroup);
 
     // Add the heads group to be tweakable
-    addTransformDebug(`Cut Head Grp`, gui, headsGroup, {
-      showRotation: true,
-      showScale: true,
-      posMin: -10,
-      posMax: 10,
-    });
+    // addTransformDebug(`Cut Head Grp`, gui, headsGroup, {
+    //   showRotation: true,
+    //   showScale: true,
+    //   posMin: -10,
+    //   posMax: 10,
+    // });
   };
 
   loadMultipleCutHeads();
