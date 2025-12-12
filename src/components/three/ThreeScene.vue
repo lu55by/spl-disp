@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import GUI from "lil-gui";
+
 import { AxesHelper } from "three";
 import { type Brush } from "three-bvh-csg";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
@@ -36,6 +36,7 @@ import {
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
+import type { Pane } from "tweakpane";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -48,7 +49,7 @@ let camera: THREE.PerspectiveCamera,
   renderer: THREE.WebGPURenderer,
   controls: OrbitControls,
   clock: THREE.Clock,
-  gui: GUI;
+  gui: Pane;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -61,7 +62,7 @@ const init = async () => {
   /**
    * GUI
    */
-  gui = guiGlobal as GUI;
+  gui = guiGlobal as Pane;
 
   /**
    * Camera

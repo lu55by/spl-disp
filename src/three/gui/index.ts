@@ -1,16 +1,16 @@
-import GUI from "lil-gui";
-import { Object3D } from "three";
+import { Group, Mesh, Object3D } from "three";
+import type { FolderApi, Pane } from "tweakpane";
 
 /**
- * Add lil-gui controls to debug a obj's transform.
+ * Add tweakpane controls to debug a obj's transform.
  * @param guiTitle Title of the gui.
- * @param gui - The lil-gui instance.
+ * @param gui - The tweakpane instance.
  * @param obj - The THREE.Mesh to debug.
  * @param options - Optional configuration.
  */
 export function addTransformDebug(
   guiTitle: string,
-  gui: GUI,
+  gui: Pane | FolderApi,
   obj: Object3D,
   options?: {
     showRotation?: boolean;
@@ -19,7 +19,7 @@ export function addTransformDebug(
     posMax?: number;
   }
 ) {
-  const folder = gui.addFolder(obj.name || guiTitle);
+  const folder = gui.addFolder({ title: obj.name || guiTitle });
 
   let posMinimum: number = -10;
   let posMaximum: number = 10;
@@ -29,34 +29,54 @@ export function addTransformDebug(
   }
 
   // --- Position controls ---
-  const posFolder = folder.addFolder("Position");
-  posFolder
-    .add(obj.position, "x", posMinimum, posMaximum, 0.01)
-    .name("X")
-    .onChange(() => obj.updateMatrixWorld());
-  posFolder
-    .add(obj.position, "y", posMinimum, posMaximum, 0.01)
-    .name("Y")
-    .onChange(() => obj.updateMatrixWorld());
-  posFolder
-    .add(obj.position, "z", posMinimum, posMaximum, 0.01)
-    .name("Z")
-    .onChange(() => obj.updateMatrixWorld());
+  const posFolder = folder.addFolder({ title: "Position" });
+  posFolder.addBinding(obj.position, "x", {
+    min: posMinimum,
+    max: posMaximum,
+    step: 0.01,
+    label: "X",
+  });
+  posFolder.addBinding(obj.position, "y", {
+    min: posMinimum,
+    max: posMaximum,
+    step: 0.01,
+    label: "Y",
+  });
+  posFolder.addBinding(obj.position, "z", {
+    min: posMinimum,
+    max: posMaximum,
+    step: 0.01,
+    label: "Z",
+  });
+
+  posFolder.on("change", () => obj.updateMatrixWorld());
 
   // --- Rotation controls ---
   if (options?.showRotation) {
-    const rotFolder = folder.addFolder("Rotation");
-    rotFolder.add(obj.rotation, "x", -Math.PI, Math.PI, 0.01).name("Rot X");
-    rotFolder.add(obj.rotation, "y", -Math.PI, Math.PI, 0.01).name("Rot Y");
-    rotFolder.add(obj.rotation, "z", -Math.PI, Math.PI, 0.01).name("Rot Z");
+    const rotFolder = folder.addFolder({ title: "Rotation" });
+    rotFolder.addBinding(obj.rotation, "x", {
+      min: -Math.PI,
+      max: Math.PI,
+      step: 0.01,
+      label: "Rot X",
+    });
+    rotFolder.addBinding(obj.rotation, "y", {
+      min: -Math.PI,
+      max: Math.PI,
+      step: 0.01,
+      label: "Rot Y",
+    });
+    rotFolder.addBinding(obj.rotation, "z", {
+      min: -Math.PI,
+      max: Math.PI,
+      step: 0.01,
+      label: "Rot Z",
+    });
   }
 
   // --- Scale controls ---
   if (options?.showScale) {
-    const scaleFolder = folder.addFolder("Scale");
-    // scaleFolder.add(obj.scale, 'x', 0.01, 10, 0.01).name('Scale X')
-    // scaleFolder.add(obj.scale, 'y', 0.01, 10, 0.01).name('Scale Y')
-    // scaleFolder.add(obj.scale, 'z', 0.01, 10, 0.01).name('Scale Z')
+    const scaleFolder = folder.addFolder({ title: "Scale" });
 
     // Store a local scalar value for GUI
     const scaleState = {
@@ -64,37 +84,39 @@ export function addTransformDebug(
     };
 
     scaleFolder
-      .add(scaleState, "scalar", 0.001, 0.1, 0.0001)
-      .name("uniformScale")
-      .onChange((v: number) => {
-        obj.scale.setScalar(v);
+      .addBinding(scaleState, "scalar", {
+        min: 0.001,
+        max: 0.1,
+        step: 0.0001,
+        label: "uniformScale",
+      })
+      .on("change", (ev) => {
+        obj.scale.setScalar(ev.value);
       });
   }
 
-  // TODO: Fix the issue.
-  /*
-    if (obj instanceof Group) {
-        const wireframeState = {
-            showWireframe: false,
-        }
-        folder.add(wireframeState, 'showWireframe')
-            .name('Show Wireframe')
-            .onChange((v: boolean) => {
-                console.log('v ->', v)
-                obj.traverse(m => {
-                    if (m instanceof Mesh) {
-                        // const mat = m.material;
-                        // if (v) {
-                        //     DefaultDebugWireframeMaterial.color = wireframeColor || DefaultWireframeColor;
-                        //     m.material = DefaultDebugWireframeMaterial;
-                        // } else m.material = mat;
-                        const mat = m.material as MeshPhongMaterial
-                        mat.wireframe = v
-                    }
-                })
-            })
-    }
-    */
-
-  folder.open();
+  if (obj instanceof Group) {
+    const wireframeState = {
+      showWireframe: false,
+    };
+    folder
+      .addBinding(wireframeState, "showWireframe", { label: "Show Wireframe" })
+      .on("change", (ev) => {
+        obj.traverse((m) => {
+          if (m instanceof Mesh) {
+            const mat = m.material;
+            // Check if material is an array or single
+            if (Array.isArray(mat)) {
+              mat.forEach((material) => {
+                if ("wireframe" in material) {
+                  material.wireframe = ev.value;
+                }
+              });
+            } else if ("wireframe" in mat) {
+              mat.wireframe = ev.value;
+            }
+          }
+        });
+      });
+  }
 }

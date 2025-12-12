@@ -1,4 +1,3 @@
-import GUI from "lil-gui";
 import { defineStore } from "pinia";
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
@@ -11,9 +10,10 @@ import {
 import { addTransformDebug } from "../three/gui";
 import { disposeGeoMat } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
+import { Pane } from "tweakpane";
 
 // const ObjLoader = new OBJLoader();
-const GUIGlobal = new GUI();
+const GUIGlobal = new Pane({ title: "Global Settings" });
 
 // Load the default head
 
@@ -42,7 +42,7 @@ const CutHeadDefault = await loadDefaultCutHeadAsync();
 
 export const useModelsStore = defineStore("models", {
   state: () => ({
-    guiGlobal: GUIGlobal as GUI,
+    guiGlobal: GUIGlobal as Pane,
     cuttersModelGlobal:
       loadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
     group: new THREE.Group().add(
