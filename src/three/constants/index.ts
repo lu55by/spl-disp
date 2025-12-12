@@ -9,8 +9,10 @@ import {
 } from "three";
 import { OBJLoader } from "three/examples/jsm/Addons.js";
 import { GlobalLoadingManager } from "../managers/GlobalLoadingManager";
+import { TextureLoader } from "three";
 
 export const OBJLoaderInstance = new OBJLoader(GlobalLoadingManager);
+export const TextureLoaderInstance = new TextureLoader(GlobalLoadingManager);
 
 export type MeshOf<M extends Material> = Mesh<BufferGeometry, M>;
 

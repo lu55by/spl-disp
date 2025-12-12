@@ -1,11 +1,11 @@
 import * as THREE from 'three/webgpu';
 
-import { GlobalLoadingManager } from "../managers/GlobalLoadingManager.ts";
+import { TextureLoaderInstance } from "../constants/index.ts";
 
 export async function loadTexture(path: string): Promise<THREE.Texture> {
-  const texLoader = new THREE.TextureLoader(GlobalLoadingManager);
+  // const texLoader = new THREE.TextureLoader(GlobalLoadingManager);
 
   return new Promise((resolve, reject) => {
-    texLoader.load(path, resolve, undefined, reject);
+    TextureLoaderInstance.load(path, resolve, undefined, reject);
   });
 }
