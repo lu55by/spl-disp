@@ -3,34 +3,42 @@ import { defineStore } from "pinia";
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { MaxModelLength } from "../constants";
-import { CutHeadDebugProps, ModelPaths } from "../three/constants";
+import {
+  CutHeadDebugProps,
+  ModelPaths,
+  OBJLoaderInstance,
+} from "../three/constants";
 import { addTransformDebug } from "../three/gui";
 import { disposeGeoMat } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
-const ObjLoader = new OBJLoader();
+// const ObjLoader = new OBJLoader();
 const GUIGlobal = new GUI();
 
 // Load the default head
 
 // Cutters Model
 const loadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
-  await ObjLoader.loadAsync(ModelPaths.Cutters.OralSphereCylinderCombined);
+  await OBJLoaderInstance.loadAsync(
+    ModelPaths.Cutters.OralSphereCylinderCombined
+  );
 
-const loadDefaultHeadAsync = async () => {
+const loadDefaultCutHeadAsync = async () => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
-    await ObjLoader.loadAsync(
+    await OBJLoaderInstance.loadAsync(
       // Male
       ModelPaths.HeadMale.Model
     );
-  const cutHead = await getCutHead(loadedHeadModel, loadedCuttersModel);
-  cutHead.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
+  const cutHeadDefault = await getCutHead(loadedHeadModel, loadedCuttersModel);
+  cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   if (GUIGlobal)
-    addTransformDebug("Cut Head", GUIGlobal, cutHead, { showScale: true });
-  return cutHead;
+    addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
+      showScale: true,
+    });
+  return cutHeadDefault;
 };
 
-const DefaultCutHead = await loadDefaultHeadAsync();
+const CutHeadDefault = await loadDefaultCutHeadAsync();
 
 export const useModelsStore = defineStore("models", {
   state: () => ({
@@ -38,7 +46,7 @@ export const useModelsStore = defineStore("models", {
     cuttersModelGlobal:
       loadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
     group: new THREE.Group().add(
-      DefaultCutHead
+      CutHeadDefault
     ) as THREE.Group<THREE.Object3DEventMap>,
   }),
 
@@ -60,7 +68,7 @@ export const useModelsStore = defineStore("models", {
     async importObj(file: File) {
       if (this.group.children.length >= MaxModelLength) return;
       const text = await file.text();
-      const object = ObjLoader.parse(text);
+      const object = OBJLoaderInstance.parse(text);
 
       this.group.add(object);
     },

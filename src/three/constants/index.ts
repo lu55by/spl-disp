@@ -7,6 +7,9 @@ import {
   MeshPhongMaterial,
   Vector2,
 } from "three";
+import { OBJLoader } from "three/examples/jsm/Addons.js";
+
+export const OBJLoaderInstance = new OBJLoader();
 
 export type MeshOf<M extends Material> = Mesh<BufferGeometry, M>;
 

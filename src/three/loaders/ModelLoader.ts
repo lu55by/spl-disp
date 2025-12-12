@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import {MTLLoader} from "three/examples/jsm/loaders/MTLLoader.js";
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
+import { OBJLoaderInstance } from "../constants";
 
 export interface LoadObjOptions {
   mtlPath?: string | undefined;
@@ -12,7 +13,7 @@ export interface LoadObjOptions {
 /**
  * Load the obj file with some options.
  * @param {string} path OBJ file path
- * @param {LoadObjOptions} options Optional options contains mtlPath(mtl file path) | position, rotation, scale(the position, rotation, scale set to the loaded model) 
+ * @param {LoadObjOptions} options Optional options contains mtlPath(mtl file path) | position, rotation, scale(the position, rotation, scale set to the loaded model)
  * @returns {Promise<THREE.Group<THREE.Object3DEventMap>>} Loaded obj with the type of THREE.Object3D
  */
 export async function loadObj(
@@ -43,12 +44,13 @@ export async function loadObj(
   }
 
   // Load OBJ
-  const objLoader = new OBJLoader();
-  if (materials) objLoader.setMaterials(materials);
+  if (materials) OBJLoaderInstance.setMaterials(materials);
 
-  const loadedObj = await new Promise<THREE.Group<THREE.Object3DEventMap>>((resolve, reject) => {
-    objLoader.load(path, resolve, undefined, reject);
-  });
+  const loadedObj = await new Promise<THREE.Group<THREE.Object3DEventMap>>(
+    (resolve, reject) => {
+      OBJLoaderInstance.load(path, resolve, undefined, reject);
+    }
+  );
 
   // Optional transforms
   if (position) loadedObj.position.copy(position);
