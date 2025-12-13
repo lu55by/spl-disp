@@ -15,7 +15,7 @@
     <!-- Clear -->
     <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
 
-    <p class="text-stone-100">当前模型组长度: {{ groupLen }}</p>
+    <p class="text-stone-100">当前模型组长度: {{ splicingGroupLen }}</p>
 
     <!-- Hidden file input -->
     <input
@@ -44,20 +44,20 @@ import { storeToRefs } from "pinia";
 
 // Get the store
 const store = useModelsStore();
-const { groupLen } = storeToRefs(store);
+const { splicingGroupLen } = storeToRefs(store);
 
 // TODO: Fix the non-reactive group length.
-console.log("groupLen ->", groupLen.value);
+console.log("splicingGroupLen ->", splicingGroupLen.value);
 
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
-watch(groupLen, (newLength, oldLength) => {
-  console.log(`groupLen changed from ${oldLength} to ${newLength}`);
+watch(splicingGroupLen, (newLength, oldLength) => {
+  console.log(`splicingGroupLen changed from ${oldLength} to ${newLength}`);
 });
 
 // Disable logic
-let isImportBtnDisabled = computed(() => groupLen.value === MaxModelLength);
-let isExportBtnDisabled = computed(() => groupLen.value < MaxModelLength);
-let isClearBtnDisabled = computed(() => groupLen.value === 0);
+let isImportBtnDisabled = computed(() => splicingGroupLen.value === MaxModelLength);
+let isExportBtnDisabled = computed(() => splicingGroupLen.value < MaxModelLength);
+let isClearBtnDisabled = computed(() => splicingGroupLen.value === 0);
 
 console.log("isClearBtnDisabled ->", isClearBtnDisabled.value);
 
@@ -71,9 +71,9 @@ const openFilePicker = () => {
 
 // When file selected → import it
 const handleFileChange = async (e: Event) => {
-  console.log("groupLen before import ->", groupLen.value);
+  console.log("splicingGroupLen before import ->", splicingGroupLen.value);
   let toastContent: string = ModelImportedReminderContent;
-  if (groupLen.value === MaxModelLength) {
+  if (splicingGroupLen.value === MaxModelLength) {
     toastContent = ModelImportMaxLenReminderContent;
     toast(toastContent, {
       autoClose: 1000,
@@ -98,9 +98,9 @@ const handleFileChange = async (e: Event) => {
 };
 
 const clearModels = () => {
-  console.log("groupLen before clear ->", groupLen.value);
+  console.log("splicingGroupLen before clear ->", splicingGroupLen.value);
   let toastContent: string = ModelClearedReminderContent;
-  if (groupLen.value === 0) {
+  if (splicingGroupLen.value === 0) {
     toastContent = ModelEmptyReminderContent;
     toast(toastContent, {
       autoClose: 1000,

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { Pane } from "tweakpane";
 import { MaxModelLength } from "../constants";
 import {
   CutHeadDebugProps,
@@ -10,7 +10,6 @@ import {
 import { addTransformDebug } from "../three/gui";
 import { disposeGeoMat } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
-import { Pane } from "tweakpane";
 
 // const ObjLoader = new OBJLoader();
 const GUIGlobal = new Pane({ title: "Global Settings" });
@@ -42,35 +41,43 @@ const CutHeadDefault = await loadDefaultCutHeadAsync();
 
 export const useModelsStore = defineStore("models", {
   state: () => ({
-    guiGlobal: GUIGlobal as Pane,
-    cuttersModelGlobal:
-      loadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
-    group: new THREE.Group().add(
+    // Splicing Group
+    splicingGroupGlobal: new THREE.Group().add(
       CutHeadDefault
     ) as THREE.Group<THREE.Object3DEventMap>,
+    // Hair
+    hairModelGlobal: null as THREE.Object3D | null,
+    // Body
+    bodyModelGlobal: null as THREE.Object3D | null,
+    // Cutters
+    cuttersModelGlobal:
+      loadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
+    // GUI
+    guiGlobal: GUIGlobal as Pane,
   }),
 
   getters: {
-    groupLen: (state): number => state.group.children.length,
+    splicingGroupLen: (state): number =>
+      state.splicingGroupGlobal.children.length,
   },
 
   actions: {
     addChild(child: THREE.Object3D) {
-      this.group.add(child);
+      this.splicingGroupGlobal.add(child);
     },
 
     clear() {
-      if (this.group.children.length === 0) return;
+      if (this.splicingGroupGlobal.children.length === 0) return;
       // TODO: Clear the Hair and Body except the CutHead.
-      disposeGeoMat(this.group);
+      disposeGeoMat(this.splicingGroupGlobal);
     },
 
     async importObj(file: File) {
-      if (this.group.children.length >= MaxModelLength) return;
+      if (this.splicingGroupGlobal.children.length >= MaxModelLength) return;
       const text = await file.text();
       const object = OBJLoaderInstance.parse(text);
 
-      this.group.add(object);
+      this.splicingGroupGlobal.add(object);
     },
   },
 });

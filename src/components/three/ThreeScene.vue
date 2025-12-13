@@ -41,7 +41,7 @@ import type { Pane } from "tweakpane";
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const { group: globalGroup, guiGlobal, cuttersModelGlobal } = useModelsStore();
+const { splicingGroupGlobal: globalGroup, guiGlobal, cuttersModelGlobal } = useModelsStore();
 console.log("Global Group ->", globalGroup);
 
 let camera: THREE.PerspectiveCamera,
