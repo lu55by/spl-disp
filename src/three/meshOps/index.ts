@@ -342,3 +342,10 @@ export function disposeGeoMat(obj3D: Object3D) {
   // 4. Set original variable reference to null,
   // e.g., myModelGroup = null; to allow the JS garbage collector to clean up the mesh objects themselves.
 }
+
+export function getObject3DHeight(obj3D: Object3D, objName: string): number {
+  const box = new Box3().setFromObject(obj3D);
+  const height = box.max.y - box.min.y;
+  console.log(`\n ${objName} Height ->`, height);
+  return height;
+}

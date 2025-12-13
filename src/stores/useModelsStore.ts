@@ -12,6 +12,7 @@ import {
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
   disposeGeoMat,
+  getObject3DHeight,
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
@@ -38,10 +39,14 @@ const loadDefaultCutHeadAsync = async () => {
   const cutHeadDefault = await getCutHead(loadedHeadModel, loadedCuttersModel);
   // Apply PBR Material and SRGB Color Space
   applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
-  cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
+  // Set Scale
+  // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
+  // Add to GUI
   addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
     showScale: true,
   });
+  // Compute the bounding box of the cut head and get the height and log it
+  getObject3DHeight(cutHeadDefault, "Cut Head");
   return cutHeadDefault;
 };
 
