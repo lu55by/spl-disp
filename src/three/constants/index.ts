@@ -100,6 +100,8 @@ export const OffsetPosNegPercentages = {
 
 export const CutHeadEyesCombinedGroupName = "CutHeadEyesCombinedGrp";
 
+export const CutHeadBoundingBoxHeight = 22.35;
+
 /*
  * -----------------------------------------------------------------------------
  * Materials

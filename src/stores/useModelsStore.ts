@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Pane } from "tweakpane";
 import { MaxModelLength } from "../constants";
 import {
+  CutHeadBoundingBoxHeight,
   CutHeadDebugProps,
   ModelPaths,
   OBJLoaderInstance,
@@ -91,6 +92,31 @@ export const useModelsStore = defineStore("models", {
       if (this.splicingGroupGlobal.children.length >= MaxModelLength) return;
       const text = await file.text();
       const object = OBJLoaderInstance.parse(text);
+
+      /**
+       * TODO: Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.
+       * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
+       * if it is body, remove the current body model from the splicing group and add the new body model to the splicing group if the splicing group has the corresponding model in it.
+       */
+
+      // Log the height of the imported model first
+      console.log(
+        "\n Imported Model Height ->",
+        getObject3DHeight(object, "Imported Model")
+      );
+
+      /**
+       * Checked! Now we can check if the imported model is hair or body based on the height of the head.
+       * hair -> height < @see {CutHeadBoundingBoxHeight}
+       * body -> height > @see {CutHeadBoundingBoxHeight}
+       */
+      const isHair =
+        getObject3DHeight(object, "Imported Model") < CutHeadBoundingBoxHeight;
+      console.log("\n isHair imported model ->", isHair);
+
+      /**
+       * TODO: Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
+       */
 
       this.splicingGroupGlobal.add(object);
     },
