@@ -11,18 +11,18 @@ import { addTransformDebug } from "../three/gui";
 import {
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
-  disposeGeoMat,
   getObject3DHeight,
+  disposeHairBodyFromSplicingGroupGlobal,
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 // const ObjLoader = new OBJLoader();
-const GUIGlobal = new Pane({ title: "Global Settings" });
+const TweakPane = new Pane({ title: "Global Settings" });
 
 // Load the default head
 
 // Cutters Model
-const loadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
+const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
     ModelPaths.Cutters.OralSphereCylinderCombined
   );
@@ -36,13 +36,13 @@ const loadDefaultCutHeadAsync = async () => {
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(loadedHeadModel, false);
   // Get Cut Head
-  const cutHeadDefault = await getCutHead(loadedHeadModel, loadedCuttersModel);
+  const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Apply PBR Material and SRGB Color Space
   applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
-  addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
+  addTransformDebug("Cut Head", TweakPane, cutHeadDefault, {
     showScale: true,
   });
   // Compute the bounding box of the cut head and get the height and log it
@@ -65,9 +65,9 @@ export const useModelsStore = defineStore("models", {
     bodyModelGlobal: null as THREE.Object3D | null,
     // Cutters
     cuttersModelGlobal:
-      loadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
+      LoadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
     // GUI
-    guiGlobal: GUIGlobal as Pane,
+    guiGlobal: TweakPane as Pane,
   }),
 
   getters: {
@@ -80,10 +80,11 @@ export const useModelsStore = defineStore("models", {
       this.splicingGroupGlobal.add(child);
     },
 
-    clear() {
-      if (this.splicingGroupGlobal.children.length === 0) return;
-      // TODO: Clear the Hair and Body except the CutHead.
-      disposeGeoMat(this.splicingGroupGlobal);
+    clear(filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[]) {
+      disposeHairBodyFromSplicingGroupGlobal(
+        this.splicingGroupGlobal,
+        filteredSubGroups
+      );
     },
 
     async importObj(file: File) {

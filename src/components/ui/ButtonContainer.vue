@@ -41,10 +41,12 @@ import {
   ModelImportMaxLenReminderContent,
 } from "../../constants";
 import { storeToRefs } from "pinia";
+import { CutHeadEyesCombinedGroupName } from "../../three/constants";
+import type { Group, Object3DEventMap } from "three";
 
 // Get the store
 const store = useModelsStore();
-const { splicingGroupLen } = storeToRefs(store);
+const { splicingGroupGlobal, splicingGroupLen } = storeToRefs(store);
 
 // TODO: Fix the non-reactive group length.
 console.log("splicingGroupLen ->", splicingGroupLen.value);
@@ -100,9 +102,26 @@ const handleFileChange = async (e: Event) => {
 
 const clearModels = () => {
   console.log("splicingGroupLen before clear ->", splicingGroupLen.value);
+
+  // The toast content to show, whether it is successful or not.
   let toastContent: string = ModelClearedReminderContent;
-  if (splicingGroupLen.value === 0) {
+
+  // Filter out the cut head group
+  const filteredSubGroups: Group<Object3DEventMap>[] =
+    splicingGroupGlobal.value.children.filter(
+      (c) => c.name !== CutHeadEyesCombinedGroupName
+    ) as Group<Object3DEventMap>[];
+
+  console.log("\nfilteredSubGroups ->", filteredSubGroups);
+
+  /*
+    Check if there is hair or body group or both.
+    If not, show a warning toast, return.
+   */
+  if (filteredSubGroups.length === 0) {
+    // Reassign the toast content of failure to show.
     toastContent = ModelEmptyReminderContent;
+    // Show toast of failing to clear models.
     toast(toastContent, {
       autoClose: 1000,
       type: "warning",
@@ -110,8 +129,13 @@ const clearModels = () => {
     return;
   }
 
-  store.clear();
+  /*
+    Dispose the geometries and materials of the hair or body group or both.
+    Clear the hair or body group or both from the splicing global group.
+   */
+  store.clear(filteredSubGroups);
 
+  // Show toast of successfully cleared models.
   toast(toastContent, {
     autoClose: 1000,
   });
