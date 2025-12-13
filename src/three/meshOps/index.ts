@@ -11,13 +11,22 @@ import {
   MeshStandardMaterial,
   type NormalBufferAttributes,
   Object3D,
+  type Object3DEventMap,
   SRGBColorSpace,
   Vector3,
 } from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Brush } from "three-bvh-csg";
-import { Colors, CutHeadDebugProps, UVCoordinateMod } from "../constants";
+import {
+  Colors,
+  CutHeadDebugProps,
+  ModelPaths,
+  NodeNames,
+  UVCoordinateMod,
+  type PhongMesh,
+} from "../constants";
 import { exportObjectToOBJ } from "../exporters";
+import { loadTexture } from "../loaders/TextureLoader";
 
 export function combineMeshes(meshes: Mesh[]) {
   const geometries = meshes.map((mesh) => {
@@ -43,6 +52,41 @@ export function flattenMesh(mesh2Simplify: Mesh) {
 
 export function getAttributes(mesh: Mesh): NormalBufferAttributes {
   return mesh.geometry.attributes;
+}
+
+export async function applyTextures2LoadedHeadModelAsync(
+  loadedHeadModel: Group<Object3DEventMap>,
+  isModelFeMale: boolean
+) {
+  const headNode = loadedHeadModel.getObjectByName(
+    NodeNames.HeadNames.Head
+  ) as PhongMesh;
+  const eyeLNode = loadedHeadModel.getObjectByName(
+    NodeNames.HeadNames.EyeL
+  ) as PhongMesh;
+  const eyeRNode = loadedHeadModel.getObjectByName(
+    NodeNames.HeadNames.EyeR
+  ) as PhongMesh;
+
+  const applyTexture = async (): Promise<void> => {
+    const headColTexPath = isModelFeMale
+      ? ModelPaths.HeadFemale.Texture.HeadColTex
+      : ModelPaths.HeadMale.Texture.HeadColorTex;
+    const eyeLColTexPath = isModelFeMale
+      ? ModelPaths.HeadFemale.Texture.EyeLColTex
+      : ModelPaths.HeadMale.Texture.EyeLColTex;
+    const eyeRColTexPath = isModelFeMale
+      ? ModelPaths.HeadFemale.Texture.EyeRColTex
+      : ModelPaths.HeadMale.Texture.EyeRColTex;
+    const headColTex = await loadTexture(headColTexPath);
+    const eyeLColTex = await loadTexture(eyeLColTexPath);
+    const eyeRColTex = await loadTexture(eyeRColTexPath);
+
+    headNode.material.map = headColTex;
+    eyeLNode.material.map = eyeLColTex;
+    eyeRNode.material.map = eyeRColTex;
+  };
+  await applyTexture();
 }
 
 export function applyGeometryScaling(mesh: Mesh | Brush, scale: number): void {

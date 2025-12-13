@@ -1,5 +1,4 @@
-import * as THREE from 'three/webgpu';
-
+import * as THREE from "three/webgpu";
 import { TextureLoaderInstance } from "../constants/index.ts";
 
 export async function loadTexture(path: string): Promise<THREE.Texture> {

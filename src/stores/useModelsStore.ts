@@ -8,7 +8,11 @@ import {
   OBJLoaderInstance,
 } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
-import { disposeGeoMat } from "../three/meshOps/index.ts";
+import {
+  applyPBRMaterialAndSRGBColorSpace,
+  applyTextures2LoadedHeadModelAsync,
+  disposeGeoMat,
+} from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 // const ObjLoader = new OBJLoader();
@@ -28,16 +32,21 @@ const loadDefaultCutHeadAsync = async () => {
       // Male
       ModelPaths.HeadMale.Model
     );
+  // Apply textures
+  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, false);
+  // Get Cut Head
   const cutHeadDefault = await getCutHead(loadedHeadModel, loadedCuttersModel);
+  // Apply PBR Material and SRGB Color Space
+  applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
   cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
-  if (GUIGlobal)
-    addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
-      showScale: true,
-    });
+  addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
+    showScale: true,
+  });
   return cutHeadDefault;
 };
 
 const CutHeadDefault = await loadDefaultCutHeadAsync();
+console.log("\n CutHeadDefault ->", CutHeadDefault);
 
 export const useModelsStore = defineStore("models", {
   state: () => ({
