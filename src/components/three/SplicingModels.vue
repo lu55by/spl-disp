@@ -16,29 +16,20 @@ import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager"
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const { splicingGroupGlobal: globalGroup, guiGlobal, cuttersModelGlobal } = useModelsStore();
-console.log("Global Group ->", globalGroup);
+const { splicingGroupGlobal, guiGlobal } = useModelsStore();
+console.log("Global Group ->", splicingGroupGlobal);
 
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
   renderer: THREE.WebGPURenderer,
   controls: OrbitControls,
-  clock: THREE.Clock,
-  gui: Pane;
+  clock: THREE.Clock;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
 
 // Init scene fn
 const init = async () => {
-  // const width = canvasEle.value!.clientWidth
-  // const height = canvasEle.value!.clientHeight
-
-  /**
-   * GUI
-   */
-  gui = guiGlobal as Pane;
-
   /**
    * Camera
    */
@@ -75,10 +66,6 @@ const init = async () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
-
-  // Inspector/GUI
-  // renderer.inspector = new Inspector()
-  // const gui = renderer.inspector.createParameters("Parameters")
 
   /**
    * Controls
@@ -118,7 +105,7 @@ const init = async () => {
   */
 
   // Add the global group
-  scene.add(globalGroup);
+  scene.add(splicingGroupGlobal);
 };
 
 // Resize fn

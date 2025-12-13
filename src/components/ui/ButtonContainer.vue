@@ -3,9 +3,9 @@
     class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
   >
     <!-- Import -->
-    <Button :disabled="isImportBtnDisabled" @click="openFilePicker">
-      导入
-    </Button>
+    <Button @click="openFilePicker">导入发模</Button>
+
+    <Button @click="openFilePicker">导入体模</Button>
 
     <!-- Export (not implemented here) -->
     <Button :disabled="isExportBtnDisabled" :customClass="`exporter`"
@@ -55,8 +55,9 @@ watch(splicingGroupLen, (newLength, oldLength) => {
 });
 
 // Disable logic
-let isImportBtnDisabled = computed(() => splicingGroupLen.value === MaxModelLength);
-let isExportBtnDisabled = computed(() => splicingGroupLen.value < MaxModelLength);
+let isExportBtnDisabled = computed(
+  () => splicingGroupLen.value < MaxModelLength
+);
 let isClearBtnDisabled = computed(() => splicingGroupLen.value === 0);
 
 console.log("isClearBtnDisabled ->", isClearBtnDisabled.value);
