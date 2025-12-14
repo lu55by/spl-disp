@@ -3,7 +3,6 @@
 </template>
 
 <script setup lang="ts">
-import { AxesHelper } from "three";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as THREE from "three/webgpu";
@@ -31,15 +30,20 @@ const updateTargetCenter = () => {
 
 updateTargetCenter();
 
-const unsubscribe = modelsStore.$subscribe(() => {
-  updateTargetCenter();
+const unsubscribe = modelsStore.$onAction(({ name, after }) => {
+  const relevantActions = ["addChild", "clear", "importObj"];
+  if (relevantActions.includes(name)) {
+    after(() => {
+      updateTargetCenter();
+    });
+  }
 });
 
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
   renderer: THREE.WebGPURenderer,
-  controls: OrbitControls,
-  clock: THREE.Clock;
+  controls: OrbitControls;
+// clock: THREE.Clock;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -55,11 +59,7 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far
   );
-  camera.position.set(
-    CameraProps.PosNormal.x,
-    CameraProps.PosNormal.y,
-    CameraProps.PosNormal.z
-  );
+  camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
   addTransformDebug("Camera", guiGlobal as Pane, camera, {
     posMin: -300,
     posMax: 300,
@@ -73,7 +73,7 @@ const init = async () => {
   /**
    * Clock
    */
-  clock = new THREE.Clock();
+  // clock = new THREE.Clock();
 
   /**
    * Renderer
@@ -100,13 +100,13 @@ const init = async () => {
   //   splicingGroupGlobal.position.y,
   //   splicingGroupGlobal.position.z
   // );
-  // controls.minDistance = .1
-  // controls.maxDistance = 50
+  controls.minDistance = 0.1;
+  controls.maxDistance = 170;
 
   /**
    * Axes Helper
    */
-  scene.add(new AxesHelper(20));
+  // scene.add(new AxesHelper(20));
 
   /**
    * Load Hdr
@@ -131,14 +131,8 @@ const init = async () => {
   /*
     Load Models
   */
-
   // Add the global group
-  // applyDebugTransformation(splicingGroupGlobal, new THREE.Vector3(0, 1.2, 0));
   scene.add(splicingGroupGlobal);
-  console.log(
-    "\nsplicingGroupGlobal bounding box center ->",
-    getObject3DBoundingBoxCenter(splicingGroupGlobal)
-  );
 };
 
 // Resize fn
