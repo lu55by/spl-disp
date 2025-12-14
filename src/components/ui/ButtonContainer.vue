@@ -4,10 +4,8 @@
   >
     <!-- Imports -->
     <!-- TODO: Fix the css layout issue of the import buttons -->
-    <div class="flex flex-col gap-2">
-      <Button @click="openFilePicker">导入文件夹</Button>
-      <Button @click="openFilesPicker">导入文件</Button>
-    </div>
+    <Button @click="openFilePicker">导入文件夹</Button>
+    <Button @click="openFilesPicker">导入文件</Button>
 
     <!-- Export (not implemented here) -->
     <Button :disabled="isExportBtnDisabled" :customClass="`exporter`"
