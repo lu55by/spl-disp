@@ -14,6 +14,7 @@ import {
   applyTextures2LoadedHeadModelAsync,
   getObject3DHeight,
   disposeHairBodyFromSplicingGroupGlobal,
+  removeAndAddModel,
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
@@ -39,7 +40,7 @@ const loadDefaultCutHeadAsync = async () => {
   // Get Cut Head
   const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Apply PBR Material and SRGB Color Space
-  applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
+  // applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
@@ -89,7 +90,7 @@ export const useModelsStore = defineStore("models", {
     },
 
     async importObj(file: File) {
-      if (this.splicingGroupGlobal.children.length >= MaxModelLength) return;
+      // if (this.splicingGroupGlobal.children.length >= MaxModelLength) return;
       const text = await file.text();
       const object = OBJLoaderInstance.parse(text);
 
@@ -115,10 +116,9 @@ export const useModelsStore = defineStore("models", {
       console.log("\n isHair imported model ->", isHair);
 
       /**
-       * TODO: Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
+       * Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
        */
-
-      this.splicingGroupGlobal.add(object);
+      removeAndAddModel(this.splicingGroupGlobal, object, isHair);
     },
   },
 });

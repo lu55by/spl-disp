@@ -18,6 +18,7 @@ import { Brush } from "three-bvh-csg";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import {
   Colors,
+  CutHeadBoundingBoxHeight,
   CutHeadDebugProps,
   CutHeadEyesCombinedGroupName,
   ModelPaths,
@@ -303,6 +304,27 @@ export const exportCutHead = (
   });
 };
 
+export function disposeHairBodyGroup(
+  splicingGroupGlobal: Group<Object3DEventMap>,
+  hairOrBodyGroup: Group<Object3DEventMap>
+) {
+  console.log("\nhairOrBodyGroup to be disposed ->", hairOrBodyGroup);
+  hairOrBodyGroup.children.forEach((m) => {
+    if (
+      m instanceof Mesh &&
+      m.geometry instanceof BufferGeometry &&
+      m.material instanceof MeshPhongMaterial
+    ) {
+      m.geometry.dispose();
+      m.material.dispose();
+      m.geometry = undefined;
+      m.material = undefined;
+      hairOrBodyGroup.remove(m);
+    }
+  });
+  splicingGroupGlobal.remove(hairOrBodyGroup);
+}
+
 export function disposeHairBodyFromSplicingGroupGlobal(
   splicingGroupGlobal: Group<Object3DEventMap>,
   filteredSubGroups: Group<Object3DEventMap>[]
@@ -312,22 +334,7 @@ export function disposeHairBodyFromSplicingGroupGlobal(
     ! as we checked in `clearModels` fn from `ButtonContainer.vue` if this fn is called.
    */
   filteredSubGroups.forEach((hairOrBodyGroup) => {
-    if (hairOrBodyGroup instanceof Group) {
-      hairOrBodyGroup.children.forEach((m) => {
-        if (
-          m instanceof Mesh &&
-          m.geometry instanceof BufferGeometry &&
-          m.material instanceof MeshPhongMaterial
-        ) {
-          m.geometry.dispose();
-          m.material.dispose();
-          m.geometry = undefined;
-          m.material = undefined;
-          hairOrBodyGroup.remove(m);
-        }
-      });
-    }
-    splicingGroupGlobal.remove(hairOrBodyGroup);
+    disposeHairBodyGroup(splicingGroupGlobal, hairOrBodyGroup);
   });
 }
 
@@ -345,4 +352,83 @@ export function getFilteredSubGroups(
   return splicingGroupGlobal.children.filter(
     (c) => c.name !== CutHeadEyesCombinedGroupName
   ) as Group<Object3DEventMap>[];
+}
+
+export function removeAndAddModel(
+  splicingGroupGlobal: Group<Object3DEventMap>,
+  group2Add: Group<Object3DEventMap>,
+  isHairGroup2Add: boolean
+) {
+  // Check if there is a hair or body group in the splicingGroupGlobal
+  const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
+  console.log(
+    "\n -- removeAndAddModel -- filteredSubGroups length ->",
+    filteredSubGroups.length
+  );
+  // return;
+
+  if (filteredSubGroups.length === 0) {
+    // No hair or body group found, add it to the group.
+    splicingGroupGlobal.add(group2Add);
+    return;
+  }
+
+  // Has hair or body group found, remove it and add the new one, or add it straightly if it is not conflicting.
+  if (filteredSubGroups.length === 1) {
+    // Check if the existed one is hair or body
+    const existedHairOrBodyGroup = filteredSubGroups[0];
+    // Get the height of the group to check if it is hair or body
+    const existedHairOrBodyGroupHeight = getObject3DHeight(
+      existedHairOrBodyGroup,
+      "Existed Hair or Body Group"
+    );
+    const isHairGroupExisted =
+      existedHairOrBodyGroupHeight < CutHeadBoundingBoxHeight;
+    if (isHairGroup2Add === isHairGroupExisted) {
+      // Conflicting, remove the existed hair or body group and add the new one
+      disposeHairBodyGroup(splicingGroupGlobal, existedHairOrBodyGroup);
+      splicingGroupGlobal.add(group2Add);
+      return;
+    }
+    // Not conflicting, add the new one straightly
+    splicingGroupGlobal.add(group2Add);
+    return;
+  }
+
+  // return;
+  console.log("\nPrepare to remove the hair or body group...");
+
+  // Handle the condition of hair and body groups existing at the same time
+  // Get the hair and body groups
+  let hairGroup = filteredSubGroups[0];
+  let bodyGroup = filteredSubGroups[1];
+  if (getObject3DHeight(hairGroup, "Hair Group") > CutHeadBoundingBoxHeight) {
+    hairGroup = filteredSubGroups[1];
+    bodyGroup = filteredSubGroups[0];
+  }
+
+  console.log(
+    "\nHair Group Height after checking ->",
+    getObject3DHeight(hairGroup, "Hair Group")
+  );
+  console.log(
+    "\nBody Group Height after checking ->",
+    getObject3DHeight(bodyGroup, "Body Group")
+  );
+
+  // Create a variable to store the group to remove
+  let group2Dispose: Group<Object3DEventMap> | null = null;
+  // Check if the new group is hair or body
+  if (isHairGroup2Add) group2Dispose = hairGroup;
+  else group2Dispose = bodyGroup;
+
+  console.log(
+    "\nGroup to dispose ->",
+    getObject3DHeight(group2Dispose, "Group to dispose")
+  );
+
+  // Dispose the group
+  disposeHairBodyGroup(splicingGroupGlobal, group2Dispose);
+  // Add the new group
+  splicingGroupGlobal.add(group2Add);
 }

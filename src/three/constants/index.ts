@@ -72,7 +72,7 @@ export const Colors = {
  * Camera Configuration
  */
 export const CameraProps = {
-  Pos: { x: 1, y: 1, z: 1 },
+  Pos: { x: -160, y: 98.8, z: 54 },
   Fov: 75,
   Near: 0.01,
   Far: 500,
@@ -100,7 +100,7 @@ export const OffsetPosNegPercentages = {
 
 export const CutHeadEyesCombinedGroupName = "CutHeadEyesCombinedGrp";
 
-export const CutHeadBoundingBoxHeight = 22.35;
+export const CutHeadBoundingBoxHeight = 22.35 + 40;
 
 /*
  * -----------------------------------------------------------------------------

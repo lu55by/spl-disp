@@ -12,6 +12,8 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
+import { applyDebugTransformation } from "../../three/meshOps";
+import { addTransformDebug } from "../../three/gui";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -40,7 +42,10 @@ const init = async () => {
     CameraProps.Far
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  // addTransformDebug("Camera", gui, camera);
+  addTransformDebug("Camera", guiGlobal as Pane, camera, {
+    posMin: -300,
+    posMax: 300,
+  });
 
   /**
    * Scene
@@ -105,6 +110,7 @@ const init = async () => {
   */
 
   // Add the global group
+  // applyDebugTransformation(splicingGroupGlobal, new THREE.Vector3(0, 1.2, 0));
   scene.add(splicingGroupGlobal);
 };
 
@@ -135,6 +141,8 @@ const animate = async () => {
 
   // Update controls
   controls.update();
+
+  // console.log("\ncamera pos ->", camera.position);
 
   // Update renderer
   await renderer.init();

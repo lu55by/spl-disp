@@ -73,16 +73,16 @@ const openFilePicker = () => {
 
 // When file selected → import it
 const handleFileChange = async (e: Event) => {
-  console.log("splicingGroupLen before import ->", splicingGroupLen.value);
+  console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
   let toastContent: string = ModelImportedReminderContent;
-  if (splicingGroupLen.value === MaxModelLength) {
-    toastContent = ModelImportMaxLenReminderContent;
-    toast(toastContent, {
-      autoClose: 1000,
-      type: "warning",
-    });
-    return;
-  }
+  // if (splicingGroupLen.value === MaxModelLength) {
+  //   toastContent = ModelImportMaxLenReminderContent;
+  //   toast(toastContent, {
+  //     autoClose: 1000,
+  //     type: "warning",
+  //   });
+  //   return;
+  // }
 
   const target = e.target as HTMLInputElement;
   const file = target.files?.[0];
@@ -90,6 +90,8 @@ const handleFileChange = async (e: Event) => {
   if (!file) return;
 
   await store.importObj(file);
+
+  console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 
   // clear input so selecting same file works
   target.value = "";
