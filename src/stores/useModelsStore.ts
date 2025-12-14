@@ -1,23 +1,21 @@
 import { defineStore } from "pinia";
 import * as THREE from "three";
 import { Pane } from "tweakpane";
-import { MaxModelLength } from "../constants";
 import {
   CutHeadBoundingBoxHeight,
-  CutHeadDebugProps,
   ModelPaths,
   OBJLoaderInstance,
 } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
+import { loadTexture } from "../three/loaders/TextureLoader";
 import {
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
-  getObject3DHeight,
   disposeHairBodyFromSplicingGroupGlobal,
+  getObject3DHeight,
   removeAndAddModel,
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
-import { loadTexture } from "../three/loaders/TextureLoader";
 
 // const ObjLoader = new OBJLoader();
 const TweakPane = new Pane({ title: "Global Settings" });
@@ -41,7 +39,7 @@ const loadDefaultCutHeadAsync = async () => {
   // Get Cut Head
   const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Apply PBR Material and SRGB Color Space
-  // applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
+  applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
