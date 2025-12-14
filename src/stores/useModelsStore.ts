@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
+import { markRaw } from "vue";
 import * as THREE from "three";
 import { Pane } from "tweakpane";
+import { guiGlobal } from "../three/gui/global";
 import {
   CutHeadBoundingBoxHeight,
   ModelPaths,
@@ -18,7 +20,7 @@ import {
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 // const ObjLoader = new OBJLoader();
-const TweakPane = new Pane({ title: "Global Settings" });
+// const TweakPane = new Pane({ title: "Global Settings" });
 
 // Load the default head
 
@@ -43,7 +45,7 @@ const loadDefaultCutHeadAsync = async () => {
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
-  addTransformDebug("Cut Head", TweakPane, cutHeadDefault, {
+  addTransformDebug("Cut Head", guiGlobal, cutHeadDefault, {
     showScale: true,
   });
   // Compute the bounding box of the cut head and get the height and log it
@@ -60,18 +62,19 @@ console.log("\n CutHeadDefault ->", CutHeadDefault);
 export const useModelsStore = defineStore("models", {
   state: () => ({
     // Splicing Group
-    splicingGroupGlobal: new THREE.Group().add(
-      CutHeadDefault
+    splicingGroupGlobal: markRaw(
+      new THREE.Group().add(CutHeadDefault)
     ) as THREE.Group<THREE.Object3DEventMap>,
     // Hair
     // hairModelGlobal: null as THREE.Object3D | null,
     // Body
     // bodyModelGlobal: null as THREE.Object3D | null,
     // Cutters
-    cuttersModelGlobal:
-      LoadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
+    cuttersModelGlobal: markRaw(
+      LoadedCuttersModel
+    ) as THREE.Group<THREE.Object3DEventMap>,
     // GUI
-    guiGlobal: TweakPane as Pane,
+    // guiGlobal: TweakPane as Pane,
   }),
 
   getters: {

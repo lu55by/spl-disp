@@ -6,11 +6,11 @@
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as THREE from "three/webgpu";
-import type { Pane } from "tweakpane";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
 import { addTransformDebug } from "../../three/gui";
+import { guiGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 
@@ -18,7 +18,7 @@ import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
 const modelsStore = useModelsStore();
-const { splicingGroupGlobal, guiGlobal } = modelsStore;
+const { splicingGroupGlobal } = modelsStore;
 console.log("Global Group ->", splicingGroupGlobal);
 
 const targetCenter = new THREE.Vector3();
@@ -60,7 +60,7 @@ const init = async () => {
     CameraProps.Far
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  addTransformDebug("Camera", guiGlobal as Pane, camera, {
+  addTransformDebug("Camera", guiGlobal, camera, {
     posMin: -300,
     posMax: 300,
   });
