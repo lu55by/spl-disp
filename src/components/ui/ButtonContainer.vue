@@ -32,8 +32,8 @@
     <input
       type="file"
       ref="filesInput"
-      multiple
       accept=".obj,image/*"
+      multiple
       class="hidden"
       @change="handleFileChange"
     />

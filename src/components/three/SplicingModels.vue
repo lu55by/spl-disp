@@ -11,9 +11,8 @@ import type { Pane } from "tweakpane";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
-import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
-import { applyDebugTransformation } from "../../three/meshOps";
 import { addTransformDebug } from "../../three/gui";
+import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -156,6 +155,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  console.log("\nReady to dispose the SplicingModels Component...");
   // Dispose operations
   controls.dispose();
   renderer.dispose();
