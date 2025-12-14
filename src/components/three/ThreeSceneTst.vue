@@ -41,7 +41,11 @@ import type { Pane } from "tweakpane";
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const { splicingGroupGlobal: globalGroup, guiGlobal, cuttersModelGlobal } = useModelsStore();
+const {
+  splicingGroupGlobal: globalGroup,
+  guiGlobal,
+  cuttersModelGlobal,
+} = useModelsStore();
 console.log("Global Group ->", globalGroup);
 
 let camera: THREE.PerspectiveCamera,
@@ -73,7 +77,11 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far
   );
-  camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
+  camera.position.set(
+    CameraProps.PosNormal.x,
+    CameraProps.PosNormal.y,
+    CameraProps.PosNormal.z
+  );
   // addTransformDebug("Camera", gui, camera);
 
   /**
@@ -785,7 +793,7 @@ const init = async () => {
         headMale2CutPaths[i],
         isFemale,
         new THREE.Vector3(
-          baseOffsetX + (isFemale ? (i - femaleHeadStartIdx) : i) * 0.3,
+          baseOffsetX + (isFemale ? i - femaleHeadStartIdx : i) * 0.3,
           0,
           isFemale ? 0.3 : 0
         )

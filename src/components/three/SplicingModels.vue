@@ -13,12 +13,27 @@ import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
 import { addTransformDebug } from "../../three/gui";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
+import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const { splicingGroupGlobal, guiGlobal } = useModelsStore();
+const modelsStore = useModelsStore();
+const { splicingGroupGlobal, guiGlobal } = modelsStore;
 console.log("Global Group ->", splicingGroupGlobal);
+
+const targetCenter = new THREE.Vector3();
+
+const updateTargetCenter = () => {
+  console.log("\nupdateTargetCenter called...");
+  targetCenter.copy(getObject3DBoundingBoxCenter(splicingGroupGlobal));
+};
+
+updateTargetCenter();
+
+const unsubscribe = modelsStore.$subscribe(() => {
+  updateTargetCenter();
+});
 
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
@@ -40,7 +55,11 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far
   );
-  camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
+  camera.position.set(
+    CameraProps.PosNormal.x,
+    CameraProps.PosNormal.y,
+    CameraProps.PosNormal.z
+  );
   addTransformDebug("Camera", guiGlobal as Pane, camera, {
     posMin: -300,
     posMax: 300,
@@ -76,6 +95,11 @@ const init = async () => {
    */
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  // controls.target.set(
+  //   splicingGroupGlobal.position.x,
+  //   splicingGroupGlobal.position.y,
+  //   splicingGroupGlobal.position.z
+  // );
   // controls.minDistance = .1
   // controls.maxDistance = 50
 
@@ -111,6 +135,10 @@ const init = async () => {
   // Add the global group
   // applyDebugTransformation(splicingGroupGlobal, new THREE.Vector3(0, 1.2, 0));
   scene.add(splicingGroupGlobal);
+  console.log(
+    "\nsplicingGroupGlobal bounding box center ->",
+    getObject3DBoundingBoxCenter(splicingGroupGlobal)
+  );
 };
 
 // Resize fn
@@ -136,14 +164,17 @@ const onWindowResize = () => {
 // Animate fn
 const animate = async () => {
   // Elapsed Time
-  // const time = clock.getElapsedTime()
+  // const time = clock.getElapsedTime();
 
-  // Update controls
+  /*
+    Update controls
+   */
+  controls.target.lerp(targetCenter, 0.1);
   controls.update();
 
-  // console.log("\ncamera pos ->", camera.position);
-
-  // Update renderer
+  /*
+    Update renderer
+   */
   await renderer.init();
   renderer.render(scene, camera);
 };
@@ -155,6 +186,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  unsubscribe();
   console.log("\nReady to dispose the SplicingModels Component...");
   // Dispose operations
   controls.dispose();

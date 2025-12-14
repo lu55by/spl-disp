@@ -345,6 +345,10 @@ export function getObject3DHeight(obj3D: Object3D, objName: string): number {
   return height;
 }
 
+export function getObject3DBoundingBoxCenter(obj3D: Object3D): Vector3 {
+  return new Box3().setFromObject(obj3D).getCenter(new Vector3());
+}
+
 export function getFilteredSubGroups(
   splicingGroupGlobal: Group<Object3DEventMap>
 ): Group<Object3DEventMap>[] {

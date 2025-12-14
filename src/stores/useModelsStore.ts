@@ -54,6 +54,9 @@ const loadDefaultCutHeadAsync = async () => {
 const CutHeadDefault = await loadDefaultCutHeadAsync();
 console.log("\n CutHeadDefault ->", CutHeadDefault);
 
+/**
+ * Model Store
+ */
 export const useModelsStore = defineStore("models", {
   state: () => ({
     // Splicing Group
@@ -61,9 +64,9 @@ export const useModelsStore = defineStore("models", {
       CutHeadDefault
     ) as THREE.Group<THREE.Object3DEventMap>,
     // Hair
-    hairModelGlobal: null as THREE.Object3D | null,
+    // hairModelGlobal: null as THREE.Object3D | null,
     // Body
-    bodyModelGlobal: null as THREE.Object3D | null,
+    // bodyModelGlobal: null as THREE.Object3D | null,
     // Cutters
     cuttersModelGlobal:
       LoadedCuttersModel as THREE.Group<THREE.Object3DEventMap>,
