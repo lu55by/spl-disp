@@ -3,9 +3,7 @@
     class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
   >
     <!-- Import -->
-    <Button @click="openFilePicker">导入发模</Button>
-
-    <Button @click="openFilePicker">导入体模</Button>
+    <Button @click="openFilePicker">导入</Button>
 
     <!-- Export (not implemented here) -->
     <Button :disabled="isExportBtnDisabled" :customClass="`exporter`"
