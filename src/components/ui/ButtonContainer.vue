@@ -3,7 +3,11 @@
     class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
   >
     <!-- Import -->
-    <Button @click="openFilePicker">导入</Button>
+    <!-- Import -->
+    <div class="flex flex-col gap-2">
+      <Button @click="openFilePicker">导入文件夹</Button>
+      <Button @click="openFilesPicker">导入文件</Button>
+    </div>
 
     <!-- Export (not implemented here) -->
     <Button :disabled="isExportBtnDisabled" :customClass="`exporter`"
@@ -25,25 +29,33 @@
       class="hidden"
       @change="handleFileChange"
     />
+
+    <!-- Hidden files input -->
+    <input
+      type="file"
+      ref="filesInput"
+      multiple
+      accept=".obj,image/*"
+      class="hidden"
+      @change="handleFileChange"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+import type { Group, Object3DEventMap } from "three";
 import { computed, ref, watch } from "vue";
-import Button from "./Button.vue";
-import { useModelsStore } from "../../stores/useModelsStore";
 import { toast } from "vue3-toastify";
 import {
   MaxModelLength,
   ModelClearedReminderContent,
   ModelEmptyReminderContent,
-  ModelImportedReminderContent,
-  ModelImportMaxLenReminderContent,
+  ModelImportedReminderContent
 } from "../../constants";
-import { storeToRefs } from "pinia";
-import { CutHeadEyesCombinedGroupName } from "../../three/constants";
-import type { Group, Object3DEventMap } from "three";
+import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
+import Button from "./Button.vue";
 
 // Get the store
 const store = useModelsStore();
@@ -67,10 +79,16 @@ console.log("isClearBtnDisabled ->", isClearBtnDisabled.value);
 
 // Hidden input reference
 const fileInput = ref<HTMLInputElement | null>(null);
+const filesInput = ref<HTMLInputElement | null>(null);
 
-// Click "Import" button → open file picker
+// Click "Import Folder" button → open file picker (directory mode)
 const openFilePicker = () => {
   fileInput.value?.click();
+};
+
+// Click "Import Files" button -> open file picker (files mode)
+const openFilesPicker = () => {
+  filesInput.value?.click();
 };
 
 // When file selected → import it
