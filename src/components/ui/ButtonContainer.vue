@@ -3,7 +3,6 @@
     class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
   >
     <!-- Imports -->
-    <!-- TODO: Fix the css layout issue of the import buttons -->
     <Button @click="openFilePicker">导入文件夹</Button>
     <Button @click="openFilesPicker">导入文件</Button>
 
@@ -50,6 +49,10 @@ import {
   ModelClearedReminderContent,
   ModelEmptyReminderContent,
   ModelImportedReminderContent,
+  ModelImportWarningMoreThanTwoFiles,
+  ModelImportWarningNoObjFile,
+  ModelImportWarningOneFileNotObj,
+  ModelImportWarningTwoObjFiles,
 } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
@@ -92,21 +95,70 @@ const openFilesPicker = () => {
 // When file selected → import it
 const handleFileChange = async (e: Event) => {
   console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
-  let toastContent: string = ModelImportedReminderContent;
-  // if (splicingGroupLen.value === MaxModelLength) {
-  //   toastContent = ModelImportMaxLenReminderContent;
-  //   toast(toastContent, {
-  //     autoClose: 1000,
-  //     type: "warning",
-  //   });
-  //   return;
-  // }
 
   const target = e.target as HTMLInputElement;
   const files = target.files;
 
+  /*
+    ! No File Selected
+   */
   if (!files || files.length === 0) return;
 
+  /*
+    ! Only One File Selected and Not an Obj File
+   */
+  if (files.length === 1 && !files[0].name.endsWith(".obj")) {
+    toast(ModelImportWarningOneFileNotObj, {
+      autoClose: 1000,
+      type: "warning",
+    });
+    return;
+  }
+
+  /*
+    ! More than 2 Files Selected
+   */
+  if (files.length > 2) {
+    toast(ModelImportWarningMoreThanTwoFiles, {
+      autoClose: 1000,
+      type: "warning",
+    });
+    return;
+  }
+
+  /*
+    ! No Obj File Selected
+   */
+  let hasObjFile = false;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.name.endsWith(".obj")) {
+      hasObjFile = true;
+      break;
+    }
+  }
+  if (!hasObjFile) {
+    toast(ModelImportWarningNoObjFile, {
+      autoClose: 1000,
+      type: "warning",
+    });
+    return;
+  }
+
+  /*
+    ! Two Obj Files Selected
+   */
+  if (files[0].name.endsWith(".obj") && files[1].name.endsWith(".obj")) {
+    toast(ModelImportWarningTwoObjFiles, {
+      autoClose: 1000,
+      type: "warning",
+    });
+    return;
+  }
+
+  /*
+    Import Obj File
+   */
   await store.importObj(files);
 
   console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
@@ -114,7 +166,7 @@ const handleFileChange = async (e: Event) => {
   // clear input so selecting same file works
   target.value = "";
 
-  toast(toastContent, {
+  toast(ModelImportedReminderContent, {
     autoClose: 1000,
   });
 };
