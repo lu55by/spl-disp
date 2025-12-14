@@ -17,6 +17,7 @@ import {
   removeAndAddModel,
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
+import { loadTexture } from "../three/loaders/TextureLoader";
 
 // const ObjLoader = new OBJLoader();
 const TweakPane = new Pane({ title: "Global Settings" });
@@ -89,13 +90,46 @@ export const useModelsStore = defineStore("models", {
       );
     },
 
-    async importObj(file: File) {
-      // if (this.splicingGroupGlobal.children.length >= MaxModelLength) return;
-      const text = await file.text();
+    async importObj(files: FileList) {
+      console.log("\nfiles ->", files);
+
+      let objFile: File | null = null;
+      let texFile: File | null = null;
+
+      // Iterate over the files to find the .obj and texture files
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.name.endsWith(".obj")) {
+          objFile = file;
+        } else if (file.type.startsWith("image/")) {
+          texFile = file;
+        }
+      }
+
+      if (!objFile) {
+        console.warn("No .obj file found.");
+        return;
+      }
+
+      const text = await objFile.text();
       const object = OBJLoaderInstance.parse(text);
 
+      // If texture file exists, load and apply it
+      if (texFile) {
+        const texUrl = URL.createObjectURL(texFile);
+        const texture = await loadTexture(texUrl);
+        // Retrieve the first node (child) of the object and apply the texture to it
+        const node = object.children[0] as THREE.Mesh<
+          THREE.BufferGeometry,
+          THREE.MeshPhongMaterial
+        >;
+        node.material.map = texture;
+        node.material.needsUpdate = true;
+      }
+      applyPBRMaterialAndSRGBColorSpace(object, false);
+
       /**
-       * TODO: Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.
+       * Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, remove the current body model from the splicing group and add the new body model to the splicing group if the splicing group has the corresponding model in it.
        */

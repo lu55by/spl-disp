@@ -19,7 +19,9 @@
     <input
       type="file"
       ref="fileInput"
-      accept=".obj"
+      webkitdirectory
+      directory
+      multiple
       class="hidden"
       @change="handleFileChange"
     />
@@ -85,11 +87,11 @@ const handleFileChange = async (e: Event) => {
   // }
 
   const target = e.target as HTMLInputElement;
-  const file = target.files?.[0];
+  const files = target.files;
 
-  if (!file) return;
+  if (!files || files.length === 0) return;
 
-  await store.importObj(file);
+  await store.importObj(files);
 
   console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 
