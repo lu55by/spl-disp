@@ -19,6 +19,7 @@ import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUti
 import {
   Colors,
   CutHeadDebugProps,
+  CutHeadEyesCombinedGroupName,
   ModelPaths,
   NodeNames,
   type PhongMesh,
@@ -335,4 +336,13 @@ export function getObject3DHeight(obj3D: Object3D, objName: string): number {
   const height = box.max.y - box.min.y;
   console.log(`\n ${objName} Height ->`, height);
   return height;
+}
+
+export function getFilteredSubGroups(
+  splicingGroupGlobal: Group<Object3DEventMap>
+): Group<Object3DEventMap>[] {
+  // Filter out the cut head group
+  return splicingGroupGlobal.children.filter(
+    (c) => c.name !== CutHeadEyesCombinedGroupName
+  ) as Group<Object3DEventMap>[];
 }

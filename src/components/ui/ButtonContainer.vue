@@ -41,6 +41,7 @@ import {
 import { storeToRefs } from "pinia";
 import { CutHeadEyesCombinedGroupName } from "../../three/constants";
 import type { Group, Object3DEventMap } from "three";
+import { getFilteredSubGroups } from "../../three/meshOps";
 
 // Get the store
 const store = useModelsStore();
@@ -105,10 +106,9 @@ const clearModels = () => {
   let toastContent: string = ModelClearedReminderContent;
 
   // Filter out the cut head group
-  const filteredSubGroups: Group<Object3DEventMap>[] =
-    splicingGroupGlobal.value.children.filter(
-      (c) => c.name !== CutHeadEyesCombinedGroupName
-    ) as Group<Object3DEventMap>[];
+  const filteredSubGroups: Group<Object3DEventMap>[] = getFilteredSubGroups(
+    splicingGroupGlobal.value
+  );
 
   console.log("\nfilteredSubGroups ->", filteredSubGroups);
 
