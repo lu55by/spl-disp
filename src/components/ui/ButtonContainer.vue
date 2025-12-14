@@ -2,8 +2,8 @@
   <div
     class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
   >
-    <!-- Import -->
-    <!-- Import -->
+    <!-- Imports -->
+    <!-- TODO: Fix the css layout issue of the import buttons -->
     <div class="flex flex-col gap-2">
       <Button @click="openFilePicker">导入文件夹</Button>
       <Button @click="openFilesPicker">导入文件</Button>
@@ -51,7 +51,7 @@ import {
   MaxModelLength,
   ModelClearedReminderContent,
   ModelEmptyReminderContent,
-  ModelImportedReminderContent
+  ModelImportedReminderContent,
 } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
