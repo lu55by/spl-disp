@@ -46,19 +46,21 @@ import { computed, ref, watch } from "vue";
 import { toast } from "vue3-toastify";
 import {
   MaxModelLength,
-  ModelClearedReminderContent,
-  ModelEmptyReminderContent,
-  ModelImportedReminderContent,
-  ModelImportWarningMoreThanTwoFiles,
-  ModelImportWarningNoObjFile,
-  ModelImportWarningOneFileNotObj,
-  ModelImportWarningTwoObjFiles,
+  ModelClearedReminderContentZH,
+  ModelEmptyReminderContentZH,
+  ModelImportedReminderContentZH,
+  ModelImportWarningMoreThanTwoFilesZH,
+  ModelImportWarningNoObjFileZH,
+  ModelImportWarningOneFileNotObjZH,
+  ModelImportWarningTwoObjFilesZH,
 } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
 import Button from "./Button.vue";
 
-// Get the store
+/**
+ * Get the store
+ */
 const store = useModelsStore();
 const { splicingGroupGlobal, splicingGroupLen } = storeToRefs(store);
 
@@ -70,7 +72,9 @@ watch(splicingGroupLen, (newLength, oldLength) => {
   console.log(`splicingGroupLen changed from ${oldLength} to ${newLength}`);
 });
 
-// Disable logic
+/**
+ * Disable logic
+ */
 let isExportBtnDisabled = computed(
   () => splicingGroupLen.value < MaxModelLength
 );
@@ -78,7 +82,9 @@ let isClearBtnDisabled = computed(() => splicingGroupLen.value === 0);
 
 console.log("isClearBtnDisabled ->", isClearBtnDisabled.value);
 
-// Hidden input reference
+/**
+ * Input elements and fns.
+ */
 const fileInput = ref<HTMLInputElement | null>(null);
 const filesInput = ref<HTMLInputElement | null>(null);
 
@@ -108,7 +114,7 @@ const handleFileChange = async (e: Event) => {
     ! Only One File Selected and Not an Obj File
    */
   if (files.length === 1 && !files[0].name.endsWith(".obj")) {
-    toast(ModelImportWarningOneFileNotObj, {
+    toast(ModelImportWarningOneFileNotObjZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -119,7 +125,7 @@ const handleFileChange = async (e: Event) => {
     ! More than 2 Files Selected
    */
   if (files.length > 2) {
-    toast(ModelImportWarningMoreThanTwoFiles, {
+    toast(ModelImportWarningMoreThanTwoFilesZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -138,7 +144,7 @@ const handleFileChange = async (e: Event) => {
     }
   }
   if (!hasObjFile) {
-    toast(ModelImportWarningNoObjFile, {
+    toast(ModelImportWarningNoObjFileZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -149,7 +155,7 @@ const handleFileChange = async (e: Event) => {
     ! Two Obj Files Selected
    */
   if (files[0].name.endsWith(".obj") && files[1].name.endsWith(".obj")) {
-    toast(ModelImportWarningTwoObjFiles, {
+    toast(ModelImportWarningTwoObjFilesZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -166,7 +172,7 @@ const handleFileChange = async (e: Event) => {
   // clear input so selecting same file works
   target.value = "";
 
-  toast(ModelImportedReminderContent, {
+  toast(ModelImportedReminderContentZH, {
     autoClose: 1000,
   });
 };
@@ -174,7 +180,7 @@ const handleFileChange = async (e: Event) => {
 const clearModels = () => {
   console.log("splicingGroupLen before clear ->", splicingGroupLen.value);
 
-  // Filter out the cut head group
+  // Filter out the cut head group (filteredSubGroups -> sub groups to remove)
   const filteredSubGroups: Group<Object3DEventMap>[] = getFilteredSubGroups(
     splicingGroupGlobal.value
   );
@@ -186,9 +192,8 @@ const clearModels = () => {
     If not, show a warning toast, return.
    */
   if (filteredSubGroups.length === 0) {
-    // Reassign the toast content of failure to show.
-    // Show toast of failing to clear models.
-    toast(ModelEmptyReminderContent, {
+    // Show toast of failing to clear models, return.
+    toast(ModelEmptyReminderContentZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -202,7 +207,7 @@ const clearModels = () => {
   store.clear(filteredSubGroups);
 
   // Show toast of successfully cleared models.
-  toast(ModelClearedReminderContent, {
+  toast(ModelClearedReminderContentZH, {
     autoClose: 1000,
   });
 };
