@@ -160,11 +160,7 @@ export function applyPBRMaterialAndSRGBColorSpace(
   isStandard: boolean
 ): void {
   obj.traverse((m) => {
-    if (
-      m instanceof Mesh &&
-      m.material instanceof MeshPhongMaterial &&
-      m.material.map
-    ) {
+    if (m instanceof Mesh && m.material instanceof MeshPhongMaterial) {
       const orgMat = m.material;
       m.material = isStandard
         ? new MeshStandardMaterial({
@@ -173,7 +169,7 @@ export function applyPBRMaterialAndSRGBColorSpace(
         : new MeshPhysicalMaterial({
             map: orgMat.map,
           });
-      m.material.map.colorSpace = SRGBColorSpace;
+      if (m.material.map) m.material.map.colorSpace = SRGBColorSpace;
       orgMat.dispose();
     }
   });

@@ -22,14 +22,17 @@ import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 // const ObjLoader = new OBJLoader();
 // const TweakPane = new Pane({ title: "Global Settings" });
 
-// Load the default head
-
-// Cutters Model
+/*
+  Cutters Model
+ */
 const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
     ModelPaths.Cutters.OralSphereCylinderCombined
   );
 
+/*
+  Default Cut Head
+ */
 const loadDefaultCutHeadAsync = async () => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(
@@ -54,9 +57,16 @@ const loadDefaultCutHeadAsync = async () => {
   getObject3DHeight(cutHeadDefault, "Cut Head");
   return cutHeadDefault;
 };
-
 const CutHeadDefault = await loadDefaultCutHeadAsync();
 console.log("\n CutHeadDefault ->", CutHeadDefault);
+
+/*
+  Splicing Group
+ */
+const SplicingGroupGlobal = markRaw(
+  new THREE.Group().add(CutHeadDefault)
+) as THREE.Group<THREE.Object3DEventMap>;
+SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
 /**
  * Model Store
@@ -64,9 +74,7 @@ console.log("\n CutHeadDefault ->", CutHeadDefault);
 export const useModelsStore = defineStore("models", {
   state: () => ({
     // Splicing Group
-    splicingGroupGlobal: markRaw(
-      new THREE.Group().add(CutHeadDefault)
-    ) as THREE.Group<THREE.Object3DEventMap>,
+    splicingGroupGlobal: SplicingGroupGlobal,
     splicingGroupLengthState: 1,
     // Hair
     // hairModelGlobal: null as THREE.Object3D | null,
@@ -124,21 +132,23 @@ export const useModelsStore = defineStore("models", {
       }
 
       const text = await objFile.text();
-      const object = OBJLoaderInstance.parse(text);
+      const importedParsedObject = OBJLoaderInstance.parse(text);
 
       // If texture file exists, load and apply it
       if (texFile) {
         const texUrl = URL.createObjectURL(texFile);
         const texture = await loadTexture(texUrl);
         // Retrieve the first node (child) of the object and apply the texture to it
-        const node = object.children[0] as THREE.Mesh<
+        const node = importedParsedObject.children[0] as THREE.Mesh<
           THREE.BufferGeometry,
           THREE.MeshPhongMaterial
         >;
         node.material.map = texture;
         node.material.needsUpdate = true;
       }
-      applyPBRMaterialAndSRGBColorSpace(object, true);
+      // Apply PBR Material and SRGB Color Space
+      applyPBRMaterialAndSRGBColorSpace(importedParsedObject, true);
+      applyDoubleSide(importedParsedObject);
 
       /**
        * Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.
@@ -149,7 +159,7 @@ export const useModelsStore = defineStore("models", {
       // Log the height of the imported model first
       console.log(
         "\n Imported Model Height ->",
-        getObject3DHeight(object, "Imported Model")
+        getObject3DHeight(importedParsedObject, "Imported Model")
       );
 
       /**
@@ -158,14 +168,15 @@ export const useModelsStore = defineStore("models", {
        * body -> height > @see {CutHeadBoundingBoxHeight}
        */
       const isHair =
-        getObject3DHeight(object, "Imported Model") < CutHeadBoundingBoxHeight;
-      object.name = isHair ? "HairGrp" : "BodyGrp";
+        getObject3DHeight(importedParsedObject, "Imported Model") <
+        CutHeadBoundingBoxHeight;
+      importedParsedObject.name = isHair ? "HairGrp" : "BodyGrp";
       console.log("\n isHair imported model ->", isHair);
 
       /**
        * Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
        */
-      removeAndAddModel(this.splicingGroupGlobal, object, isHair);
+      removeAndAddModel(this.splicingGroupGlobal, importedParsedObject, isHair);
       this.syncSplicingGroupLength();
     },
   },

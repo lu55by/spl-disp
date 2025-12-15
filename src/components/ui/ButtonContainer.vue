@@ -50,7 +50,7 @@ import {
   ModelImportWarningMoreThanTwoFilesZH,
   ModelImportWarningNoObjFileZH,
   ModelImportWarningOneFileNotObjZH,
-  ModelImportWarningTwoObjFilesZH
+  ModelImportWarningTwoObjFilesZH,
 } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
@@ -153,7 +153,11 @@ const handleFileChange = async (e: Event) => {
   /*
     ! Two Obj Files Selected
    */
-  if (files[0].name.endsWith(".obj") && files[1].name.endsWith(".obj")) {
+  if (
+    files.length === 2 &&
+    files[0].name.endsWith(".obj") &&
+    files[1].name.endsWith(".obj")
+  ) {
     toast(ModelImportWarningTwoObjFilesZH, {
       autoClose: 1000,
       type: "warning",
