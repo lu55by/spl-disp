@@ -37,15 +37,13 @@ import {
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
 import type { Pane } from "tweakpane";
+import { guiGlobal } from "../../three/gui/global";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const {
-  splicingGroupGlobal: globalGroup,
-  guiGlobal,
-  cuttersModelGlobal,
-} = useModelsStore();
+const { splicingGroupGlobal: globalGroup, cuttersModelGlobal } =
+  useModelsStore();
 console.log("Global Group ->", globalGroup);
 
 let camera: THREE.PerspectiveCamera,
@@ -66,7 +64,7 @@ const init = async () => {
   /**
    * GUI
    */
-  gui = guiGlobal as Pane;
+  gui = guiGlobal;
 
   /**
    * Camera
