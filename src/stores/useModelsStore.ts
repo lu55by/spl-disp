@@ -1,14 +1,13 @@
 import { defineStore } from "pinia";
-import { markRaw } from "vue";
 import * as THREE from "three";
-import { Pane } from "tweakpane";
-import { guiGlobal } from "../three/gui/global";
+import { markRaw } from "vue";
 import {
   CutHeadBoundingBoxHeight,
   ModelPaths,
   OBJLoaderInstance,
 } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
+import { GUIGlobal } from "../three/gui/global";
 import { loadTexture } from "../three/loaders/TextureLoader";
 import {
   applyPBRMaterialAndSRGBColorSpace,
@@ -45,7 +44,7 @@ const loadDefaultCutHeadAsync = async () => {
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
-  addTransformDebug("Cut Head", guiGlobal, cutHeadDefault, {
+  addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
     showScale: true,
   });
   // Compute the bounding box of the cut head and get the height and log it
@@ -65,6 +64,7 @@ export const useModelsStore = defineStore("models", {
     splicingGroupGlobal: markRaw(
       new THREE.Group().add(CutHeadDefault)
     ) as THREE.Group<THREE.Object3DEventMap>,
+    splicingGroupLengthState: 1,
     // Hair
     // hairModelGlobal: null as THREE.Object3D | null,
     // Body
@@ -78,13 +78,17 @@ export const useModelsStore = defineStore("models", {
   }),
 
   getters: {
-    splicingGroupLen: (state): number =>
-      state.splicingGroupGlobal.children.length,
+    splicingGroupLen: (state): number => state.splicingGroupLengthState,
   },
 
   actions: {
+    syncSplicingGroupLength() {
+      this.splicingGroupLengthState = this.splicingGroupGlobal.children.length;
+    },
+
     addChild(child: THREE.Object3D) {
       this.splicingGroupGlobal.add(child);
+      this.syncSplicingGroupLength();
     },
 
     clear(filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[]) {
@@ -92,6 +96,7 @@ export const useModelsStore = defineStore("models", {
         this.splicingGroupGlobal,
         filteredSubGroups
       );
+      this.syncSplicingGroupLength();
     },
 
     async importObj(files: FileList) {
@@ -157,6 +162,7 @@ export const useModelsStore = defineStore("models", {
        * Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
        */
       removeAndAddModel(this.splicingGroupGlobal, object, isHair);
+      this.syncSplicingGroupLength();
     },
   },
 });

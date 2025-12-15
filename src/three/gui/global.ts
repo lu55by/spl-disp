@@ -1,5 +1,5 @@
 import { Pane } from "tweakpane";
 
-const guiGlobal = new Pane({ title: "Global Settings" });
+const GUIGlobal = new Pane({ title: "Global Settings" });
 
-export { guiGlobal };
+export { GUIGlobal };

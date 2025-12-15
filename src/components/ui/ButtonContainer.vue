@@ -14,10 +14,7 @@
     <!-- Clear -->
     <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
 
-    <p class="text-stone-100">
-      <!-- 当前模型组长度: {{ splicingGroupLen }} -->
-      当前模型组长度: {{ splicingGroupGlobal.children.length }}
-    </p>
+    <p class="text-stone-100">当前模型组长度: {{ splicingGroupLen }}</p>
 
     <!-- Hidden file input -->
     <input
@@ -97,11 +94,7 @@ const openFilesPicker = () => {
 
 // When file selected → import it
 const handleFileChange = async (e: Event) => {
-  // console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
-  console.log(
-    "splicingGroupLen before importing ->",
-    splicingGroupGlobal.value.children.length
-  );
+  console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
 
   const target = e.target as HTMLInputElement;
   const files = target.files;
@@ -168,15 +161,7 @@ const handleFileChange = async (e: Event) => {
    */
   await store.importObj(files);
 
-  console.log(
-    "splicingGroupGlobal after imported ->",
-    splicingGroupGlobal.value
-  );
-  // console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
-  console.log(
-    "splicingGroupLen after imported ->",
-    splicingGroupGlobal.value.children.length
-  );
+  console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 
   // clear input so selecting same file works
   target.value = "";
@@ -188,9 +173,6 @@ const handleFileChange = async (e: Event) => {
 
 const clearModels = () => {
   console.log("splicingGroupLen before clear ->", splicingGroupLen.value);
-
-  // The toast content to show, whether it is successful or not.
-  let toastContent: string = ModelClearedReminderContent;
 
   // Filter out the cut head group
   const filteredSubGroups: Group<Object3DEventMap>[] = getFilteredSubGroups(
@@ -205,9 +187,8 @@ const clearModels = () => {
    */
   if (filteredSubGroups.length === 0) {
     // Reassign the toast content of failure to show.
-    toastContent = ModelEmptyReminderContent;
     // Show toast of failing to clear models.
-    toast(toastContent, {
+    toast(ModelEmptyReminderContent, {
       autoClose: 1000,
       type: "warning",
     });
@@ -221,7 +202,7 @@ const clearModels = () => {
   store.clear(filteredSubGroups);
 
   // Show toast of successfully cleared models.
-  toast(toastContent, {
+  toast(ModelClearedReminderContent, {
     autoClose: 1000,
   });
 };

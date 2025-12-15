@@ -10,7 +10,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
 import { addTransformDebug } from "../../three/gui";
-import { guiGlobal } from "../../three/gui/global";
+import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 
@@ -68,7 +68,7 @@ const init = async () => {
     CameraProps.Far
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  addTransformDebug("Camera", guiGlobal, camera, {
+  addTransformDebug("Camera", GUIGlobal, camera, {
     posMin: -300,
     posMax: 300,
   });

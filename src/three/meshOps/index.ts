@@ -365,10 +365,10 @@ export function removeAndAddModel(
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
   const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
-  console.log(
-    "\n -- removeAndAddModel -- filteredSubGroups length ->",
-    filteredSubGroups.length
-  );
+  // console.log(
+  //   "\n -- removeAndAddModel -- filteredSubGroups length ->",
+  //   filteredSubGroups.length
+  // );
   // return;
 
   if (filteredSubGroups.length === 0) {

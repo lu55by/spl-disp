@@ -37,7 +37,7 @@ import {
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
 import type { Pane } from "tweakpane";
-import { guiGlobal } from "../../three/gui/global";
+import { GUIGlobal } from "../../three/gui/global";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -64,7 +64,7 @@ const init = async () => {
   /**
    * GUI
    */
-  gui = guiGlobal;
+  gui = GUIGlobal;
 
   /**
    * Camera
