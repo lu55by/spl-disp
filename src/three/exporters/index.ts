@@ -103,36 +103,30 @@ async function textureToBlob(texture: THREE.Texture): Promise<Blob | null> {
   });
 }
 
+import JSZip from "jszip";
+
 /**
  * Connects to the File System Access API to save the files.
  * Exports:
  * 1. OBJ file
  * 2. MTL file
  * 3. Texture files (PNG)
+ * Packs everything into a ZIP file.
  */
-export async function exportSplicingGroup(
-  group: Object3D,
-  baseName: string = "splicing-group"
-) {
-  // 1. Ask user for directory
-  // @ts-ignore - File System Access API
-  const dirHandle = await window.showDirectoryPicker();
-  if (!dirHandle) return;
-
+export async function exportSplicingGroup(group: Object3D) {
+  const zip = new JSZip();
   const exporter = new OBJExporter();
 
   // We will collect materials to generate MTL
   const materials = new Map<string, THREE.Material>();
-  const texturesToSave = new Map<string, Blob>();
+  const textureFileNames = new Map<string, string>(); // material.name -> filename.png
 
-  // 2. clone the group to modify it if necessary (though we just read names)
-  // Actually, we need to ensure unique material names if they aren't already.
-  // The user ensured names are set in previous steps.
-
-  const textureFileNames = new Map<string, string>(); // material.uuid -> filename.png
+  // Generate random ID for filenames
+  const uuid = Math.random().toString(36).substring(2, 10);
+  const baseName = `spl_disp_exported_${uuid}`;
 
   // Traverse to find meshes and textures
-  const promises: Promise<void>[] = [];
+  const texturePromises: Promise<void>[] = [];
 
   group.traverse((child) => {
     if ((child as Mesh).isMesh) {
@@ -156,12 +150,12 @@ export async function exportSplicingGroup(
         // Store mapping for MTL generation
         textureFileNames.set(material.name, texName);
 
-        // Process texture to blob
-        promises.push(
+        // Process texture to blob and add to zip
+        texturePromises.push(
           (async () => {
             const blob = await textureToBlob(map);
             if (blob) {
-              texturesToSave.set(texName, blob);
+              zip.file(texName, blob);
             }
           })()
         );
@@ -169,7 +163,7 @@ export async function exportSplicingGroup(
     }
   });
 
-  await Promise.all(promises);
+  await Promise.all(texturePromises);
 
   // 3. Generate OBJ
   let objContent = exporter.parse(group);
@@ -207,36 +201,47 @@ export async function exportSplicingGroup(
     }
   });
 
-  // 5. Write Files
+  // Add OBJ, MTL to zip
+  zip.file(`${baseName}.obj`, objContent);
+  zip.file(mtlFileName, mtlContent);
 
-  // Helper to write file
-  const writeFile = async (filename: string, content: string | Blob) => {
-    const fileHandle = await dirHandle.getFileHandle(filename, {
-      create: true,
-    });
-    const writable = await fileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-  };
+  // Generate ZIP blob
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  const zipFileName = `${baseName}.zip`;
 
+  // Save ZIP file
+  // Try File System Access API first
   try {
-    // Write OBJ
-    await writeFile(`${baseName}.obj`, objContent);
-
-    // Write MTL
-    await writeFile(mtlFileName, mtlContent);
-
-    // Write Textures
-    for (const [name, blob] of texturesToSave) {
-      await writeFile(name, blob);
-    }
-
-    console.log("Export successful!");
-    // We might want to show a toast here, but that's UI concern.
-    // We can return true to indicate success.
+    // @ts-ignore
+    const handle = await window.showSaveFilePicker({
+      suggestedName: zipFileName,
+      types: [
+        {
+          description: "ZIP Archive",
+          accept: { "application/zip": [".zip"] },
+        },
+      ],
+    });
+    const writable = await handle.createWritable();
+    await writable.write(zipBlob);
+    await writable.close();
     return true;
   } catch (err) {
-    console.error("Error writing files", err);
+    // Fallback to standard download if user cancels or API not supported/allowed
+    if ((err as Error).name !== "AbortError") {
+      console.warn(
+        "File System Access API failed, falling back to download anchor",
+        err
+      );
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = zipFileName;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      return true;
+    }
+    // If user aborted, treat as "failed" or just return false/undefined
+    console.log("Save cancelled");
     return false;
   }
 }

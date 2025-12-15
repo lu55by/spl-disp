@@ -197,7 +197,7 @@ export const useModelsStore = defineStore("models", {
     async exportModel() {
       // Lazy import to avoid circular dependency issues if any
       const { exportSplicingGroup } = await import("../three/exporters");
-      await exportSplicingGroup(this.splicingGroupGlobal);
+      return await exportSplicingGroup(this.splicingGroupGlobal);
     },
   },
 });

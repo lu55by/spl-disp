@@ -8,7 +8,7 @@
 
     <!-- Export (not implemented here) -->
     <!-- <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">导出</Button> -->
-    <Button :disabled="isExportBtnDisabled" @click="store.exportModel">导出</Button>
+    <Button :disabled="isExportBtnDisabled" @click="handleExport">导出</Button>
 
     <!-- Clear -->
     <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
@@ -214,4 +214,18 @@ const clearModels = () => {
     autoClose: 1000,
   });
 };
+
+const handleExport = async () => {
+    try {
+        const result = await store.exportModel();
+        if (result) {
+            toast.success("导出成功", { autoClose: 2000 });
+        } else {
+            console.log("Export cancelled or failed silently");
+        }
+    } catch (error) {
+        console.error("Export failed", error);
+        toast.error("导出失败", { autoClose: 2000 });
+    }
+}
 </script>
