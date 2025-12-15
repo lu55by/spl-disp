@@ -216,16 +216,17 @@ const clearModels = () => {
 };
 
 const handleExport = async () => {
-    try {
-        const result = await store.exportModel();
-        if (result) {
-            toast.success("导出成功", { autoClose: 2000 });
-        } else {
-            console.log("Export cancelled or failed silently");
-        }
-    } catch (error) {
-        console.error("Export failed", error);
-        toast.error("导出失败", { autoClose: 2000 });
+  try {
+    // TODO: Show a loading bar on the UI while exporting.
+    const result = await store.exportModel();
+    if (result) {
+      toast.success("导出成功", { autoClose: 2000 });
+    } else {
+      console.log("Export cancelled or failed silently");
     }
-}
+  } catch (error) {
+    console.error("Export failed", error);
+    toast.error("导出失败", { autoClose: 2000 });
+  }
+};
 </script>

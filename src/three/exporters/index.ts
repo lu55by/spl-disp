@@ -1,5 +1,5 @@
-import {OBJExporter} from "three/examples/jsm/exporters/OBJExporter.js";
-import type {Material, Mesh, Object3D} from "three";
+import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js";
+import type { Material, Mesh, Object3D } from "three";
 import * as THREE from "three";
 import { flattenMesh } from "../meshOps";
 
