@@ -24,12 +24,15 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
  */
 const modelsStore = useModelsStore();
 const { splicingGroupGlobal } = modelsStore;
-console.log("Global Group ->", splicingGroupGlobal);
 
 const targetCenter = new THREE.Vector3();
 
 const updateTargetCenter = () => {
   console.log("\nupdateTargetCenter called...");
+  console.log(
+    "\nsplicingGroupGlobal in SplicingModels after updateTargetCenter ->",
+    splicingGroupGlobal
+  );
   targetCenter.copy(getObject3DBoundingBoxCenter(splicingGroupGlobal));
 };
 

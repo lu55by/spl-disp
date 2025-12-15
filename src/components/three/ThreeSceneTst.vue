@@ -741,28 +741,6 @@ const init = async () => {
     return cutHead;
   };
 
-  const loadBodyTst = async () => {
-    const loadedBodyModel: THREE.Object3D = await loadObj(
-      ModelPaths.Body.Model
-    );
-    // console.log('loadedBody -> ', loadedBodyModel);
-    const bodyTex = await loadTexture(ModelPaths.Body.Texture.ColorTex);
-    // console.log('bodyTex -> ', bodyTex);
-    // Map the texture
-    loadedBodyModel.traverse((m) => {
-      if (m instanceof THREE.Mesh) m.material.map = bodyTex;
-    });
-    scene.add(loadedBodyModel);
-  };
-
-  // loadHairTst();
-
-  // loadHeadTst();
-
-  // loadExportHeadTst();
-
-  // loadBodyTst();
-
   const loadMultipleCutHeads = async () => {
     /**
      * Load multiple heads
@@ -775,12 +753,12 @@ const init = async () => {
     const headMale2CutPaths = [
       // Male Heads
       "/bigHead-01",
-      "/cutHead-uv-issue-01-isspd01",
-      "/cutHead-uv-issue-02-sasha01",
-      "/ukn-01",
+      // "/cutHead-uv-issue-01-isspd01",
+      // "/cutHead-uv-issue-02-sasha01",
+      // "/ukn-01",
       // Female Heads
-      "/default",
-      "/ellie01",
+      // "/default",
+      // "/ellie01",
     ];
     const femaleHeadStartIdx = 4;
     let isFemale: boolean;
@@ -821,7 +799,42 @@ const init = async () => {
     // });
   };
 
+  const loadBodyTst = async () => {
+    const loadedBodyModel: THREE.Object3D = await loadObj(
+      ModelPaths.Body.Model
+    );
+    // console.log('loadedBody -> ', loadedBodyModel);
+    const bodyTex = await loadTexture(ModelPaths.Body.Texture.ColorTex);
+    // console.log('bodyTex -> ', bodyTex);
+    // Map the texture
+    loadedBodyModel.traverse((m) => {
+      if (m instanceof THREE.Mesh) m.material.map = bodyTex;
+    });
+    scene.add(loadedBodyModel);
+  };
+
+  const loadExportedFullModelsTst = async () => {
+    const loadedFullModel = await loadObj("models/full/isspd01/model.obj");
+    console.log("loadedFullModel -> ", loadedFullModel);
+    // Log the names
+    loadedFullModel.traverse((m) => {
+      if (m instanceof THREE.Mesh) {
+        console.log("\nm.name -> ", m.name);
+      }
+    });
+  };
+
+  // loadHairTst();
+
+  // loadHeadTst();
+
+  // loadExportHeadTst();
+
+  // loadBodyTst();
+
   loadMultipleCutHeads();
+
+  // loadExportedFullModelsTst();
 };
 
 // Resize fn

@@ -73,6 +73,9 @@ export async function applyTextures2LoadedHeadModelAsync(
     const headColTexPath = isModelFeMale
       ? ModelPaths.HeadFemale.Texture.HeadColTex
       : ModelPaths.HeadMale.Texture.HeadColorTex;
+    // const teethColTexPath = isModelFeMale
+    //   ? ModelPaths.HeadFemale.Texture.TeethColTex
+    //   : ModelPaths.HeadMale.Texture.TeethColTex;
     const eyeLColTexPath = isModelFeMale
       ? ModelPaths.HeadFemale.Texture.EyeLColTex
       : ModelPaths.HeadMale.Texture.EyeLColTex;
@@ -80,6 +83,7 @@ export async function applyTextures2LoadedHeadModelAsync(
       ? ModelPaths.HeadFemale.Texture.EyeRColTex
       : ModelPaths.HeadMale.Texture.EyeRColTex;
     const headColTex = await loadTexture(headColTexPath);
+    // const teethColTex = await loadTexture(teethColTexPath);
     const eyeLColTex = await loadTexture(eyeLColTexPath);
     const eyeRColTex = await loadTexture(eyeRColTexPath);
 
@@ -130,7 +134,11 @@ export function applyPBRMaterialAndSRGBColorSpace(
   isStandard: boolean
 ): void {
   obj.traverse((m) => {
-    if (m instanceof Mesh && m.material instanceof MeshPhongMaterial) {
+    if (
+      m instanceof Mesh &&
+      m.material instanceof MeshPhongMaterial &&
+      m.material.map
+    ) {
       const orgMat = m.material;
       m.material = isStandard
         ? new MeshStandardMaterial({

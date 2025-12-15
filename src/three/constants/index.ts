@@ -183,6 +183,7 @@ export const ModelPaths = {
       HeadColorTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/headColor.png`,
       EyeLColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/eyeColorL.png`,
       EyeRColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/eyeColorR.png`,
+      TeethColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/TeethColor.png`,
     },
   },
   Body: {

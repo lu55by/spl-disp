@@ -51,6 +51,8 @@ export async function getCutHead(
   headModel: THREE.Group<THREE.Object3DEventMap>,
   cutters: THREE.Group<THREE.Object3DEventMap> | string
 ): Promise<THREE.Group<THREE.Object3DEventMap>> {
+  console.log("\nheadModel 2 be cut ->", headModel);
+  // return;
   // 切割模型
   const loadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
     cutters instanceof THREE.Group ? cutters : await loadObj(cutters);
@@ -70,6 +72,10 @@ export async function getCutHead(
 
   // 头部节点
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
+  // 牙齿节点
+  const teethNode = headModel
+    .getObjectByName("teeth_lod0_mesh")
+    .clone() as THREE.Mesh;
   // 左眼节点
   const eyeLNode = headModel
     .getObjectByName("eyeLeft_lod0_mesh")
@@ -102,6 +108,7 @@ export async function getCutHead(
     return combineMeshesToGroup(
       "CutHeadEyesNodeCombinedGrp",
       cutHeadBrush,
+      teethNode,
       eyeLNode,
       eyeRNode
     );
@@ -247,6 +254,7 @@ export async function getCutHead(
   return combineMeshesToGroup(
     "CutHeadEyesCombinedGrp",
     cutHeadBrush,
+    teethNode,
     eyeLNode,
     eyeRNode
   );

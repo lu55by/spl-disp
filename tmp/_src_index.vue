@@ -655,6 +655,7 @@
                 typeof file.value === 'string' &&
                 file.value.startsWith('http')
               ) {
+                // 获取纹理图片
                 const response = await fetch(file.value)
                 if (!response.ok) throw new Error(`无法下载 ${file.value}`)
                 content = await response.blob()
