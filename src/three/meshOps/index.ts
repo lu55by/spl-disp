@@ -286,9 +286,9 @@ export function scaleGroupToHeight(
   // -------------------------------
   // 2. Apply scaling to each mesh geometry
   // -------------------------------
-  grp2Scale.traverse((obj) => {
-    if (obj instanceof Mesh && obj.geometry instanceof BufferGeometry) {
-      const geom = obj.geometry;
+  grp2Scale.traverse((m) => {
+    if (m instanceof Mesh && m.geometry instanceof BufferGeometry) {
+      const geom = m.geometry;
       const pos = geom.attributes.position;
 
       for (let i = 0; i < pos.count; i++) {
