@@ -44,14 +44,13 @@ import type { Group, Object3DEventMap } from "three";
 import { computed, ref, watch } from "vue";
 import { toast } from "vue3-toastify";
 import {
-  MaxModelLength,
   ModelClearedReminderContentZH,
   ModelEmptyReminderContentZH,
   ModelImportedReminderContentZH,
   ModelImportWarningMoreThanTwoFilesZH,
   ModelImportWarningNoObjFileZH,
   ModelImportWarningOneFileNotObjZH,
-  ModelImportWarningTwoObjFilesZH,
+  ModelImportWarningTwoObjFilesZH
 } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";

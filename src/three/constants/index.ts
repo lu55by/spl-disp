@@ -149,7 +149,7 @@ const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 // --- Head Male Prefix ---
 export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
-export const HeadMaleSubPath = `/bigHead-01`;
+export const HeadMaleSubPath = `/cutHead-uv-issue-01-isspd01`;
 
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
@@ -198,6 +198,6 @@ export const ModelPaths = {
     SphereLineTranslated: `${CutterPathPrefix}/cutters-sph-line-translated.obj`,
     CylinderStrCloseLineTranslated: `${CutterPathPrefix}/cutters-cly-strc-close-line-translated.obj`,
     ClyinderStrcLinesRmvd: `${CutterPathPrefix}/cutters-cyl-strc-lines-rmvd.obj`,
-    OralSphereCylinderCombined: `${CutterPathPrefix}/cutters-mod-oral-vt-1.obj`,
+    OralSphereCylinderCombined: `${CutterPathPrefix}/cutters-cutter-teeth-added.obj`,
   },
 };

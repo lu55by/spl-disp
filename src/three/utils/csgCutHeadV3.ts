@@ -72,10 +72,18 @@ export async function getCutHead(
 
   // 头部节点
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
-  // 牙齿节点
-  const teethNode = headModel
-    .getObjectByName("teeth_lod0_mesh")
-    .clone() as THREE.Mesh;
+  // 牙齿节点 (直接进行切割，防止牙齿节点后部突出)
+  const teethNode = csgSubtract(
+    headModel.getObjectByName("teeth_lod0_mesh") as THREE.Mesh,
+    loadedCuttersModel.getObjectByName("cutter-teeth") as THREE.Mesh,
+    true,
+    null,
+    null,
+    {
+      isLog: IsCSGOperationLog,
+      value: "Teeth Cutter Node Hollow Subtraction.",
+    }
+  );
   // 左眼节点
   const eyeLNode = headModel
     .getObjectByName("eyeLeft_lod0_mesh")
@@ -85,6 +93,9 @@ export async function getCutHead(
     .getObjectByName("eyeRight_lod0_mesh")
     .clone() as THREE.Mesh;
 
+  /*
+    预创建 Brush
+  */
   let cutHeadBrush: Brush;
 
   // 一个切割节点，直接切
@@ -169,9 +180,6 @@ export async function getCutHead(
   });
   // DEBUG hollow cut.
   // return new THREE.Group().add(cutHeadObj);
-
-  // 基础材质，只为创建新网格使用
-  // const basicMat = new THREE.MeshBasicMaterial();
 
   // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
   const sphHollowCutHead = csgSubtract(
