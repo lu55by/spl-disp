@@ -170,6 +170,9 @@ export const useModelsStore = defineStore("models", {
       const isHairImported =
         importedParsedObjectHeight < CutHeadBoundingBoxHeight;
       importedParsedObject.name = isHairImported ? "HairGrp" : "BodyGrp";
+      importedParsedObject.children[0].name = isHairImported
+        ? "HairNode"
+        : "BodyNode";
       console.log("\nisHair imported model ->", isHairImported);
 
       /**

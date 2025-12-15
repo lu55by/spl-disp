@@ -84,14 +84,17 @@ export async function getCutHead(
       value: "Teeth Cutter Node Hollow Subtraction.",
     }
   );
+  teethNode.name = "TeethNode";
   // 左眼节点
   const eyeLNode = headModel
     .getObjectByName("eyeLeft_lod0_mesh")
     .clone() as THREE.Mesh;
+  eyeLNode.name = "EyeLNode";
   // 右眼节点
   const eyeRNode = headModel
     .getObjectByName("eyeRight_lod0_mesh")
     .clone() as THREE.Mesh;
+  eyeRNode.name = "EyeRNode";
 
   /*
     预创建 Brush
@@ -112,7 +115,7 @@ export async function getCutHead(
       isLog: IsCSGOperationLog,
       value: "One single Cutter Node Subtraction.",
     });
-    cutHeadBrush.name = "CutHead";
+    cutHeadBrush.name = "CutHeadNode";
     // 释放资源
     disposeGeoMat(headModel);
     // 返回切割过后的头部节点，左眼节点和右眼节点组
@@ -254,7 +257,7 @@ export async function getCutHead(
   );
 
   // 修改 cutHead 名称
-  cutHeadBrush.name = "CutHead";
+  cutHeadBrush.name = "CutHeadNode";
 
   // 释放资源
   disposeGeoMat(headModel);
