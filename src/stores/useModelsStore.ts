@@ -193,5 +193,11 @@ export const useModelsStore = defineStore("models", {
       );
       this.syncSplicingGroupLength();
     },
+
+    async exportModel() {
+      // Lazy import to avoid circular dependency issues if any
+      const { exportSplicingGroup } = await import("../three/exporters");
+      await exportSplicingGroup(this.splicingGroupGlobal);
+    },
   },
 });

@@ -8,7 +8,7 @@
 
     <!-- Export (not implemented here) -->
     <!-- <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">导出</Button> -->
-    <Button :disabled="isExportBtnDisabled">导出</Button>
+    <Button :disabled="isExportBtnDisabled" @click="store.exportModel">导出</Button>
 
     <!-- Clear -->
     <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
