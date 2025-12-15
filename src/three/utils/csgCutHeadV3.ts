@@ -70,7 +70,9 @@ export async function getCutHead(
 
   // 获取节点
 
-  // 头部节点
+  /*
+    头部节点
+   */
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
   // 牙齿节点 (直接进行切割，防止牙齿节点后部突出)
   const teethNode = csgSubtract(
@@ -84,17 +86,30 @@ export async function getCutHead(
       value: "Teeth Cutter Node Hollow Subtraction.",
     }
   );
+  // Set the name of the teeth node
   teethNode.name = "TeethNode";
-  // 左眼节点
+  // Set the name of the teeth node material
+  (teethNode.material as THREE.MeshPhongMaterial).name = "TeethNodeMat";
+  /*
+    左眼节点
+   */
   const eyeLNode = headModel
     .getObjectByName("eyeLeft_lod0_mesh")
     .clone() as THREE.Mesh;
+  // Set the name of the left eye node
   eyeLNode.name = "EyeLNode";
-  // 右眼节点
+  // Set the name of the left eye node material
+  (eyeLNode.material as THREE.MeshPhongMaterial).name = "EyeLNodeMat";
+  /*
+    右眼节点
+   */
   const eyeRNode = headModel
     .getObjectByName("eyeRight_lod0_mesh")
     .clone() as THREE.Mesh;
+  // Set the name of the right eye node
   eyeRNode.name = "EyeRNode";
+  // Set the name of the right eye node material
+  (eyeRNode.material as THREE.MeshPhongMaterial).name = "EyeRNodeMat";
 
   /*
     预创建 Brush
@@ -115,7 +130,12 @@ export async function getCutHead(
       isLog: IsCSGOperationLog,
       value: "One single Cutter Node Subtraction.",
     });
+    // Set the name of the cut head node
     cutHeadBrush.name = "CutHeadNode";
+    // Set the name of the cut head node material
+    (cutHeadBrush.material as THREE.MeshPhongMaterial).name = "CutHeadNodeMat";
+    console.log("\ncutHeadBrush.material ->", cutHeadBrush.material);
+
     // 释放资源
     disposeGeoMat(headModel);
     // 返回切割过后的头部节点，左眼节点和右眼节点组
@@ -128,7 +148,9 @@ export async function getCutHead(
     );
   }
 
-  // 切割节点 (根据索引获取 -> 改为根据名称获取)
+  /*
+    切割节点 (根据名称获取)
+   */
 
   // 口腔切割节点
   const cutter4OralCavityNode = loadedCuttersModel.getObjectByName(
@@ -256,8 +278,11 @@ export async function getCutHead(
     postCylinderCutOffest.neg
   );
 
-  // 修改 cutHead 名称
+  // Set the name of the cut head node
   cutHeadBrush.name = "CutHeadNode";
+  // Set the name of the cut head node material
+  (cutHeadBrush.material as THREE.MeshPhongMaterial).name = "CutHeadNodeMat";
+  // console.log("\ncutHeadBrush.material ->", cutHeadBrush.material);
 
   // 释放资源
   disposeGeoMat(headModel);

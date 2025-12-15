@@ -33,6 +33,12 @@ const updateTargetCenter = () => {
     "\nsplicingGroupGlobal in SplicingModels after updateTargetCenter ->",
     splicingGroupGlobal
   );
+  // Log all the material names
+  splicingGroupGlobal.traverse((object) => {
+    if (object instanceof THREE.Mesh) {
+      console.log("\nMaterial Name ->", object.material.name);
+    }
+  });
   targetCenter.copy(getObject3DBoundingBoxCenter(splicingGroupGlobal));
 };
 

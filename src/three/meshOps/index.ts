@@ -165,9 +165,11 @@ export function applyPBRMaterialAndSRGBColorSpace(
       m.material = isStandard
         ? new MeshStandardMaterial({
             map: orgMat.map,
+            name: orgMat.name,
           })
         : new MeshPhysicalMaterial({
             map: orgMat.map,
+            name: orgMat.name,
           });
       if (m.material.map) m.material.map.colorSpace = SRGBColorSpace;
       orgMat.dispose();

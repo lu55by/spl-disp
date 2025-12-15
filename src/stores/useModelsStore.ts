@@ -5,6 +5,7 @@ import {
   CutHeadBoundingBoxHeight,
   ModelPaths,
   OBJLoaderInstance,
+  type PhongMesh,
 } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
 import { GUIGlobal } from "../three/gui/global";
@@ -169,11 +170,18 @@ export const useModelsStore = defineStore("models", {
        */
       const isHairImported =
         importedParsedObjectHeight < CutHeadBoundingBoxHeight;
-      importedParsedObject.name = isHairImported ? "HairGrp" : "BodyGrp";
-      importedParsedObject.children[0].name = isHairImported
-        ? "HairNode"
-        : "BodyNode";
       console.log("\nisHair imported model ->", isHairImported);
+
+      // Set the name of the imported model
+      importedParsedObject.name = isHairImported ? "HairGrp" : "BodyGrp";
+      const importedParsedObjectChild = importedParsedObject
+        .children[0] as PhongMesh;
+      // Set the name of the imported model's child
+      importedParsedObjectChild.name = isHairImported ? "HairNode" : "BodyNode";
+      // Set the name of the imported model's child's material
+      importedParsedObjectChild.material.name = isHairImported
+        ? "HairNodeMat"
+        : "BodyNodeMat";
 
       /**
        * Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
