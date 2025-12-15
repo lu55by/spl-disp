@@ -14,7 +14,10 @@
     <!-- Clear -->
     <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
 
-    <p class="text-stone-100">当前模型组长度: {{ splicingGroupLen }}</p>
+    <p class="text-stone-100">
+      <!-- 当前模型组长度: {{ splicingGroupLen }} -->
+      当前模型组长度: {{ splicingGroupGlobal.children.length }}
+    </p>
 
     <!-- Hidden file input -->
     <input
@@ -94,7 +97,11 @@ const openFilesPicker = () => {
 
 // When file selected → import it
 const handleFileChange = async (e: Event) => {
-  console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
+  // console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
+  console.log(
+    "splicingGroupLen before importing ->",
+    splicingGroupGlobal.value.children.length
+  );
 
   const target = e.target as HTMLInputElement;
   const files = target.files;
@@ -161,7 +168,15 @@ const handleFileChange = async (e: Event) => {
    */
   await store.importObj(files);
 
-  console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
+  console.log(
+    "splicingGroupGlobal after imported ->",
+    splicingGroupGlobal.value
+  );
+  // console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
+  console.log(
+    "splicingGroupLen after imported ->",
+    splicingGroupGlobal.value.children.length
+  );
 
   // clear input so selecting same file works
   target.value = "";
