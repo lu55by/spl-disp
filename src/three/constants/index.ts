@@ -149,7 +149,7 @@ const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 // --- Head Male Prefix ---
 export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
-export const HeadMaleSubPath = `/default`;
+export const HeadMaleSubPath = `/bigHead-01`;
 
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;

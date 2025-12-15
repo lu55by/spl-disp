@@ -10,6 +10,7 @@ import { addTransformDebug } from "../three/gui";
 import { GUIGlobal } from "../three/gui/global";
 import { loadTexture } from "../three/loaders/TextureLoader";
 import {
+  applyDoubleSide,
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
   disposeHairBodyFromSplicingGroupGlobal,
@@ -41,6 +42,8 @@ const loadDefaultCutHeadAsync = async () => {
   const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Apply PBR Material and SRGB Color Space
   applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
+  // Apply Double Side
+  applyDoubleSide(cutHeadDefault);
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI

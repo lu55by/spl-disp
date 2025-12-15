@@ -12,6 +12,7 @@ import {
   Object3D,
   type Object3DEventMap,
   SRGBColorSpace,
+  Texture,
   Vector3,
 } from "three";
 import { Brush } from "three-bvh-csg";
@@ -62,6 +63,9 @@ export async function applyTextures2LoadedHeadModelAsync(
   const headNode = loadedHeadModel.getObjectByName(
     NodeNames.HeadNames.Head
   ) as PhongMesh;
+  const teethNode = loadedHeadModel.getObjectByName(
+    NodeNames.HeadNames.Teeth
+  ) as PhongMesh;
   const eyeLNode = loadedHeadModel.getObjectByName(
     NodeNames.HeadNames.EyeL
   ) as PhongMesh;
@@ -70,24 +74,46 @@ export async function applyTextures2LoadedHeadModelAsync(
   ) as PhongMesh;
 
   const applyTexture = async (): Promise<void> => {
+    /*
+      Texture Paths
+    */
     const headColTexPath = isModelFeMale
       ? ModelPaths.HeadFemale.Texture.HeadColTex
       : ModelPaths.HeadMale.Texture.HeadColorTex;
-    // const teethColTexPath = isModelFeMale
-    //   ? ModelPaths.HeadFemale.Texture.TeethColTex
-    //   : ModelPaths.HeadMale.Texture.TeethColTex;
+    const teethColTexPath = isModelFeMale
+      ? ModelPaths.HeadFemale.Texture.TeethColTex
+      : ModelPaths.HeadMale.Texture.TeethColTex;
     const eyeLColTexPath = isModelFeMale
       ? ModelPaths.HeadFemale.Texture.EyeLColTex
       : ModelPaths.HeadMale.Texture.EyeLColTex;
     const eyeRColTexPath = isModelFeMale
       ? ModelPaths.HeadFemale.Texture.EyeRColTex
       : ModelPaths.HeadMale.Texture.EyeRColTex;
+
+    /*
+      Head Color Texture
+    */
     const headColTex = await loadTexture(headColTexPath);
-    // const teethColTex = await loadTexture(teethColTexPath);
+    /*
+      Teeth Color Texture
+    */
+    let teethColTex: Texture | null = null;
+    try {
+      teethColTex = await loadTexture(teethColTexPath);
+    } catch (err: any) {
+      console.error(err);
+    }
+    /*
+      Eye Left Color Texture
+    */
     const eyeLColTex = await loadTexture(eyeLColTexPath);
+    /*
+      Eye Right Color Texture
+    */
     const eyeRColTex = await loadTexture(eyeRColTexPath);
 
     headNode.material.map = headColTex;
+    if (teethColTex) teethNode.material.map = teethColTex;
     eyeLNode.material.map = eyeLColTex;
     eyeRNode.material.map = eyeRColTex;
   };
