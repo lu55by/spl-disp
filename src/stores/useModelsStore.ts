@@ -41,7 +41,7 @@ const loadDefaultCutHeadAsync = async () => {
   // Get Cut Head
   const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Apply PBR Material and SRGB Color Space
-  applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, false);
+  applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
@@ -130,7 +130,7 @@ export const useModelsStore = defineStore("models", {
         node.material.map = texture;
         node.material.needsUpdate = true;
       }
-      applyPBRMaterialAndSRGBColorSpace(object, false);
+      applyPBRMaterialAndSRGBColorSpace(object, true);
 
       /**
        * Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.

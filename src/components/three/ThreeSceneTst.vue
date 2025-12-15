@@ -563,7 +563,7 @@ const init = async () => {
       isModelFeMale
     );
     applyDebugTransformation(cutHead, debugPosOffset);
-    applyPBRMaterialAndSRGBColorSpace(cutHead, false);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     // applyMaterialWireframe(cutHead, Colors.Yellow);
     scene.add(cutHead);
   };
@@ -647,7 +647,7 @@ const init = async () => {
 
     const cutHead = await getCutHeadV4(loadedHeadModel, cuttersModelGlobal);
     applyDebugTransformation(cutHead, debugPosOffset);
-    applyPBRMaterialAndSRGBColorSpace(cutHead, false);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     applyDoubleSide(cutHead);
     console.log("\n cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);
@@ -733,7 +733,7 @@ const init = async () => {
 
     const cutHead = await getCutHead(loadedHeadModel, cuttersModelGlobal);
     applyDebugTransformation(cutHead, debugPosOffset);
-    applyPBRMaterialAndSRGBColorSpace(cutHead, false);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     applyDoubleSide(cutHead);
     console.log("\n cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);

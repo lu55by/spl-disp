@@ -14,9 +14,14 @@ import { guiGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 
-// Canvas Element
+/**
+ * Canvas Element
+ */
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
+/**
+ * Models Store
+ */
 const modelsStore = useModelsStore();
 const { splicingGroupGlobal } = modelsStore;
 console.log("Global Group ->", splicingGroupGlobal);
@@ -39,6 +44,9 @@ const unsubscribe = modelsStore.$onAction(({ name, after }) => {
   }
 });
 
+/**
+ * Objects of three definition
+ */
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
   renderer: THREE.WebGPURenderer,
@@ -109,7 +117,7 @@ const init = async () => {
   // scene.add(new AxesHelper(20));
 
   /**
-   * Load Hdr
+   * Load HDR(IBL(Image-Based Lighting))
    */
   const ultraHDRLoader = new UltraHDRLoader(GlobalLoadingManager);
   ultraHDRLoader.setDataType(THREE.FloatType);
@@ -180,8 +188,10 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  unsubscribe();
   console.log("\nReady to dispose the SplicingModels Component...");
+  // Unsubscribe the callback fn is called based on the actions in the modelsStore
+  unsubscribe();
+
   // Dispose operations
   controls.dispose();
   renderer.dispose();
