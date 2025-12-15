@@ -368,10 +368,9 @@ export function disposeHairBodyFromSplicingGroupGlobal(
   });
 }
 
-export function getObject3DHeight(obj3D: Object3D, objName: string): number {
+export function getObject3DHeight(obj3D: Object3D): number {
   const box = new Box3().setFromObject(obj3D);
   const height = box.max.y - box.min.y;
-  console.log(`\n ${objName} Height ->`, height);
   return height;
 }
 
@@ -390,8 +389,8 @@ export function getFilteredSubGroups(
 
 export function removeAndAddModel(
   splicingGroupGlobal: Group<Object3DEventMap>,
-  group2Add: Group<Object3DEventMap>,
-  isHairGroup2Add: boolean
+  importedGroup: Group<Object3DEventMap>,
+  isHairImported: boolean
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
   const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
@@ -403,7 +402,7 @@ export function removeAndAddModel(
 
   if (filteredSubGroups.length === 0) {
     // No hair or body group found, add it to the group.
-    splicingGroupGlobal.add(group2Add);
+    splicingGroupGlobal.add(importedGroup);
     return;
   }
 
@@ -413,19 +412,18 @@ export function removeAndAddModel(
     const existedHairOrBodyGroup = filteredSubGroups[0];
     // Get the height of the group to check if it is hair or body
     const existedHairOrBodyGroupHeight = getObject3DHeight(
-      existedHairOrBodyGroup,
-      "Existed Hair or Body Group"
+      existedHairOrBodyGroup
     );
     const isHairGroupExisted =
       existedHairOrBodyGroupHeight < CutHeadBoundingBoxHeight;
-    if (isHairGroup2Add === isHairGroupExisted) {
+    if (isHairImported === isHairGroupExisted) {
       // Conflicting, remove the existed hair or body group and add the new one
       disposeHairBodyGroup(splicingGroupGlobal, existedHairOrBodyGroup);
-      splicingGroupGlobal.add(group2Add);
+      splicingGroupGlobal.add(importedGroup);
       return;
     }
     // Not conflicting, add the new one straightly
-    splicingGroupGlobal.add(group2Add);
+    splicingGroupGlobal.add(importedGroup);
     return;
   }
 
@@ -436,33 +434,30 @@ export function removeAndAddModel(
   // Get the hair and body groups
   let hairGroup = filteredSubGroups[0];
   let bodyGroup = filteredSubGroups[1];
-  if (getObject3DHeight(hairGroup, "Hair Group") > CutHeadBoundingBoxHeight) {
+  if (getObject3DHeight(hairGroup) > CutHeadBoundingBoxHeight) {
     hairGroup = filteredSubGroups[1];
     bodyGroup = filteredSubGroups[0];
   }
 
   console.log(
     "\nHair Group Height after checking ->",
-    getObject3DHeight(hairGroup, "Hair Group")
+    getObject3DHeight(hairGroup)
   );
   console.log(
     "\nBody Group Height after checking ->",
-    getObject3DHeight(bodyGroup, "Body Group")
+    getObject3DHeight(bodyGroup)
   );
 
   // Create a variable to store the group to remove
   let group2Dispose: Group<Object3DEventMap> | null = null;
   // Check if the new group is hair or body
-  if (isHairGroup2Add) group2Dispose = hairGroup;
+  if (isHairImported) group2Dispose = hairGroup;
   else group2Dispose = bodyGroup;
 
-  console.log(
-    "\nGroup to dispose ->",
-    getObject3DHeight(group2Dispose, "Group to dispose")
-  );
+  console.log("\nGroup to dispose ->", getObject3DHeight(group2Dispose));
 
   // Dispose the group
   disposeHairBodyGroup(splicingGroupGlobal, group2Dispose);
   // Add the new group
-  splicingGroupGlobal.add(group2Add);
+  splicingGroupGlobal.add(importedGroup);
 }

@@ -54,7 +54,7 @@ const loadDefaultCutHeadAsync = async () => {
     showScale: true,
   });
   // Compute the bounding box of the cut head and get the height and log it
-  getObject3DHeight(cutHeadDefault, "Cut Head");
+  getObject3DHeight(cutHeadDefault);
   return cutHeadDefault;
 };
 const CutHeadDefault = await loadDefaultCutHeadAsync();
@@ -137,6 +137,7 @@ export const useModelsStore = defineStore("models", {
       // If texture file exists, load and apply it
       if (texFile) {
         const texUrl = URL.createObjectURL(texFile);
+        console.log("\ntexUrl ->", texUrl);
         const texture = await loadTexture(texUrl);
         // Retrieve the first node (child) of the object and apply the texture to it
         const node = importedParsedObject.children[0] as THREE.Mesh<
@@ -157,26 +158,28 @@ export const useModelsStore = defineStore("models", {
        */
 
       // Log the height of the imported model first
-      console.log(
-        "\n Imported Model Height ->",
-        getObject3DHeight(importedParsedObject, "Imported Model")
-      );
+      const importedParsedObjectHeight =
+        getObject3DHeight(importedParsedObject);
+      console.log("\nImported Model Height ->", importedParsedObjectHeight);
 
       /**
        * Checked! Now we can check if the imported model is hair or body based on the height of the head.
        * hair -> height < @see {CutHeadBoundingBoxHeight}
        * body -> height > @see {CutHeadBoundingBoxHeight}
        */
-      const isHair =
-        getObject3DHeight(importedParsedObject, "Imported Model") <
-        CutHeadBoundingBoxHeight;
-      importedParsedObject.name = isHair ? "HairGrp" : "BodyGrp";
-      console.log("\n isHair imported model ->", isHair);
+      const isHairImported =
+        importedParsedObjectHeight < CutHeadBoundingBoxHeight;
+      importedParsedObject.name = isHairImported ? "HairGrp" : "BodyGrp";
+      console.log("\nisHair imported model ->", isHairImported);
 
       /**
        * Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
        */
-      removeAndAddModel(this.splicingGroupGlobal, importedParsedObject, isHair);
+      removeAndAddModel(
+        this.splicingGroupGlobal,
+        importedParsedObject,
+        isHairImported
+      );
       this.syncSplicingGroupLength();
     },
   },
