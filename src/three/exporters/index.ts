@@ -123,7 +123,7 @@ export async function exportSplicingGroup(group: Object3D) {
 
   // Generate random ID for filenames
   const uuid = Math.random().toString(36).substring(2, 10);
-  const baseName = `spl_disp_exported_${uuid}`;
+  const baseName = `spl_disp_exported_models_${uuid}`;
 
   // Traverse to find meshes and textures
   const texturePromises: Promise<void>[] = [];
@@ -206,7 +206,13 @@ export async function exportSplicingGroup(group: Object3D) {
   zip.file(mtlFileName, mtlContent);
 
   // Generate ZIP blob
-  const zipBlob = await zip.generateAsync({ type: "blob" });
+  const zipBlob = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: {
+      level: 5,
+    },
+  });
   const zipFileName = `${baseName}.zip`;
 
   // Save ZIP file
