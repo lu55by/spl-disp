@@ -97,7 +97,10 @@ const openFilesPicker = () => {
   filesInput.value?.click();
 };
 
-// When file selected → import it
+/**
+ * Import Models
+ * When file selected → import it
+ */
 const handleFileChange = async (e: Event) => {
   console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
 
@@ -180,6 +183,9 @@ const handleFileChange = async (e: Event) => {
   });
 };
 
+/**
+ * Clear models
+ */
 const clearModels = () => {
   console.log("splicingGroupLen before clear ->", splicingGroupLen.value);
 
@@ -215,6 +221,9 @@ const clearModels = () => {
   });
 };
 
+/**
+ * Export models
+ */
 const handleExport = async () => {
   try {
     // TODO: Show a loading bar on the UI while exporting.
