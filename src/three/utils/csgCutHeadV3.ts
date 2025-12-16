@@ -66,6 +66,8 @@ export async function getCutHead(
     return headModel;
   }
 
+  const isCuttersLen1 = cuttersLen === 1;
+
   // 加载口腔切割模型
 
   // 获取节点
@@ -75,17 +77,23 @@ export async function getCutHead(
    */
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
   // 牙齿节点 (直接进行切割，防止牙齿节点后部突出)
-  const teethNode = csgSubtract(
-    headModel.getObjectByName("teeth_lod0_mesh") as THREE.Mesh,
-    loadedCuttersModel.getObjectByName("cutter-teeth") as THREE.Mesh,
-    true,
-    null,
-    null,
-    {
-      isLog: IsCSGOperationLog,
-      value: "Teeth Cutter Node Hollow Subtraction.",
-    }
-  );
+  const teethNodeOrg = headModel.getObjectByName(
+    "teeth_lod0_mesh"
+  ) as THREE.Mesh;
+  // 判断是否是单个切割节点，不是则进行切割，否则直接使用原始牙齿节点
+  const teethNode = !isCuttersLen1
+    ? csgSubtract(
+        teethNodeOrg,
+        loadedCuttersModel.getObjectByName("cutter-teeth") as THREE.Mesh,
+        true,
+        null,
+        null,
+        {
+          isLog: IsCSGOperationLog,
+          value: "Teeth Cutter Node Hollow Subtraction.",
+        }
+      )
+    : teethNodeOrg.clone();
   // Set the name of the teeth node
   teethNode.name = "TeethNode";
   // Set the name of the teeth node material
@@ -117,7 +125,7 @@ export async function getCutHead(
   let cutHeadBrush: Brush;
 
   // 一个切割节点，直接切
-  if (cuttersLen === 1) {
+  if (isCuttersLen1) {
     const cutter = loadedCuttersModel.children[0] as THREE.Mesh<
       THREE.BufferGeometry,
       THREE.Material
