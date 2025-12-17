@@ -7,6 +7,7 @@ import {
   HOLLOW_SUBTRACTION,
   SUBTRACTION,
 } from "three-bvh-csg";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 /**
  * Constants
@@ -363,6 +364,7 @@ function csgSubtract(
     brushCutter,
     isHollowSub ? HOLLOW_SUBTRACTION : SUBTRACTION
   );
+  rs.geometry = mergeVertices(rs.geometry);
   rs.updateMatrixWorld();
   return rs;
 }
