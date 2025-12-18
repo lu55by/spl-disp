@@ -201,34 +201,26 @@ export function addTransformDebugInspector(
       });
   }
 
-  // Toggle map in the material
-  // if ("isShowMap" in debugProps) {
-  //   inspector
-  //     .add(debugProps, "isShowMap")
-  //     .name("Map")
-  //     .onChange((v) => {
-  //       obj.traverse((m) => {
-  //         if (
-  //           m instanceof Mesh &&
-  //           m.material instanceof MeshStandardNodeMaterial &&
-  //           m.material.map instanceof Texture
-  //         ) {
-  //           console.log("\nMap Debug in Inspector Clicked!");
-  //           // m.material.map = v ? m.material.map : WhiteTex;
-  //           m.material.positionNode = positionLocal.add(vec3(0, 2, 0));
-  //           m.material.colorNode = materialColor.mul(color("#f00"));
-  //           console.log(
-  //             "\nm.material.positionNode -> ",
-  //             m.material.positionNode
-  //           );
-  //           console.log("\nm.material.colorNode -> ", m.material.colorNode);
-  //         }
-  //       });
-  //     });
-  // }
+  /*
+    Toggle map in the material based on TSL
+   */
 
+  // Create the uniform to be toggled by inspector
   const uniformIsShowMap = uniform(1);
 
+  // Traverse the object and toggle the map (white or colored)
+  obj.children.forEach((m) => {
+    if (m instanceof Mesh && m.material instanceof MeshStandardNodeMaterial) {
+      console.log("\nMap Debug in Inspector Clicked!");
+      m.material.colorNode = mix(
+        materialColor,
+        color("#fff"),
+        uniformIsShowMap
+      );
+    }
+  });
+
+  // Toggle the uniform passed into the shader to toggle the map
   if ("isShowMap" in debugProps) {
     inspector
       .add(debugProps, "isShowMap")
@@ -237,24 +229,4 @@ export function addTransformDebugInspector(
         uniformIsShowMap.value = v ? 1 : 0;
       });
   }
-
-  obj.traverse((m) => {
-    if (
-      m instanceof Mesh &&
-      m.material instanceof MeshStandardNodeMaterial
-      // && m.material.map instanceof Texture
-    ) {
-      console.log("\nMap Debug in Inspector Clicked!");
-      // m.material.map = v ? m.material.map : WhiteTex;
-      // m.material.positionNode = positionLocal.add(vec3(0, 2, 0));
-      // m.material.colorNode = materialColor.mul(color("#f00"));
-      m.material.colorNode = mix(
-        materialColor,
-        color("#fff"),
-        uniformIsShowMap
-      );
-      // console.log("\nm.material.positionNode -> ", m.material.positionNode);
-      // console.log("\nm.material.colorNode -> ", m.material.colorNode);
-    }
-  });
 }
