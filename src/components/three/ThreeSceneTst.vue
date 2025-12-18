@@ -789,11 +789,11 @@ const init = async () => {
         Wireframe set working at this point only when the wireframe is set to true in the material
        */
       const debugPropsCutHead = {
-        isShowWireframe: true,
         // color: "#fff",
         color: (cutHead.children[0] as StandardMesh).material.color,
         isShowMap: true,
-        anisotropy: 1,
+        isShowWireframe: true,
+        progressBaseColAndTex: 1,
       } as CutHeadInspectorDebugProps;
       cutHead.children.forEach((child) => {
         if (child instanceof THREE.Mesh && "wireframe" in child.material) {
@@ -801,7 +801,6 @@ const init = async () => {
         }
       });
 
-      
       /*
         GUI
        */

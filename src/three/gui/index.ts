@@ -203,6 +203,16 @@ export function addTransformDebugInspector(
       });
   }
 
+  // Change the uniform IsShowMap based on progressBaseColAndTex
+  if ("progressBaseColAndTex" in debugProps) {
+    inspectorGuiOrFolder
+      .add(debugProps, "progressBaseColAndTex", 0, 1, 0.01)
+      .name("Progress Base Col And Tex")
+      .onChange((v) => {
+        uniformIsShowMap.value = v;
+      });
+  }
+
   // Toggle the uniform isShowMap passed into the shader to toggle the map (0 -> base color, 1 -> map(materialColor))
   if ("isShowMap" in debugProps) {
     inspectorGuiOrFolder
