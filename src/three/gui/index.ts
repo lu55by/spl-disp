@@ -180,6 +180,7 @@ export function addTransformDebugInspector(
   // Create the uniforms to be used by inspector
   const uniformBaseColor = uniform(color("#fff"));
   const uniformIsShowMap = uniform(1);
+  const uniformIsShowMapPower = uniform(1);
 
   // Traverse the object and toggle the map (white or colored)
   obj.children.forEach((m) => {
@@ -188,7 +189,7 @@ export function addTransformDebugInspector(
       m.material.colorNode = mix(
         uniformBaseColor,
         materialColor,
-        uniformIsShowMap
+        uniformIsShowMap.pow(uniformIsShowMapPower)
       );
     }
   });
@@ -212,6 +213,16 @@ export function addTransformDebugInspector(
         uniformIsShowMap.value = v;
       });
   }
+
+  // Change the uniform isShowMapPower based on isShowMapPower
+  // if ("isShowMapPower" in debugProps) {
+  //   inspectorGuiOrFolder
+  //     .add(debugProps, "isShowMapPower", 1, 10, 0.01)
+  //     .name("Power")
+  //     .onChange((v) => {
+  //       uniformIsShowMapPower.value = v;
+  //     });
+  // }
 
   // Toggle the uniform isShowMap passed into the shader to toggle the map (0 -> base color, 1 -> map(materialColor))
   if ("isShowMap" in debugProps) {

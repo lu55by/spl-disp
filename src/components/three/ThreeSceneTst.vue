@@ -794,6 +794,7 @@ const init = async () => {
         isShowMap: true,
         isShowWireframe: true,
         progressBaseColAndTex: 1,
+        isShowMapPower: 1,
       } as CutHeadInspectorDebugProps;
       cutHead.children.forEach((child) => {
         if (child instanceof THREE.Mesh && "wireframe" in child.material) {
