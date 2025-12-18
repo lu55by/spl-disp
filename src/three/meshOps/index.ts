@@ -6,8 +6,6 @@ import {
   Group,
   Mesh,
   MeshPhongMaterial,
-  MeshPhysicalMaterial,
-  MeshStandardMaterial,
   type NormalBufferAttributes,
   Object3D,
   type Object3DEventMap,
@@ -17,6 +15,10 @@ import {
 } from "three";
 import { Brush } from "three-bvh-csg";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import {
+  MeshPhysicalNodeMaterial,
+  MeshStandardNodeMaterial,
+} from "three/webgpu";
 import {
   Colors,
   CutHeadBoundingBoxHeight,
@@ -163,11 +165,11 @@ export function applyPBRMaterialAndSRGBColorSpace(
     if (m instanceof Mesh && m.material instanceof MeshPhongMaterial) {
       const orgMat = m.material;
       m.material = isStandard
-        ? new MeshStandardMaterial({
+        ? new MeshStandardNodeMaterial({
             map: orgMat.map,
             name: orgMat.name,
           })
-        : new MeshPhysicalMaterial({
+        : new MeshPhysicalNodeMaterial({
             map: orgMat.map,
             name: orgMat.name,
           });

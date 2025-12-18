@@ -7,6 +7,14 @@ import {
   MeshPhongMaterial,
   Vector2,
   TextureLoader,
+  MeshStandardMaterial,
+  DataTexture,
+  RGBAFormat,
+  UnsignedByteType,
+  Texture,
+  ClampToEdgeWrapping,
+  NearestFilter,
+  SRGBColorSpace,
 } from "three";
 import { OBJLoader } from "three/examples/jsm/Addons.js";
 import { GlobalLoadingManager } from "../managers/GlobalLoadingManager";
@@ -28,7 +36,13 @@ export const TextureLoaderInstance = new TextureLoader(GlobalLoadingManager);
 
 export type MeshOf<M extends Material> = Mesh<BufferGeometry, M>;
 
+export type StandardMesh = MeshOf<MeshStandardMaterial>;
 export type PhongMesh = MeshOf<MeshPhongMaterial>;
+
+export interface CutHeadInspectorDebugProps {
+  isShowWireframe: boolean;
+  color: string | Color;
+}
 
 /*
  * -----------------------------------------------------------------------------
@@ -111,6 +125,27 @@ export const CutHeadBoundingBoxHeight = 22.35 + 40;
 
 export const BasicMatWireframe = new MeshBasicMaterial({ wireframe: true });
 export const BasicMat = new MeshBasicMaterial();
+
+/*
+ * -----------------------------------------------------------------------------
+ * Textures
+ * -----------------------------------------------------------------------------
+ */
+
+export const WhiteTex = new DataTexture(
+  new Uint8Array([255, 255, 255, 255]),
+  1,
+  1,
+  RGBAFormat,
+  UnsignedByteType,
+  Texture.DEFAULT_MAPPING,
+  ClampToEdgeWrapping,
+  ClampToEdgeWrapping,
+  NearestFilter,
+  NearestFilter,
+  Texture.DEFAULT_ANISOTROPY,
+  SRGBColorSpace
+);
 
 /*
  * -----------------------------------------------------------------------------

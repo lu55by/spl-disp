@@ -7,7 +7,9 @@ import { AxesHelper } from "three";
 import { type Brush } from "three-bvh-csg";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
 import * as THREE from "three/webgpu";
+import type { Pane } from "tweakpane";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
@@ -18,14 +20,17 @@ import {
   HeadMaleSubPath,
   ModelPaths,
   NodeNames,
+  type CutHeadInspectorDebugProps,
   type PhongMesh,
+  type StandardMesh,
 } from "../../three/constants";
 import { csgSubtract } from "../../three/csg";
 import { exportObjectToOBJ } from "../../three/exporters";
-import { addTransformDebug } from "../../three/gui";
-import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
+import { addTransformDebug, addTransformDebugInspector } from "../../three/gui";
+import { GUIGlobal } from "../../three/gui/global";
 import { loadObj } from "../../three/loaders/ModelLoader";
 import { loadTexture } from "../../three/loaders/TextureLoader";
+import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import {
   applyDebugTransformation,
   applyDoubleSide,
@@ -36,8 +41,6 @@ import {
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
-import type { Pane } from "tweakpane";
-import { GUIGlobal } from "../../three/gui/global";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -50,7 +53,7 @@ let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
   renderer: THREE.WebGPURenderer,
   controls: OrbitControls,
-  clock: THREE.Clock,
+  // clock: THREE.Clock,
   gui: Pane;
 
 const width = window.innerWidth;
@@ -60,11 +63,6 @@ const height = window.innerHeight;
 const init = async () => {
   // const width = canvasEle.value!.clientWidth
   // const height = canvasEle.value!.clientHeight
-
-  /**
-   * GUI
-   */
-  gui = GUIGlobal;
 
   /**
    * Camera
@@ -90,7 +88,7 @@ const init = async () => {
   /**
    * Clock
    */
-  clock = new THREE.Clock();
+  // clock = new THREE.Clock();
 
   /**
    * Renderer
@@ -106,10 +104,21 @@ const init = async () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
+  renderer.inspector = new Inspector();
+  console.log(
+    "\nWebGPU Renderer getMaxAnisotropy() -> ",
+    renderer.getMaxAnisotropy()
+  );
 
-  // Inspector/GUI
-  // renderer.inspector = new Inspector()
-  // const gui = renderer.inspector.createParameters("Parameters")
+  /**
+   * GUI
+   */
+  gui = GUIGlobal;
+  gui.hidden = true;
+  const guiInspector = (renderer.inspector as Inspector).createParameters(
+    "Settings"
+  );
+  const guiInspectorFolderCutHead = guiInspector.addFolder("Cut Head");
 
   /**
    * Lights
@@ -735,7 +744,7 @@ const init = async () => {
     applyDebugTransformation(cutHead, debugPosOffset);
     applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     applyDoubleSide(cutHead);
-    console.log("\n cutHead ->", cutHead);
+    console.log("\n -- csgCutHeadFnTstV3 -- cutHead ->", cutHead);
     // applyMaterialWireframe(cutHead, Colors.White);
     scene.add(cutHead);
     return cutHead;
@@ -774,13 +783,21 @@ const init = async () => {
           isFemale ? 0.3 : 0
         )
       );
+      console.log("\n -- loadMultipleCutHeads -- cutHead ->", cutHead);
 
       /*
-        Wireframe set working at this point
+        Wireframe set working at this point only when the wireframe is set to true in the material
        */
+      const debugPropsCutHead = {
+        isShowWireframe: true,
+        // color: "#fff",
+        color: (cutHead.children[0] as StandardMesh).material.color,
+        isShowMap: true,
+        anisotropy: 1,
+      } as CutHeadInspectorDebugProps;
       cutHead.children.forEach((child) => {
         if (child instanceof THREE.Mesh && "wireframe" in child.material) {
-          child.material.wireframe = false;
+          child.material.wireframe = debugPropsCutHead.isShowWireframe;
         }
       });
 
@@ -789,16 +806,47 @@ const init = async () => {
       //   THREE.MeshStandardMaterial
       // >;
       // console.log("\n -- loadMultipleCutHeads -- eyeRNode ->", eyeRNode);
-      addTransformDebug(
-        `Cut Head ${isFemale ? "Female" : "Male"}-${i}`,
-        gui,
+
+      /*
+        GUI
+       */
+      // addTransformDebug(
+      //   `Cut Head ${isFemale ? "Female" : "Male"}-${i}`,
+      //   gui,
+      //   cutHead,
+      //   {
+      //     showRotation: true,
+      //     showScale: true,
+      //     posMin: -10,
+      //     posMax: 10,
+      //   }
+      // );
+
+      // Toggle wireframe
+      // guiInspectorFolderCutHead
+      //   .add(debugPropsCutHead, "isShowWireframe")
+      //   .onChange((value) => {
+      //     cutHead.children.forEach((child) => {
+      //       if (child instanceof THREE.Mesh && "wireframe" in child.material) {
+      //         child.material.wireframe = value;
+      //       }
+      //     });
+      //   });
+      // Change color
+      // guiInspectorFolderCutHead
+      //   .addColor(debugPropsCutHead, "color")
+      //   .onChange((v) => {
+      //     cutHead.children.forEach((child) => {
+      //       if (child instanceof THREE.Mesh && "color" in child.material) {
+      //         child.material.color.set(v);
+      //       }
+      //     });
+      //   });
+
+      addTransformDebugInspector(
+        guiInspectorFolderCutHead,
         cutHead,
-        {
-          showRotation: true,
-          showScale: true,
-          posMin: -10,
-          posMax: 10,
-        }
+        debugPropsCutHead
       );
     }
 

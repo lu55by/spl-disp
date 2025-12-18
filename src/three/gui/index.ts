@@ -1,4 +1,6 @@
-import { Group, Mesh, Object3D } from "three";
+import type { ParametersGroup } from "three/examples/jsm/inspector/tabs/Parameters.js";
+import { color, materialColor, mix, uniform } from "three/tsl";
+import { Group, Mesh, MeshStandardNodeMaterial, Object3D } from "three/webgpu";
 import type { FolderApi, Pane } from "tweakpane";
 
 /**
@@ -122,4 +124,137 @@ export function addTransformDebug(
         });
       });
   }
+}
+
+export function addTransformDebugInspector(
+  inspector: ParametersGroup,
+  obj: Object3D,
+  debugProps: any,
+  options?: {
+    showRotation?: boolean;
+    showScale?: boolean;
+    posMin?: number;
+    posMax?: number;
+  }
+) {
+  let posMinimum: number = -10;
+  let posMaximum: number = 10;
+  if (options && options.posMin && options.posMax) {
+    posMinimum = options.posMin;
+    posMaximum = options.posMax;
+  }
+
+  inspector
+    .add(obj.position, "x", posMinimum, posMaximum, 0.01)
+    .name("Position X");
+  inspector
+    .add(obj.position, "y", posMinimum, posMaximum, 0.01)
+    .name("Position Y");
+  inspector
+    .add(obj.position, "z", posMinimum, posMaximum, 0.01)
+    .name("Position Z");
+
+  if (options?.showRotation) {
+    inspector
+      .add(obj.rotation, "x", -Math.PI, Math.PI, 0.01)
+      .name("Rotation X");
+    inspector
+      .add(obj.rotation, "y", -Math.PI, Math.PI, 0.01)
+      .name("Rotation Y");
+    inspector
+      .add(obj.rotation, "z", -Math.PI, Math.PI, 0.01)
+      .name("Rotation Z");
+  }
+
+  if (options?.showScale) {
+    inspector
+      .add({ scale: obj.scale.x }, "scale", 0.001, 1, 0.001)
+      .name("Scale")
+      .onChange((v) => obj.scale.setScalar(v));
+  }
+
+  // Toggle wireframe
+  if ("isShowWireframe" in debugProps) {
+    inspector
+      .add(debugProps, "isShowWireframe")
+      .name("Wireframe")
+      .onChange((value) => {
+        obj.traverse((m) => {
+          if (m instanceof Mesh && "wireframe" in m.material) {
+            m.material.wireframe = value;
+          }
+        });
+      });
+  }
+
+  // Change color
+  if ("color" in debugProps) {
+    inspector
+      .addColor(debugProps, "color")
+      .name("Color")
+      .onChange((value) => {
+        obj.traverse((m) => {
+          if (m instanceof Mesh && "color" in m.material) {
+            m.material.color.set(value);
+          }
+        });
+      });
+  }
+
+  // Toggle map in the material
+  // if ("isShowMap" in debugProps) {
+  //   inspector
+  //     .add(debugProps, "isShowMap")
+  //     .name("Map")
+  //     .onChange((v) => {
+  //       obj.traverse((m) => {
+  //         if (
+  //           m instanceof Mesh &&
+  //           m.material instanceof MeshStandardNodeMaterial &&
+  //           m.material.map instanceof Texture
+  //         ) {
+  //           console.log("\nMap Debug in Inspector Clicked!");
+  //           // m.material.map = v ? m.material.map : WhiteTex;
+  //           m.material.positionNode = positionLocal.add(vec3(0, 2, 0));
+  //           m.material.colorNode = materialColor.mul(color("#f00"));
+  //           console.log(
+  //             "\nm.material.positionNode -> ",
+  //             m.material.positionNode
+  //           );
+  //           console.log("\nm.material.colorNode -> ", m.material.colorNode);
+  //         }
+  //       });
+  //     });
+  // }
+
+  const uniformIsShowMap = uniform(1);
+
+  if ("isShowMap" in debugProps) {
+    inspector
+      .add(debugProps, "isShowMap")
+      .name("Map")
+      .onChange((v) => {
+        uniformIsShowMap.value = v ? 1 : 0;
+      });
+  }
+
+  obj.traverse((m) => {
+    if (
+      m instanceof Mesh &&
+      m.material instanceof MeshStandardNodeMaterial
+      // && m.material.map instanceof Texture
+    ) {
+      console.log("\nMap Debug in Inspector Clicked!");
+      // m.material.map = v ? m.material.map : WhiteTex;
+      // m.material.positionNode = positionLocal.add(vec3(0, 2, 0));
+      // m.material.colorNode = materialColor.mul(color("#f00"));
+      m.material.colorNode = mix(
+        materialColor,
+        color("#fff"),
+        uniformIsShowMap
+      );
+      // console.log("\nm.material.positionNode -> ", m.material.positionNode);
+      // console.log("\nm.material.colorNode -> ", m.material.colorNode);
+    }
+  });
 }
