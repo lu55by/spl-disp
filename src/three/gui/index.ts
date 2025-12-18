@@ -187,25 +187,12 @@ export function addTransformDebugInspector(
       });
   }
 
-  // Change color
-  if ("color" in debugProps) {
-    inspector
-      .addColor(debugProps, "color")
-      .name("Color")
-      .onChange((value) => {
-        obj.traverse((m) => {
-          if (m instanceof Mesh && "color" in m.material) {
-            m.material.color.set(value);
-          }
-        });
-      });
-  }
-
   /*
     Toggle map in the material based on TSL
    */
 
   // Create the uniform to be toggled by inspector
+  const uniformBaseColor = uniform(color("#fff"));
   const uniformIsShowMap = uniform(1);
 
   // Traverse the object and toggle the map (white or colored)
@@ -213,14 +200,24 @@ export function addTransformDebugInspector(
     if (m instanceof Mesh && m.material instanceof MeshStandardNodeMaterial) {
       console.log("\nMap Debug in Inspector Clicked!");
       m.material.colorNode = mix(
+        uniformBaseColor,
         materialColor,
-        color("#fff"),
         uniformIsShowMap
       );
     }
   });
 
-  // Toggle the uniform passed into the shader to toggle the map
+  // Change the base color
+  if ("color" in debugProps) {
+    inspector
+      .addColor(debugProps, "color")
+      .name("Color")
+      .onChange((value) => {
+        uniformBaseColor.value.set(value);
+      });
+  }
+
+  // Toggle the uniform passed into the shader to toggle the map (0 -> base color, 1 -> map)
   if ("isShowMap" in debugProps) {
     inspector
       .add(debugProps, "isShowMap")

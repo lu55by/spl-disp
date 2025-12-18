@@ -801,48 +801,10 @@ const init = async () => {
         }
       });
 
-      // const eyeRNode = cutHead.getObjectByName("EyeRNode") as THREE.Mesh<
-      //   THREE.BufferGeometry,
-      //   THREE.MeshStandardMaterial
-      // >;
-      // console.log("\n -- loadMultipleCutHeads -- eyeRNode ->", eyeRNode);
-
+      
       /*
         GUI
        */
-      // addTransformDebug(
-      //   `Cut Head ${isFemale ? "Female" : "Male"}-${i}`,
-      //   gui,
-      //   cutHead,
-      //   {
-      //     showRotation: true,
-      //     showScale: true,
-      //     posMin: -10,
-      //     posMax: 10,
-      //   }
-      // );
-
-      // Toggle wireframe
-      // guiInspectorFolderCutHead
-      //   .add(debugPropsCutHead, "isShowWireframe")
-      //   .onChange((value) => {
-      //     cutHead.children.forEach((child) => {
-      //       if (child instanceof THREE.Mesh && "wireframe" in child.material) {
-      //         child.material.wireframe = value;
-      //       }
-      //     });
-      //   });
-      // Change color
-      // guiInspectorFolderCutHead
-      //   .addColor(debugPropsCutHead, "color")
-      //   .onChange((v) => {
-      //     cutHead.children.forEach((child) => {
-      //       if (child instanceof THREE.Mesh && "color" in child.material) {
-      //         child.material.color.set(v);
-      //       }
-      //     });
-      //   });
-
       addTransformDebugInspector(
         guiInspectorFolderCutHead,
         cutHead,
