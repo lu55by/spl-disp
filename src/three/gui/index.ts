@@ -127,7 +127,7 @@ export function addTransformDebug(
 }
 
 export function addTransformDebugInspector(
-  inspector: ParametersGroup,
+  inspectorGuiOrFolder: ParametersGroup,
   obj: Object3D,
   debugProps: any,
   options?: {
@@ -144,54 +144,40 @@ export function addTransformDebugInspector(
     posMaximum = options.posMax;
   }
 
-  inspector
+  inspectorGuiOrFolder
     .add(obj.position, "x", posMinimum, posMaximum, 0.01)
     .name("Position X");
-  inspector
+  inspectorGuiOrFolder
     .add(obj.position, "y", posMinimum, posMaximum, 0.01)
     .name("Position Y");
-  inspector
+  inspectorGuiOrFolder
     .add(obj.position, "z", posMinimum, posMaximum, 0.01)
     .name("Position Z");
 
   if (options?.showRotation) {
-    inspector
+    inspectorGuiOrFolder
       .add(obj.rotation, "x", -Math.PI, Math.PI, 0.01)
       .name("Rotation X");
-    inspector
+    inspectorGuiOrFolder
       .add(obj.rotation, "y", -Math.PI, Math.PI, 0.01)
       .name("Rotation Y");
-    inspector
+    inspectorGuiOrFolder
       .add(obj.rotation, "z", -Math.PI, Math.PI, 0.01)
       .name("Rotation Z");
   }
 
   if (options?.showScale) {
-    inspector
+    inspectorGuiOrFolder
       .add({ scale: obj.scale.x }, "scale", 0.001, 1, 0.001)
       .name("Scale")
       .onChange((v) => obj.scale.setScalar(v));
-  }
-
-  // Toggle wireframe
-  if ("isShowWireframe" in debugProps) {
-    inspector
-      .add(debugProps, "isShowWireframe")
-      .name("Wireframe")
-      .onChange((value) => {
-        obj.traverse((m) => {
-          if (m instanceof Mesh && "wireframe" in m.material) {
-            m.material.wireframe = value;
-          }
-        });
-      });
   }
 
   /*
     Toggle map in the material based on TSL
    */
 
-  // Create the uniform to be toggled by inspector
+  // Create the uniforms to be used by inspector
   const uniformBaseColor = uniform(color("#fff"));
   const uniformIsShowMap = uniform(1);
 
@@ -207,23 +193,37 @@ export function addTransformDebugInspector(
     }
   });
 
-  // Change the base color
+  // Change the uniform base color
   if ("color" in debugProps) {
-    inspector
+    inspectorGuiOrFolder
       .addColor(debugProps, "color")
-      .name("Color")
+      .name("Base Color")
       .onChange((value) => {
         uniformBaseColor.value.set(value);
       });
   }
 
-  // Toggle the uniform passed into the shader to toggle the map (0 -> base color, 1 -> map)
+  // Toggle the uniform isShowMap passed into the shader to toggle the map (0 -> base color, 1 -> map(materialColor))
   if ("isShowMap" in debugProps) {
-    inspector
+    inspectorGuiOrFolder
       .add(debugProps, "isShowMap")
       .name("Map")
       .onChange((v) => {
         uniformIsShowMap.value = v ? 1 : 0;
+      });
+  }
+
+  // Toggle wireframe of the materials in the meshes from the passed obj
+  if ("isShowWireframe" in debugProps) {
+    inspectorGuiOrFolder
+      .add(debugProps, "isShowWireframe")
+      .name("Wireframe")
+      .onChange((value) => {
+        obj.children.forEach((m) => {
+          if (m instanceof Mesh && "wireframe" in m.material) {
+            m.material.wireframe = value;
+          }
+        });
       });
   }
 }
