@@ -131,7 +131,7 @@ export const BasicMat = new MeshBasicMaterial();
  * Textures
  * -----------------------------------------------------------------------------
  */
-
+// Create a White Texture by using DataTexture from three
 export const WhiteTex = new DataTexture(
   new Uint8Array([255, 255, 255, 255]),
   1,
