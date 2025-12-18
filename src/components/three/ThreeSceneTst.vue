@@ -774,7 +774,21 @@ const init = async () => {
           isFemale ? 0.3 : 0
         )
       );
-      // headsGroup.add(cutHead);
+
+      /*
+        Wireframe set working at this point
+       */
+      cutHead.children.forEach((child) => {
+        if (child instanceof THREE.Mesh && "wireframe" in child.material) {
+          child.material.wireframe = false;
+        }
+      });
+
+      // const eyeRNode = cutHead.getObjectByName("EyeRNode") as THREE.Mesh<
+      //   THREE.BufferGeometry,
+      //   THREE.MeshStandardMaterial
+      // >;
+      // console.log("\n -- loadMultipleCutHeads -- eyeRNode ->", eyeRNode);
       addTransformDebug(
         `Cut Head ${isFemale ? "Female" : "Male"}-${i}`,
         gui,

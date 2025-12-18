@@ -103,24 +103,23 @@ export function addTransformDebug(
     folder
       .addBinding(wireframeState, "showWireframe", { label: "Show Wireframe" })
       .on("change", (ev) => {
-        (obj.children[0] as any).material.wireframe = ev.value;
-        // obj.traverse((m) => {
-        //   if (m instanceof Mesh) {
-        //     const mat = m.material;
-        //     console.log("\nMaterial wireframe to be toggled -> ", mat);
-        //     console.log("\nWireframe state -> ", ev.value);
-        //     // Check if material is an array or single
-        //     if (Array.isArray(mat)) {
-        //       mat.forEach((material) => {
-        //         if ("wireframe" in material) {
-        //           material.wireframe = ev.value;
-        //         }
-        //       });
-        //     } else if ("wireframe" in mat) {
-        //       mat.wireframe = ev.value;
-        //     }
-        //   }
-        // });
+        obj.traverse((m) => {
+          if (m instanceof Mesh) {
+            const mat = m.material;
+            console.log("\nMaterial wireframe to be toggled -> ", mat);
+            console.log("\nWireframe state -> ", ev.value);
+            // Check if material is an array or single
+            if (Array.isArray(mat)) {
+              mat.forEach((material) => {
+                if ("wireframe" in material) {
+                  material.wireframe = ev.value;
+                }
+              });
+            } else if ("wireframe" in mat) {
+              mat.wireframe = ev.value;
+            }
+          }
+        });
       });
   }
 }
