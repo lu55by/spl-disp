@@ -13,6 +13,7 @@ import { addTransformDebug } from "../../three/gui";
 import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
+import { color, materialColor, mix, uniform } from "three/tsl";
 
 /**
  * Canvas Element
@@ -23,7 +24,7 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
  * Models Store
  */
 const modelsStore = useModelsStore();
-const { splicingGroupGlobal } = modelsStore;
+const { splicingGroupGlobal, isShowMap } = modelsStore;
 
 const targetCenter = new THREE.Vector3();
 
@@ -148,6 +149,26 @@ const init = async () => {
   /*
     Load Models
   */
+  const uniformBaseColor = uniform(color("#fff"));
+  const uniformIsShowMap = uniform(1);
+
+  // Toggle the map
+  splicingGroupGlobal.children.forEach((child) => {
+    if (
+      child instanceof THREE.Mesh &&
+      child.material instanceof THREE.MeshStandardNodeMaterial
+    ) {
+      child.material.colorNode = mix(
+        uniformBaseColor,
+        materialColor,
+        uniformIsShowMap
+      );
+    }
+  });
+
+  // Update the uniformIsShowMap based on the global isShowMap boolean
+  uniformIsShowMap.value = isShowMap ? 1 : 0;
+
   // Add the global group
   scene.add(splicingGroupGlobal);
 };

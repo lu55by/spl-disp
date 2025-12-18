@@ -6,6 +6,10 @@
     <Button @click="openFilePicker">导入文件夹</Button>
     <Button @click="openFilesPicker">导入文件</Button>
 
+    <Button @click="toggleIsShowMap"
+      >切换{{ isShowMap ? "白" : "彩" }}模</Button
+    >
+
     <!-- Export (not implemented here) -->
     <!-- <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">导出</Button> -->
     <Button :disabled="isExportBtnDisabled" @click="handleExport">导出</Button>
@@ -60,7 +64,7 @@ import Button from "./Button.vue";
  * Get the store
  */
 const store = useModelsStore();
-const { splicingGroupGlobal, splicingGroupLen } = storeToRefs(store);
+const { splicingGroupGlobal, splicingGroupLen, isShowMap } = storeToRefs(store);
 
 // TODO: Fix the non-reactive group length.
 console.log("splicingGroupLen ->", splicingGroupLen.value);
@@ -95,6 +99,13 @@ const openFilePicker = () => {
 // Click "Import Files" button -> open file picker (files mode)
 const openFilesPicker = () => {
   filesInput.value?.click();
+};
+
+/**
+ * Toggle isShowMap
+ */
+const toggleIsShowMap = () => {
+  store.toggleIsShowMap();
 };
 
 /**

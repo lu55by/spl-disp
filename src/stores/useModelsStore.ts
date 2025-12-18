@@ -87,6 +87,7 @@ export const useModelsStore = defineStore("models", {
     ) as THREE.Group<THREE.Object3DEventMap>,
     // GUI
     // guiGlobal: TweakPane as Pane,
+    isShowMap: true,
   }),
 
   getters: {
@@ -198,6 +199,10 @@ export const useModelsStore = defineStore("models", {
       // Lazy import to avoid circular dependency issues if any
       const { exportSplicingGroup } = await import("../three/exporters");
       return await exportSplicingGroup(this.splicingGroupGlobal);
+    },
+
+    toggleIsShowMap() {
+      this.isShowMap = !this.isShowMap;
     },
   },
 });
