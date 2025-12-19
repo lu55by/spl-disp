@@ -6,6 +6,17 @@
 import { storeToRefs } from "pinia";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import {
+  cameraPosition,
+  color,
+  dot,
+  materialColor,
+  mix,
+  normalLocal,
+  positionLocal,
+  smoothstep,
+  uniform,
+} from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
@@ -14,7 +25,6 @@ import { addTransformDebug } from "../../three/gui";
 import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
-import { color, materialColor, mix, uniform } from "three/tsl";
 
 /**
  * Canvas Element
@@ -157,11 +167,23 @@ const init = async () => {
   /*
     Load Models
   */
+
+  // Uniforms
   const uniformBaseColor = uniform(color("#fff"));
   const uniformIsShowMap = uniform(isShowMap.value ? 1 : 0);
+  const uniformOutlineColor = uniform(color("#0ff"));
+
+  // Effect Patterns
+
+  // Outline Effect Pattern
+  const outlinePat = smoothstep(
+    0.8,
+    0.82,
+    dot(positionLocal.sub(cameraPosition).normalize(), normalLocal).oneMinus()
+  );
 
   // Toggle the map by using TSL.
-  const reapplyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
+  const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
     splicingGroupGlobal.traverse((child) => {
       if (
         child instanceof THREE.Mesh &&
@@ -169,26 +191,26 @@ const init = async () => {
       ) {
         // console.log(`\nChild ${child.name} to be mixed ->`, child);
         child.material.colorNode = mix(
-          uniformBaseColor,
-          materialColor,
-          uniformIsShowMap
+          mix(uniformBaseColor, materialColor, uniformIsShowMap),
+          uniformOutlineColor,
+          outlinePat
         );
       }
     });
   };
-  reapplyMixedColorNode(splicingGroupGlobal);
+  applyMixedColorNode(splicingGroupGlobal);
 
   // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
   watch(splicingGroupLen, (newLength, oldLength) => {
     console.log(
       `\n -- init -- splicingGroupLen changed from ${oldLength} to ${newLength}`
     );
-    reapplyMixedColorNode(splicingGroupGlobal);
+    applyMixedColorNode(splicingGroupGlobal);
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
   watch(isShowMap, (newVal) => {
-    console.log("\nisShowMap changed to ->", newVal);
+    console.log("\n -- init -- isShowMap changed to ->", newVal);
     uniformIsShowMap.value = newVal ? 1 : 0;
   });
 
