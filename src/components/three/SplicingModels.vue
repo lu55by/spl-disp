@@ -298,6 +298,7 @@ const onPointerMove = (event: PointerEvent) => {
     if (uniformOutlineFactor) uniformOutlineFactor.value.set(0.98, 0.99);
   }
 
+  // TODO: Declare the mouse vec2 outside the onPointerMove fn
   const x = event.clientX;
   const y = event.clientY;
   const mouse = new THREE.Vector2();
