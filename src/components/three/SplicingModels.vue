@@ -4,7 +4,10 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
+import {
+  TransformControls,
+  UltraHDRLoader,
+} from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import {
   cameraPosition,
@@ -77,7 +80,8 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
   renderer: THREE.WebGPURenderer,
-  controls: OrbitControls,
+  orbit: OrbitControls,
+  transform: TransformControls,
   raycaster: THREE.Raycaster,
   // uniforms
   uniformOutlineFactor: THREE.UniformNode<THREE.Vector2>,
@@ -138,15 +142,29 @@ const init = async () => {
   /**
    * Controls
    */
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  // controls.target.set(
-  //   splicingGroupGlobal.position.x,
-  //   splicingGroupGlobal.position.y,
-  //   splicingGroupGlobal.position.z
-  // );
-  controls.minDistance = 0.1;
-  controls.maxDistance = 170;
+
+  // Orbit Controls
+  orbit = new OrbitControls(camera, renderer.domElement);
+  orbit.enableDamping = true;
+  orbit.minDistance = 0.1;
+  orbit.maxDistance = 170;
+
+  // Transform Controls
+  transform = new TransformControls(camera, renderer.domElement);
+  // Render the scene when transform controls changes
+  transform.addEventListener("change", async () => {
+    await renderer.init();
+    renderer.render(scene, camera);
+  });
+  // Disable the orbit controls when transform controls is active
+  transform.addEventListener("dragging-changed", (e) => {
+    orbit.enabled = !e.value;
+  });
+  // Attach the splicingGroupGlobal to the transform controls (pivot point is wrong!)
+  transform.attach(splicingGroupGlobal);
+  // Add the gizmo of the transform controls to the scene
+  const transformGizmo = transform.getHelper();
+  scene.add(transformGizmo);
 
   /**
    * Axes Helper
@@ -240,6 +258,7 @@ const init = async () => {
   });
 
   // Add the global group
+  // splicingGroupGlobal.add(new THREE.AxesHelper(10));
   scene.add(splicingGroupGlobal);
 };
 
@@ -339,8 +358,8 @@ const animate = async () => {
   /*
     Update controls
    */
-  controls.target.lerp(orbitControlsTargetCenter, 0.1);
-  controls.update();
+  orbit.target.lerp(orbitControlsTargetCenter, 0.1);
+  orbit.update();
 
   /*
     Update renderer
@@ -362,7 +381,7 @@ onBeforeUnmount(() => {
   unsubscribeModelsStoreActions();
 
   // Dispose operations
-  controls.dispose();
+  orbit.dispose();
   renderer.dispose();
 
   // Remove resize listener
