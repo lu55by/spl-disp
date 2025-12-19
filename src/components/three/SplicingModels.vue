@@ -3,10 +3,11 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as THREE from "three/webgpu";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
 import { addTransformDebug } from "../../three/gui";
@@ -24,35 +25,42 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
  * Models Store
  */
 const modelsStore = useModelsStore();
-const { splicingGroupGlobal, isShowMap } = modelsStore;
+const { splicingGroupGlobal } = modelsStore;
+const { isShowMap } = storeToRefs(modelsStore);
 
-const targetCenter = new THREE.Vector3();
-
-const updateTargetCenter = () => {
-  console.log("\nupdateTargetCenter called...");
+/*
+  Orbit Controls Target Center Update Logic
+ */
+const orbitControlsTargetCenter = new THREE.Vector3();
+const updateOrbitControlsTargetCenter = () => {
+  console.log("\nupdateOrbitControlsTargetCenter called...");
   console.log(
-    "\nsplicingGroupGlobal in SplicingModels after updateTargetCenter ->",
+    "\nsplicingGroupGlobal in SplicingModels after updateOrbitControlsTargetCenter ->",
     splicingGroupGlobal
   );
   // Log all the material names
-  splicingGroupGlobal.traverse((object) => {
-    if (object instanceof THREE.Mesh) {
-      console.log("\nMaterial Name ->", object.material.name);
-    }
-  });
-  targetCenter.copy(getObject3DBoundingBoxCenter(splicingGroupGlobal));
+  // splicingGroupGlobal.traverse((object) => {
+  //   if (object instanceof THREE.Mesh) {
+  //     console.log("\nMaterial Name ->", object.material.name);
+  //   }
+  // });
+  orbitControlsTargetCenter.copy(
+    getObject3DBoundingBoxCenter(splicingGroupGlobal)
+  );
 };
 
-updateTargetCenter();
+updateOrbitControlsTargetCenter();
 
-const unsubscribe = modelsStore.$onAction(({ name, after }) => {
-  const relevantActions = ["addChild", "clear", "importObj"];
-  if (relevantActions.includes(name)) {
-    after(() => {
-      updateTargetCenter();
-    });
+const unsubscribeModelsStoreActions = modelsStore.$onAction(
+  ({ name, after }) => {
+    const relevantActions = ["addChild", "clear", "importObj"];
+    if (relevantActions.includes(name)) {
+      after(() => {
+        updateOrbitControlsTargetCenter();
+      });
+    }
   }
-});
+);
 
 /**
  * Objects of three definition
@@ -150,14 +158,15 @@ const init = async () => {
     Load Models
   */
   const uniformBaseColor = uniform(color("#fff"));
-  const uniformIsShowMap = uniform(1);
+  const uniformIsShowMap = uniform(isShowMap.value ? 1 : 0);
 
-  // Toggle the map
-  splicingGroupGlobal.children.forEach((child) => {
+  // Toggle the map by using TSL.
+  splicingGroupGlobal.traverse((child) => {
     if (
       child instanceof THREE.Mesh &&
       child.material instanceof THREE.MeshStandardNodeMaterial
     ) {
+      // console.log(`\nChild ${child.name} to be mixed ->`, child);
       child.material.colorNode = mix(
         uniformBaseColor,
         materialColor,
@@ -167,7 +176,12 @@ const init = async () => {
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
-  uniformIsShowMap.value = isShowMap ? 1 : 0;
+  // uniformIsShowMap.value = isShowMap.value ? 1 : 0;
+
+  watch(isShowMap, (newVal) => {
+    console.log("\nisShowMap changed to ->", newVal);
+    uniformIsShowMap.value = newVal ? 1 : 0;
+  });
 
   // Add the global group
   scene.add(splicingGroupGlobal);
@@ -201,7 +215,7 @@ const animate = async () => {
   /*
     Update controls
    */
-  controls.target.lerp(targetCenter, 0.1);
+  controls.target.lerp(orbitControlsTargetCenter, 0.1);
   controls.update();
 
   /*
@@ -220,7 +234,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   console.log("\nReady to dispose the SplicingModels Component...");
   // Unsubscribe the callback fn is called based on the actions in the modelsStore
-  unsubscribe();
+  unsubscribeModelsStoreActions();
 
   // Dispose operations
   controls.dispose();

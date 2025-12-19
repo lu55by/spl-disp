@@ -47,15 +47,7 @@ import { storeToRefs } from "pinia";
 import type { Group, Object3DEventMap } from "three";
 import { computed, ref, watch } from "vue";
 import { toast } from "vue3-toastify";
-import {
-  ModelClearedReminderContentZH,
-  ModelEmptyReminderContentZH,
-  ModelImportedReminderContentZH,
-  ModelImportWarningMoreThanTwoFilesZH,
-  ModelImportWarningNoObjFileZH,
-  ModelImportWarningOneFileNotObjZH,
-  ModelImportWarningTwoObjFilesZH,
-} from "../../constants";
+import { ToastContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
 import Button from "./Button.vue";
@@ -63,8 +55,8 @@ import Button from "./Button.vue";
 /**
  * Get the store
  */
-const store = useModelsStore();
-const { splicingGroupGlobal, splicingGroupLen, isShowMap } = storeToRefs(store);
+const modelsStore = useModelsStore();
+const { splicingGroupGlobal, splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
 
 // TODO: Fix the non-reactive group length.
 console.log("splicingGroupLen ->", splicingGroupLen.value);
@@ -105,7 +97,7 @@ const openFilesPicker = () => {
  * Toggle isShowMap
  */
 const toggleIsShowMap = () => {
-  store.toggleIsShowMap();
+  modelsStore.toggleIsShowMap();
 };
 
 /**
@@ -127,7 +119,7 @@ const handleFileChange = async (e: Event) => {
     ! Only One File Selected and Not an Obj File
    */
   if (files.length === 1 && !files[0].name.endsWith(".obj")) {
-    toast(ModelImportWarningOneFileNotObjZH, {
+    toast(ToastContents.ModelImportWarningOneFileNotObjZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -138,7 +130,7 @@ const handleFileChange = async (e: Event) => {
     ! More than 2 Files Selected
    */
   if (files.length > 2) {
-    toast(ModelImportWarningMoreThanTwoFilesZH, {
+    toast(ToastContents.ModelImportWarningMoreThanTwoFilesZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -157,7 +149,7 @@ const handleFileChange = async (e: Event) => {
     }
   }
   if (!hasObjFile) {
-    toast(ModelImportWarningNoObjFileZH, {
+    toast(ToastContents.ModelImportWarningNoObjFileZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -172,7 +164,7 @@ const handleFileChange = async (e: Event) => {
     files[0].name.endsWith(".obj") &&
     files[1].name.endsWith(".obj")
   ) {
-    toast(ModelImportWarningTwoObjFilesZH, {
+    toast(ToastContents.ModelImportWarningTwoObjFilesZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -182,14 +174,14 @@ const handleFileChange = async (e: Event) => {
   /*
     Import Obj File
    */
-  await store.importObj(files);
+  await modelsStore.importObj(files);
 
   console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 
   // clear input so selecting same file works
   target.value = "";
 
-  toast(ModelImportedReminderContentZH, {
+  toast(ToastContents.ModelImportedReminderContentZH, {
     autoClose: 1000,
   });
 };
@@ -213,7 +205,7 @@ const clearModels = () => {
    */
   if (filteredSubGroups.length === 0) {
     // Show toast of failing to clear models, return.
-    toast(ModelEmptyReminderContentZH, {
+    toast(ToastContents.ModelEmptyReminderContentZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -224,10 +216,10 @@ const clearModels = () => {
     Dispose the geometries and materials of the hair or body group or both.
     Clear the hair or body group or both from the splicing global group.
    */
-  store.clear(filteredSubGroups);
+  modelsStore.clear(filteredSubGroups);
 
   // Show toast of successfully cleared models.
-  toast(ModelClearedReminderContentZH, {
+  toast(ToastContents.ModelClearedReminderContentZH, {
     autoClose: 1000,
   });
 };
@@ -238,7 +230,7 @@ const clearModels = () => {
 const handleExport = async () => {
   try {
     // TODO: Show a loading bar on the UI while exporting.
-    const result = await store.exportModel();
+    const result = await modelsStore.exportModel();
     if (result) {
       toast.success("导出成功", { autoClose: 2000 });
     } else {
