@@ -22,8 +22,6 @@ import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
-import { addTransformDebug } from "../../three/gui";
-import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 
@@ -199,6 +197,8 @@ const init = async () => {
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
+    if (!splicingGroupGlobal || splicingGroupGlobal.children.length === 0)
+      return;
     splicingGroupGlobal.traverse((child) => {
       if (
         child instanceof THREE.Mesh &&
