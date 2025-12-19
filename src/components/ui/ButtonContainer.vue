@@ -63,7 +63,7 @@ console.log("splicingGroupLen ->", splicingGroupLen.value);
 
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
 watch(splicingGroupLen, (newLength, oldLength) => {
-  console.log(`splicingGroupLen changed from ${oldLength} to ${newLength}`);
+  console.log(`\nsplicingGroupLen changed from ${oldLength} to ${newLength}`);
 });
 
 /**

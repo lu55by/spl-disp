@@ -26,7 +26,7 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
  */
 const modelsStore = useModelsStore();
 const { splicingGroupGlobal } = modelsStore;
-const { isShowMap } = storeToRefs(modelsStore);
+const { splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
 
 /*
   Orbit Controls Target Center Update Logic
@@ -161,23 +161,32 @@ const init = async () => {
   const uniformIsShowMap = uniform(isShowMap.value ? 1 : 0);
 
   // Toggle the map by using TSL.
-  splicingGroupGlobal.traverse((child) => {
-    if (
-      child instanceof THREE.Mesh &&
-      child.material instanceof THREE.MeshStandardNodeMaterial
-    ) {
-      // console.log(`\nChild ${child.name} to be mixed ->`, child);
-      child.material.colorNode = mix(
-        uniformBaseColor,
-        materialColor,
-        uniformIsShowMap
-      );
-    }
+  const reapplyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
+    splicingGroupGlobal.traverse((child) => {
+      if (
+        child instanceof THREE.Mesh &&
+        child.material instanceof THREE.MeshStandardNodeMaterial
+      ) {
+        // console.log(`\nChild ${child.name} to be mixed ->`, child);
+        child.material.colorNode = mix(
+          uniformBaseColor,
+          materialColor,
+          uniformIsShowMap
+        );
+      }
+    });
+  };
+  reapplyMixedColorNode(splicingGroupGlobal);
+
+  // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
+  watch(splicingGroupLen, (newLength, oldLength) => {
+    console.log(
+      `\n -- init -- splicingGroupLen changed from ${oldLength} to ${newLength}`
+    );
+    reapplyMixedColorNode(splicingGroupGlobal);
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
-  // uniformIsShowMap.value = isShowMap.value ? 1 : 0;
-
   watch(isShowMap, (newVal) => {
     console.log("\nisShowMap changed to ->", newVal);
     uniformIsShowMap.value = newVal ? 1 : 0;
