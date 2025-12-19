@@ -16,6 +16,7 @@ import {
   positionLocal,
   smoothstep,
   uniform,
+  vec2,
 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
@@ -78,7 +79,12 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
 let camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
   renderer: THREE.WebGPURenderer,
-  controls: OrbitControls;
+  controls: OrbitControls,
+  raycaster: THREE.Raycaster,
+  // uniforms
+  uniformOutlineFactor: THREE.UniformNode<THREE.Vector2>,
+  // raycaster intersection object
+  raycasterIntersectionObject: THREE.Object3D | null;
 // clock: THREE.Clock;
 
 const width = window.innerWidth;
@@ -96,15 +102,20 @@ const init = async () => {
     CameraProps.Far
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  addTransformDebug("Camera", GUIGlobal, camera, {
-    posMin: -300,
-    posMax: 300,
-  });
+  // addTransformDebug("Camera", GUIGlobal, camera, {
+  //   posMin: -300,
+  //   posMax: 300,
+  // });
 
   /**
    * Scene
    */
   scene = new THREE.Scene();
+
+  /**
+   * Raycaster
+   */
+  raycaster = new THREE.Raycaster();
 
   /**
    * Clock
@@ -172,14 +183,18 @@ const init = async () => {
   const uniformBaseColor = uniform(color("#fff"));
   const uniformIsShowMap = uniform(isShowMap.value ? 1 : 0);
   const uniformOutlineColor = uniform(color("#0ff"));
+  uniformOutlineFactor = uniform(vec2(0.98, 0.99));
 
   // Effect Patterns
 
   // Outline Effect Pattern
   const outlinePat = smoothstep(
-    0.8,
-    0.82,
-    dot(positionLocal.sub(cameraPosition).normalize(), normalLocal).oneMinus()
+    // TODO: Change the factor values based on the raycastered object
+    uniformOutlineFactor.x,
+    uniformOutlineFactor.y,
+    dot(positionLocal.sub(cameraPosition).normalize(), normalLocal)
+      .abs()
+      .oneMinus()
   );
 
   // Toggle the map by using TSL.
@@ -189,12 +204,22 @@ const init = async () => {
         child instanceof THREE.Mesh &&
         child.material instanceof THREE.MeshStandardNodeMaterial
       ) {
-        // console.log(`\nChild ${child.name} to be mixed ->`, child);
+        /*
+          Mix the mixed baseColor and materialColor with outlineColor based on the outlinePat
+        */
         child.material.colorNode = mix(
           mix(uniformBaseColor, materialColor, uniformIsShowMap),
           uniformOutlineColor,
           outlinePat
         );
+        /*
+          Mix the baseColor and materialColor based on the uniformIsShowMap
+        */
+        // child.material.colorNode = mix(
+        //   uniformBaseColor,
+        //   materialColor,
+        //   uniformIsShowMap
+        // );
       }
     });
   };
@@ -238,6 +263,74 @@ const onWindowResize = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 };
 
+// On Pointer Move fn
+const onPointerMove = (event: PointerEvent) => {
+  if (raycasterIntersectionObject) {
+    console.log(
+      "\n -- onPointerMove -- raycasterIntersectionObject ->",
+      raycasterIntersectionObject
+    );
+    // raycasterIntersectionObject.children.forEach((child) => {
+    //   if (child instanceof THREE.Mesh) {
+    //     child.material.color.set("#fff");
+    //   }
+    // });
+    raycasterIntersectionObject = null;
+    if (uniformOutlineFactor) uniformOutlineFactor.value.set(0.98, 0.99);
+  }
+
+  const x = event.clientX;
+  const y = event.clientY;
+  const mouse = new THREE.Vector2();
+  mouse.x = (x / window.innerWidth) * 2 - 1;
+  mouse.y = -(y / window.innerHeight) * 2 + 1;
+
+  // Update the raycaster
+  raycaster.setFromCamera(mouse, camera);
+
+  // Intersect objects
+  const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
+
+  if (intersects.length > 0) {
+    const firstIntersectedObject = intersects.filter(
+      (intersection: THREE.Intersection<THREE.Object3D>) => {
+        return intersection && intersection.object;
+      }
+    )[0];
+    if (firstIntersectedObject && firstIntersectedObject.object) {
+      // console.log("\nfirstIntersectedObject ->", firstIntersectedObject.object);
+      // Get the Parent Group
+      const parentGroup = firstIntersectedObject.object.parent;
+      console.log("\nparentGroup ->", parentGroup);
+      // Set raycasterIntersectionObject
+      raycasterIntersectionObject = parentGroup;
+      // Change the color of each material of each mesh in the parent group
+      // raycasterIntersectionObject.children.forEach((child) => {
+      //   if (
+      //     child instanceof THREE.Mesh &&
+      //     child.material instanceof THREE.MeshStandardNodeMaterial
+      //   ) {
+      //     console.log("\nchild to be changed in after intersection ->", child);
+      //     child.material.color.set("#f00");
+      //   }
+      // });
+
+      // Change the outline factor
+      if (uniformOutlineFactor) {
+        console.log(
+          "\nuniformOutlineFactor x ->",
+          uniformOutlineFactor.value.x
+        );
+        console.log(
+          "\nuniformOutlineFactor y ->",
+          uniformOutlineFactor.value.y
+        );
+        uniformOutlineFactor.value.set(0.8, 0.82);
+      }
+    }
+  }
+};
+
 // Animate fn
 const animate = async () => {
   // Elapsed Time
@@ -260,6 +353,7 @@ onMounted(async () => {
   init();
   animate();
   window.addEventListener("resize", onWindowResize);
+  document.addEventListener("pointermove", onPointerMove);
 });
 
 onBeforeUnmount(() => {
@@ -273,5 +367,8 @@ onBeforeUnmount(() => {
 
   // Remove resize listener
   window.removeEventListener("resize", onWindowResize);
+
+  // Remove pointer move listener
+  document.removeEventListener("pointermove", onPointerMove);
 });
 </script>
