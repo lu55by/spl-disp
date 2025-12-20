@@ -27,5 +27,11 @@ export const ToastContents = {
   ModelEmptyReminderContentZH: "没有可清空的模型！",
 };
 
+// UI Contents
+export const UIContents = {
+  DropZoneIndicatorContent: "DROP FILES TO IMPORT",
+  DropZoneIndicatorContentZH: "松开以导入",
+};
+
 // Global Model
 export const MaxModelLength = 3;
