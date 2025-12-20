@@ -56,14 +56,12 @@ import Button from "./Button.vue";
  * Get the store
  */
 const modelsStore = useModelsStore();
-const { splicingGroupGlobal, splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
-
-// TODO: Fix the non-reactive group length.
-console.log("splicingGroupLen ->", splicingGroupLen.value);
+const { splicingGroupGlobal, splicingGroupLen, isShowMap } =
+  storeToRefs(modelsStore);
 
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
 watch(splicingGroupLen, (newLength, oldLength) => {
-  console.log(`\nsplicingGroupLen changed from ${oldLength} to ${newLength}`);
+  console.log(`\n -- ButtonContainer -- splicingGroupLen changed from ${oldLength} to ${newLength}`);
 });
 
 /**
@@ -73,9 +71,7 @@ let isExportBtnDisabled = computed(
   // () => splicingGroupLen.value < MaxModelLength
   () => splicingGroupLen.value === 0
 );
-let isClearBtnDisabled = computed(() => splicingGroupLen.value === 0);
-
-console.log("isClearBtnDisabled ->", isClearBtnDisabled.value);
+let isClearBtnDisabled = computed(() => splicingGroupLen.value === 1);
 
 /**
  * Input elements and fns.

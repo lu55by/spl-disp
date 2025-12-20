@@ -205,7 +205,6 @@ const init = async () => {
 
   // Outline Effect Pattern
   const outlinePat = smoothstep(
-    // TODO: Change the factor values based on the raycastered object
     uniformOutlineFactor.x,
     uniformOutlineFactor.y,
     dot(positionLocal.sub(cameraPosition).normalize(), normalLocal)
@@ -246,7 +245,7 @@ const init = async () => {
   // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
   watch(splicingGroupLen, (newLength, oldLength) => {
     console.log(
-      `\n -- init -- splicingGroupLen changed from ${oldLength} to ${newLength}`
+      `\n -- SplicingModels -- splicingGroupLen changed from ${oldLength} to ${newLength}`
     );
     applyMixedColorNode(splicingGroupGlobal);
   });
@@ -282,6 +281,8 @@ const onWindowResize = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 };
 
+const mouse = new THREE.Vector2();
+
 // On Pointer Move fn
 const onPointerMove = (event: PointerEvent) => {
   if (raycasterIntersectionObject) {
@@ -298,12 +299,8 @@ const onPointerMove = (event: PointerEvent) => {
     if (uniformOutlineFactor) uniformOutlineFactor.value.set(0.98, 0.99);
   }
 
-  // TODO: Declare the mouse vec2 outside the onPointerMove fn
-  const x = event.clientX;
-  const y = event.clientY;
-  const mouse = new THREE.Vector2();
-  mouse.x = (x / window.innerWidth) * 2 - 1;
-  mouse.y = -(y / window.innerHeight) * 2 + 1;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   // Update the raycaster
   raycaster.setFromCamera(mouse, camera);
