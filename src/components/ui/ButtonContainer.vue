@@ -50,6 +50,7 @@ import { toast } from "vue3-toastify";
 import { ToastContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
+import { validateImportFiles } from "../../utils/fileValidators";
 import Button from "./Button.vue";
 
 /**
@@ -109,65 +110,9 @@ const handleFileChange = async (e: Event) => {
   const files = target.files;
 
   /*
-    ! No File Selected
+    Validate Files
    */
-  if (!files || files.length === 0) return;
-
-  /*
-    ! Only One File Selected and Not an Obj File
-   */
-  if (files.length === 1 && !files[0].name.endsWith(".obj")) {
-    toast(ToastContents.ModelImportWarningOneFileNotObjZH, {
-      autoClose: 1000,
-      type: "warning",
-    });
-    return;
-  }
-
-  /*
-    ! More than 2 Files Selected
-   */
-  if (files.length > 2) {
-    toast(ToastContents.ModelImportWarningMoreThanTwoFilesZH, {
-      autoClose: 1000,
-      type: "warning",
-    });
-    return;
-  }
-
-  /*
-    ! No Obj File Selected
-   */
-  let hasObjFile = false;
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if (file.name.endsWith(".obj")) {
-      hasObjFile = true;
-      break;
-    }
-  }
-  if (!hasObjFile) {
-    toast(ToastContents.ModelImportWarningNoObjFileZH, {
-      autoClose: 1000,
-      type: "warning",
-    });
-    return;
-  }
-
-  /*
-    ! Two Obj Files Selected
-   */
-  if (
-    files.length === 2 &&
-    files[0].name.endsWith(".obj") &&
-    files[1].name.endsWith(".obj")
-  ) {
-    toast(ToastContents.ModelImportWarningTwoObjFilesZH, {
-      autoClose: 1000,
-      type: "warning",
-    });
-    return;
-  }
+  if (!validateImportFiles(files)) return;
 
   /*
     Import Obj File

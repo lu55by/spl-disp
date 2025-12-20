@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { UIContents } from "../../constants";
+import { validateImportFiles } from "../../utils/fileValidators";
 
 const isDragging = ref(false);
 const modelsStore = useModelsStore();
@@ -35,7 +36,9 @@ const onDrop = (e: DragEvent) => {
   dragCounter = 0;
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-    modelsStore.importObj(e.dataTransfer.files);
+    if (validateImportFiles(e.dataTransfer.files)) {
+      modelsStore.importObj(e.dataTransfer.files);
+    }
   }
 };
 
