@@ -204,9 +204,7 @@ export function modifyNewVerticesUv(
   offsetNegativePercentage: number
 ): void {
   const originalNodeAttr = getAttributes(originalNode);
-  // console.log('originalNode Geometry attributes before cut ->', originalNodeAttr)
   const finalCutObjAttr = getAttributes(cutObj);
-  // console.log('cylinder cut cutHead geometry attributes -> ', cylCutHeadAttr)
 
   // Get the vertices count
 
@@ -230,9 +228,6 @@ export function modifyNewVerticesUv(
   // Update uv coordinates of the new vertices
 
   for (let i = offsetCount; i < finalCount; i++) {
-    // const u = cylCutHeadAttr.uv!.getX(i)
-    // const v = cylCutHeadAttr.uv!.getY(i)
-    // if (i < 3) console.log(`uv of idx (${i}) -> [${u}, ${v}]`)
     finalCutObjAttr.uv!.setX(i, UVCoordinateMod.x);
     finalCutObjAttr.uv!.setY(i, UVCoordinateMod.y);
   }

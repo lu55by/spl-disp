@@ -12,10 +12,10 @@
 
     <!-- Export (not implemented here) -->
     <!-- <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">导出</Button> -->
-    <Button :disabled="isExportBtnDisabled" @click="handleExport">导出</Button>
+    <Button :disabled="false" @click="handleExport">导出</Button>
 
     <!-- Clear -->
-    <Button :disabled="isClearBtnDisabled" @click="clearModels">清空</Button>
+    <Button :disabled="false" @click="clearModels">清空</Button>
 
     <p class="text-stone-100">当前模型组长度: {{ splicingGroupLen }}</p>
 
@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import type { Group, Object3DEventMap } from "three";
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { toast } from "vue3-toastify";
 import { ToastContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
@@ -61,17 +61,19 @@ const { splicingGroupGlobal, splicingGroupLen, isShowMap } =
 
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
 watch(splicingGroupLen, (newLength, oldLength) => {
-  console.log(`\n -- ButtonContainer -- splicingGroupLen changed from ${oldLength} to ${newLength}`);
+  console.log(
+    `\n -- ButtonContainer -- splicingGroupLen changed from ${oldLength} to ${newLength}`
+  );
 });
 
 /**
  * Disable logic
  */
-let isExportBtnDisabled = computed(
-  // () => splicingGroupLen.value < MaxModelLength
-  () => splicingGroupLen.value === 0
-);
-let isClearBtnDisabled = computed(() => splicingGroupLen.value === 1);
+// let isExportBtnDisabled = computed(
+//   // () => splicingGroupLen.value < MaxModelLength
+//   () => splicingGroupLen.value === 0
+// );
+// let isClearBtnDisabled = computed(() => splicingGroupLen.value === 1);
 
 /**
  * Input elements and fns.

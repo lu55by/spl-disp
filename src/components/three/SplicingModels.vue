@@ -240,6 +240,11 @@ const init = async () => {
           materialColor,
           uniformIsShowMap
         );
+
+        // Try to deactivate the normal transformation (not working properly)
+        // child.material.normalNode = modelViewProjection
+        //   .mul(modelViewMatrix)
+        //   .mul(normalLocal, 0);
       }
     });
   };
