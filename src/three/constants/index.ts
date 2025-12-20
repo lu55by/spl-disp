@@ -163,8 +163,17 @@ export const NodeNames = {
   CuttersNames: {
     Sphere: "Sphere006",
     Cylinder: "Cylinder004",
+    Single: "cutter-single",
+  },
+  HairNames: {
+    Hair: "hair",
+  },
+  BodyNames: {
+    Body: "body",
   },
 };
+
+export const ValidNodeNames = ["hair", "body"];
 
 /*
  * -----------------------------------------------------------------------------

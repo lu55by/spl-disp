@@ -66,7 +66,12 @@ updateOrbitControlsTargetCenter();
 
 const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
-    const relevantActions = ["addChild", "clear", "importObj"];
+    const relevantActions = [
+      "addChild",
+      "imoprtObjWithModelHeight",
+      "imoprtObjWithNodeNames",
+      "clear",
+    ];
     if (relevantActions.includes(name)) {
       after(() => {
         updateOrbitControlsTargetCenter();

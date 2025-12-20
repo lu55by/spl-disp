@@ -12,7 +12,7 @@ I have implemented the ability to import a model and its texture by selecting a 
 
 ### 2. `useModelsStore.ts`
 
-- Updated `importObj` to accept a `FileList`.
+- Updated `imoprtObjWithModelHeight` to accept a `FileList`.
 - Added logic to finding the `.obj` file and the texture file (image) within the selected files.
 - Added logic to load the texture using `URL.createObjectURL` and apply it to the loaded model.
 

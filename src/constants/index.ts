@@ -25,6 +25,9 @@ export const ToastContents = {
 
   ModelEmptyReminderContent: "Nothing to clear!",
   ModelEmptyReminderContentZH: "没有可清空的模型！",
+
+  ModelNodeNameErrorContent: "Model node name error!",
+  ModelNodeNameErrorContentZH: "模型节点名称错误！",
 };
 
 // UI Contents

@@ -1,12 +1,12 @@
 import * as THREE from "three";
-import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import {
   Brush,
   Evaluator,
   HOLLOW_SUBTRACTION,
   SUBTRACTION,
 } from "three-bvh-csg";
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 /**
@@ -77,28 +77,39 @@ export async function getCutHead(
     头部节点
    */
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
-  // 牙齿节点 (直接进行切割，防止牙齿节点后部突出)
+
+  /*
+    原始牙齿节点 (如为单个切割节点，则返回原始牙齿节点，否则直接进行切割，防止牙齿节点后部突出)
+   */
   const teethNodeOrg = headModel.getObjectByName(
     "teeth_lod0_mesh"
   ) as THREE.Mesh;
+
+  /*
+    牙齿切割节点
+   */
+  let cutterTeethNode: THREE.Mesh | null = null;
+  if (!isCuttersLen1)
+    cutterTeethNode = loadedCuttersModel.getObjectByName(
+      "cutter-teeth"
+    ) as THREE.Mesh;
+  console.log("\n -- getCutHead -- cutterTeethNode ->", cutterTeethNode);
+
+  /*
+    牙齿节点
+   */
   // 判断是否是单个切割节点，不是则进行切割，否则直接使用原始牙齿节点
   const teethNode = !isCuttersLen1
-    ? csgSubtract(
-        teethNodeOrg,
-        loadedCuttersModel.getObjectByName("cutter-teeth") as THREE.Mesh,
-        true,
-        null,
-        null,
-        {
-          isLog: IsCSGOperationLog,
-          value: "Teeth Cutter Node Hollow Subtraction.",
-        }
-      )
+    ? csgSubtract(teethNodeOrg, cutterTeethNode, true, null, null, {
+        isLog: IsCSGOperationLog,
+        value: "Teeth Cutter Node Hollow Subtraction.",
+      })
     : teethNodeOrg.clone();
   // Set the name of the teeth node
   teethNode.name = "TeethNode";
   // Set the name of the teeth node material
   (teethNode.material as THREE.MeshPhongMaterial).name = "TeethNodeMat";
+
   /*
     左眼节点
    */
@@ -109,6 +120,7 @@ export async function getCutHead(
   eyeLNode.name = "EyeLNode";
   // Set the name of the left eye node material
   (eyeLNode.material as THREE.MeshPhongMaterial).name = "EyeLNodeMat";
+
   /*
     右眼节点
    */
@@ -127,15 +139,18 @@ export async function getCutHead(
 
   // 一个切割节点，直接切
   if (isCuttersLen1) {
-    const cutter = loadedCuttersModel.children[0] as THREE.Mesh<
+    const cutterSingle = loadedCuttersModel.children[0] as THREE.Mesh<
       THREE.BufferGeometry,
       THREE.Material
     >;
     // Pre-create brush for cutter
-    const cutterBrush = new Brush(cutter.geometry, cutter.material);
-    cutterBrush.updateMatrixWorld();
+    const cutterSingleBrush = new Brush(
+      cutterSingle.geometry,
+      cutterSingle.material
+    );
+    cutterSingleBrush.updateMatrixWorld();
 
-    cutHeadBrush = csgSubtract(headNode, cutterBrush, false, null, null, {
+    cutHeadBrush = csgSubtract(headNode, cutterSingleBrush, false, null, null, {
       isLog: IsCSGOperationLog,
       value: "One single Cutter Node Subtraction.",
     });
@@ -161,19 +176,26 @@ export async function getCutHead(
     切割节点 (根据名称获取)
    */
 
-  // 口腔切割节点
+  // Cutter Oral Cavity (口腔切割节点)
   const cutter4OralCavityNode = loadedCuttersModel.getObjectByName(
     "cutting01"
   ) as THREE.Mesh;
+  console.log(
+    "\n -- getCutHead -- cutter4OralCavityNode ->",
+    cutter4OralCavityNode
+  );
 
-  // Sphere Cutter
+  // Cutter Sphere (底座椭圆切割节点)
   const sphereCutterNode = loadedCuttersModel.getObjectByName(
     "cutting02"
   ) as THREE.Mesh;
-  // Cylinder Cutter
+  console.log("\n -- getCutHead -- sphereCutterNode ->", sphereCutterNode);
+
+  // Cutter Cylinder (圆柱切割节点)
   const cylinderCutterNode = loadedCuttersModel.getObjectByName(
     "cutting03"
   ) as THREE.Mesh;
+  console.log("\n -- getCutHead -- cylinderCutterNode ->", cylinderCutterNode);
 
   // Pre-create Brushes for cutters to avoid repeated instantiation
   const oralCavityBrush = new Brush(
@@ -187,24 +209,23 @@ export async function getCutHead(
     TIME 1: HOLLOW Subtraction
     TIME 2: Solid Subtraction
    */
+
+  // Sphere Cutter Brush
   const sphereCutterBrush = new Brush(
     sphereCutterNode.geometry,
     sphereCutterNode.material
   );
   sphereCutterBrush.updateMatrixWorld();
-
-  /*
-    Reuse the same brush for cylinder cutter to operate csgSubtract two times
-    TIME 1: HOLLOW Subtraction
-    TIME 2: Solid Subtraction
-   */
+  // Cylinder Cutter Brush
   const cylinderCutterBrush = new Brush(
     cylinderCutterNode.geometry,
     cylinderCutterNode.material
   );
   cylinderCutterBrush.updateMatrixWorld();
 
-  // !! 执行切割操作
+  /**
+   *  !! 执行切割操作
+   */
 
   // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
   // Note: first operand (headNode) is a Mesh, csgSubtract will convert it to a Brush.
@@ -371,8 +392,8 @@ function csgSubtract(
 
 /**
  * Modify the uv coordinates of the new vertices.
- * @param {THREE.Mesh} originalNode Original Node before csg operation.
- * @param {THREE.Mesh} cutObj Cut Object after csg operation.
+ * @param {Brush | THREE.Mesh} originalNode Original Node before csg operation.
+ * @param {Brush | THREE.Mesh} cutObj Cut Object after csg operation.
  * @param {number} offsetPositivePercentage 0 ~ 1 value of the positive offset of the uv start idx based on the original node vertices count.
  * @param {number} offsetNegativePercentage -1 ~ 0 value of the negative offset of the uv start idx based on the original node vertices count.
  */
@@ -387,30 +408,40 @@ function modifyNewVerticesUv(
   const finalCutObjAttr = getAttributes(cutObj);
   // console.log('cylinder cut cutHead geometry attributes -> ', cylCutHeadAttr)
 
-  // Get the vertices count
-
+  // Get the original node vertices count
   const orgCount = originalNodeAttr.uv!.count;
+  // Get the final cut object vertices count
   const finalCount = finalCutObjAttr.uv!.count;
+  // Get the new vertices count
   const newVerticesCount = finalCount - orgCount;
 
+  // Calculate the offset positive percentage
   const orgCountOffsetPositive = Math.floor(
     newVerticesCount * offsetPositivePercentage
   );
+  // Calculate the offset negative percentage
   const orgCountOffsetNegative = Math.floor(
     orgCount * offsetNegativePercentage
   );
 
+  // Calculate the offset count
   const offsetCount =
     orgCount + orgCountOffsetPositive + orgCountOffsetNegative;
 
-  // 新增顶点的 uv 坐标更新
+  /*
+    Update the uv coordinates of the new vertices
+   */
 
+  // Define the uv coordinate modifier
   const uvCoordinateMod = new THREE.Vector2(0.1, 0.1);
 
+  // Loop through the new vertices and update the uv coordinates
   for (let i = offsetCount; i < finalCount; i++) {
     finalCutObjAttr.uv!.setX(i, uvCoordinateMod.x);
     finalCutObjAttr.uv!.setY(i, uvCoordinateMod.y);
   }
+
+  // Mark the uv attribute as needs update
   finalCutObjAttr.uv!.needsUpdate = true;
 }
 

@@ -386,7 +386,7 @@ export function getFilteredSubGroups(
   ) as Group<Object3DEventMap>[];
 }
 
-export function removeAndAddModel(
+export function removeAndAddModelWithModelHeight(
   splicingGroupGlobal: Group<Object3DEventMap>,
   importedGroup: Group<Object3DEventMap>,
   isHairImported: boolean
@@ -454,6 +454,72 @@ export function removeAndAddModel(
   else group2Dispose = bodyGroup;
 
   console.log("\nGroup to dispose ->", getObject3DHeight(group2Dispose));
+
+  // Dispose the group
+  disposeHairBodyGroup(splicingGroupGlobal, group2Dispose);
+  // Add the new group
+  splicingGroupGlobal.add(importedGroup);
+}
+
+export function removeAndAddModelWithNodeNames(
+  splicingGroupGlobal: Group<Object3DEventMap>,
+  importedGroup: Group<Object3DEventMap>,
+  isHairImported: boolean
+) {
+  // Check if there is a hair or body group in the splicingGroupGlobal
+  const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
+  // console.log(
+  //   "\n -- removeAndAddModelV2 -- filteredSubGroups length ->",
+  //   filteredSubGroups.length
+  // );
+  // return;
+
+  if (filteredSubGroups.length === 0) {
+    // No hair or body group found, add it to the group.
+    splicingGroupGlobal.add(importedGroup);
+    return;
+  }
+
+  // Has hair or body group found, remove it and add the new one, or add it straightly if they are not conflicting.
+  if (filteredSubGroups.length === 1) {
+    // Check if the existed one is hair or body
+    const existedHairOrBodyGroup = filteredSubGroups[0];
+    const isHairGroupExisted =
+      existedHairOrBodyGroup.name === NodeNames.HairNames.Hair;
+    if (isHairImported === isHairGroupExisted) {
+      // Conflicting, remove the existed hair or body group and add the new one
+      disposeHairBodyGroup(splicingGroupGlobal, existedHairOrBodyGroup);
+      splicingGroupGlobal.add(importedGroup);
+      return;
+    }
+    // Not conflicting, add the new one straightly
+    splicingGroupGlobal.add(importedGroup);
+    return;
+  }
+
+  // return;
+  console.log("\nPrepare to remove the hair or body group...");
+
+  // Handle the condition of hair and body groups existing at the same time
+  // Get the hair and body groups
+  let hairGroup = filteredSubGroups[0];
+  let bodyGroup = filteredSubGroups[1];
+  // Reverse the assignments if the first group is body
+  if (hairGroup.name === NodeNames.BodyNames.Body) {
+    hairGroup = filteredSubGroups[1];
+    bodyGroup = filteredSubGroups[0];
+  }
+
+  console.log("\nHair Group Name after reverse checking ->", hairGroup.name);
+  console.log("\nBody Group Name after reverse checking ->", bodyGroup.name);
+
+  // Create a variable to store the group to remove
+  let group2Dispose: Group<Object3DEventMap> | null = null;
+  // Check if the new group is hair or body
+  if (isHairImported) group2Dispose = hairGroup;
+  else group2Dispose = bodyGroup;
+
+  console.log("\nGroup to dispose ->", group2Dispose.name);
 
   // Dispose the group
   disposeHairBodyGroup(splicingGroupGlobal, group2Dispose);

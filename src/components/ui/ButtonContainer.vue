@@ -112,12 +112,15 @@ const handleFileChange = async (e: Event) => {
   /*
     Validate Files
    */
-  if (!validateImportFiles(files)) return;
+  // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
+  const isValid = await validateImportFiles(files);
+  if (!isValid) return;
 
   /*
     Import Obj File
    */
-  await modelsStore.importObj(files);
+  // TODO: Change the imoprtObjWithModelHeight fn to imoprtObjWithNodeNames fn later.
+  await modelsStore.imoprtObjWithModelHeight(files);
 
   console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 

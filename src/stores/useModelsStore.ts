@@ -4,6 +4,7 @@ import { markRaw } from "vue";
 import {
   CutHeadBoundingBoxHeight,
   ModelPaths,
+  NodeNames,
   OBJLoaderInstance,
   type PhongMesh,
 } from "../three/constants";
@@ -16,7 +17,8 @@ import {
   applyTextures2LoadedHeadModelAsync,
   disposeHairBodyFromSplicingGroupGlobal,
   getObject3DHeight,
-  removeAndAddModel,
+  removeAndAddModelWithModelHeight,
+  removeAndAddModelWithNodeNames,
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
@@ -69,6 +71,11 @@ const SplicingGroupGlobal = markRaw(
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
+const CuttersModelGlobal = markRaw(
+  LoadedCuttersModel
+) as THREE.Group<THREE.Object3DEventMap>;
+CuttersModelGlobal.name = "CuttersModelGlobal";
+
 /**
  * Model Store
  */
@@ -82,9 +89,7 @@ export const useModelsStore = defineStore("models", {
     // Body
     // bodyModelGlobal: null as THREE.Object3D | null,
     // Cutters
-    cuttersModelGlobal: markRaw(
-      LoadedCuttersModel
-    ) as THREE.Group<THREE.Object3DEventMap>,
+    cuttersModelGlobal: CuttersModelGlobal,
     // GUI
     // guiGlobal: TweakPane as Pane,
     isShowMap: true,
@@ -95,6 +100,9 @@ export const useModelsStore = defineStore("models", {
   },
 
   actions: {
+    /**
+     * Sync the splicing group length.
+     */
     syncSplicingGroupLength() {
       this.splicingGroupLengthState = this.splicingGroupGlobal.children.length;
     },
@@ -104,6 +112,11 @@ export const useModelsStore = defineStore("models", {
       this.syncSplicingGroupLength();
     },
 
+    /**
+     * Clear the models in the splicing group except the cutHead.
+     * @param filteredSubGroups Sub groups to remove
+     * @returns void
+     */
     clear(filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[]) {
       disposeHairBodyFromSplicingGroupGlobal(
         this.splicingGroupGlobal,
@@ -112,8 +125,13 @@ export const useModelsStore = defineStore("models", {
       this.syncSplicingGroupLength();
     },
 
-    async importObj(files: FileList) {
-      console.log("\nfiles ->", files);
+    /**
+     * Import .obj file and texture file based on the height of the imported model.
+     * @param files Files to import
+     * @returns void
+     */
+    async imoprtObjWithModelHeight(files: FileList) {
+      console.log("\nfiles to import ->", files);
 
       let objFile: File | null = null;
       let texFile: File | null = null;
@@ -128,6 +146,7 @@ export const useModelsStore = defineStore("models", {
         }
       }
 
+      // Check if the .obj file exists
       if (!objFile) {
         console.warn("No .obj file found.");
         return;
@@ -187,7 +206,7 @@ export const useModelsStore = defineStore("models", {
       /**
        * Create a function in meshOps/index.ts to remove the corresponding model from the splicing group by passing the isHair boolean to it.
        */
-      removeAndAddModel(
+      removeAndAddModelWithModelHeight(
         this.splicingGroupGlobal,
         importedParsedObject,
         isHairImported
@@ -195,12 +214,89 @@ export const useModelsStore = defineStore("models", {
       this.syncSplicingGroupLength();
     },
 
+    /**
+     * Import .obj file and texture file based on the node name validation.
+     * @param files Files to import
+     * @returns void
+     */
+    async imoprtObjWithNodeNames(files: FileList) {
+      // Log the files to import
+      console.log("\nfiles to import ->", files);
+
+      // Create variables to store the .obj and texture files
+      let objFile: File | null = null;
+      let texFile: File | null = null;
+
+      // Iterate over the files to find the .obj and texture files and assign them to the variables
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.name.endsWith(".obj")) {
+          objFile = file;
+        } else if (file.type.startsWith("image/")) {
+          texFile = file;
+        }
+      }
+
+      // Check if the .obj file exists
+      if (!objFile) {
+        console.warn("No .obj file found.");
+        return;
+      }
+
+      // Get the text content of the .obj file
+      const text = await objFile.text();
+      // Parse the .obj file text content with the OBJLoaderInstance
+      const importedParsedObject = OBJLoaderInstance.parse(text);
+
+      // If texture file exists, load and apply it to the imported model
+      if (texFile) {
+        const texUrl = URL.createObjectURL(texFile);
+        console.log("\ntexUrl ->", texUrl);
+        const texture = await loadTexture(texUrl);
+        // Retrieve the first node (child) of the object and apply the texture to it
+        const node = importedParsedObject.children[0] as THREE.Mesh<
+          THREE.BufferGeometry,
+          THREE.MeshPhongMaterial
+        >;
+        node.material.map = texture;
+        node.material.needsUpdate = true;
+      }
+      // Apply PBR Material and SRGB Color Space
+      applyPBRMaterialAndSRGBColorSpace(importedParsedObject, true);
+      // Apply Double Side to the imported model
+      applyDoubleSide(importedParsedObject);
+
+      /**
+       * Check if the imported object is hair or body by getting the name of the imported model single node.
+       * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
+       * if it is body, it's the same logic as the hair.
+       */
+      const isHairImported =
+        importedParsedObject.children[0].name === NodeNames.HairNames.Hair;
+      console.log("\nisHair imported model ->", isHairImported);
+
+      // Call the removeAndAddModel fn to remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
+      removeAndAddModelWithNodeNames(
+        this.splicingGroupGlobal,
+        importedParsedObject,
+        isHairImported
+      );
+      this.syncSplicingGroupLength();
+    },
+
+    /**
+     * Export the splicing group to a .obj, .mtl and texture png files.
+     * @returns Promise<boolean> - true if the export was successful, false otherwise
+     */
     async exportModel() {
       // Lazy import to avoid circular dependency issues if any
       const { exportSplicingGroup } = await import("../three/exporters");
       return await exportSplicingGroup(this.splicingGroupGlobal);
     },
 
+    /**
+     * Toggle the isShowMap state.
+     */
     toggleIsShowMap() {
       this.isShowMap = !this.isShowMap;
     },

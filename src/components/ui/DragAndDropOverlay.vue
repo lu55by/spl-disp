@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import { useModelsStore } from "../../stores/useModelsStore";
+import { onMounted, onUnmounted, ref } from "vue";
 import { UIContents } from "../../constants";
+import { useModelsStore } from "../../stores/useModelsStore";
 import { validateImportFiles } from "../../utils/fileValidators";
 
 const isDragging = ref(false);
@@ -29,16 +29,17 @@ const onDragLeave = (e: DragEvent) => {
   }
 };
 
-const onDrop = (e: DragEvent) => {
+const onDrop = async (e: DragEvent) => {
   e.preventDefault();
   e.stopPropagation();
   isDragging.value = false;
   dragCounter = 0;
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-    if (validateImportFiles(e.dataTransfer.files)) {
-      modelsStore.importObj(e.dataTransfer.files);
-    }
+    // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
+    const isValid = await validateImportFiles(e.dataTransfer.files);
+    // TODO: Change the imoprtObjWithModelHeight fn to imoprtObjWithNodeNames fn later.
+    if (isValid) modelsStore.imoprtObjWithModelHeight(e.dataTransfer.files);
   }
 };
 
