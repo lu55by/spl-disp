@@ -13,6 +13,7 @@ import {
   cameraPosition,
   color,
   dot,
+  Fn,
   materialColor,
   mix,
   normalLocal,
@@ -161,7 +162,7 @@ const init = async () => {
     orbit.enabled = !e.value;
   });
   // Attach the splicingGroupGlobal to the transform controls (pivot point is wrong!)
-  transform.attach(splicingGroupGlobal);
+  // transform.attach(splicingGroupGlobal);
   // Add the gizmo of the transform controls to the scene
   const transformGizmo = transform.getHelper();
   scene.add(transformGizmo);
@@ -204,13 +205,15 @@ const init = async () => {
   // Effect Patterns
 
   // Outline Effect Pattern
-  const outlinePat = smoothstep(
-    uniformOutlineFactor.x,
-    uniformOutlineFactor.y,
-    dot(positionLocal.sub(cameraPosition).normalize(), normalLocal)
-      .abs()
-      .oneMinus()
-  );
+  const getOutlinePattern = Fn(() => {
+    return smoothstep(
+      uniformOutlineFactor.x,
+      uniformOutlineFactor.y,
+      dot(positionLocal.sub(cameraPosition).normalize(), normalLocal)
+        .abs()
+        .oneMinus()
+    );
+  });
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
@@ -224,19 +227,19 @@ const init = async () => {
         /*
           Mix the mixed baseColor and materialColor with outlineColor based on the outlinePat
         */
-        child.material.colorNode = mix(
-          mix(uniformBaseColor, materialColor, uniformIsShowMap),
-          uniformOutlineColor,
-          outlinePat
-        );
+        // child.material.colorNode = mix(
+        //   mix(uniformBaseColor, materialColor, uniformIsShowMap),
+        //   uniformOutlineColor,
+        //   getOutlinePattern()
+        // );
         /*
           Mix the baseColor and materialColor based on the uniformIsShowMap
         */
-        // child.material.colorNode = mix(
-        //   uniformBaseColor,
-        //   materialColor,
-        //   uniformIsShowMap
-        // );
+        child.material.colorNode = mix(
+          uniformBaseColor,
+          materialColor,
+          uniformIsShowMap
+        );
       }
     });
   };
@@ -348,6 +351,50 @@ const onPointerMove = (event: PointerEvent) => {
   }
 };
 
+// On Mouse Click fn
+const onMouseClick = (event: MouseEvent) => {
+  console.log("\n -- onMouseClick -- event ->", event);
+
+  // Check if there is an intersection
+  if (raycasterIntersectionObject) {
+    raycasterIntersectionObject = null;
+    transform.detach();
+  }
+
+  // Update the mouse position
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // Set raycaster from the mouse and the camera
+  raycaster.setFromCamera(mouse, camera);
+
+  // Intersect objects
+  const intersects = raycaster.intersectObject(splicingGroupGlobal);
+
+  // Check if there is an intersection
+  if (intersects.length > 0) {
+    // Get the first intersected object
+    const firstIntersectedObject = intersects.filter((intersect) => {
+      return intersect && intersect.object;
+    })[0];
+    console.log("\nfirstIntersectedObject ->", firstIntersectedObject);
+
+    // Check if the first intersected object is valid
+    if (firstIntersectedObject && firstIntersectedObject.object) {
+      // Get the Parent Group of the first intersected object
+      const parentGroup = firstIntersectedObject.object.parent;
+      console.log(
+        "\nparentGroup of the first intersected object ->",
+        parentGroup
+      );
+      // Set raycasterIntersectionObject
+      raycasterIntersectionObject = parentGroup;
+      // Attach the transform to the raycasterIntersectionObject
+      transform.attach(raycasterIntersectionObject);
+    }
+  }
+};
+
 // Animate fn
 const animate = async () => {
   // Elapsed Time
@@ -370,7 +417,8 @@ onMounted(async () => {
   init();
   animate();
   window.addEventListener("resize", onWindowResize);
-  document.addEventListener("pointermove", onPointerMove);
+  // document.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("click", onMouseClick);
 });
 
 onBeforeUnmount(() => {
@@ -386,6 +434,9 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
 
   // Remove pointer move listener
-  document.removeEventListener("pointermove", onPointerMove);
+  // document.removeEventListener("pointermove", onPointerMove);
+
+  // Remove pointer down listener
+  window.removeEventListener("click", onMouseClick);
 });
 </script>
