@@ -6,16 +6,16 @@ export const ToastContents = {
   ModelImportMaxLenReminderContentZH: "模型数量已达上限！",
 
   ModelImportWarningOneFileNotObj: "Please select an .obj file.",
-  ModelImportWarningOneFileNotObjZH: "请选择一个 .obj 文件。",
+  ModelImportWarningOneFileNotObjZH: "请选择一个 .obj 文件或 .stl 文件。",
 
   ModelImportWarningMoreThanTwoFiles: "Please select at most 2 files.",
   ModelImportWarningMoreThanTwoFilesZH: "最多选择两个文件。",
 
   ModelImportWarningNoObjFile: "Please select one .obj file.",
-  ModelImportWarningNoObjFileZH: "请选择一个 .obj 文件。",
+  ModelImportWarningNoObjFileZH: "请选择一个 .obj 文件或 .stl 文件。",
 
   ModelImportWarningTwoObjFiles: "Please select at most one .obj file.",
-  ModelImportWarningTwoObjFilesZH: "最多选择一个 .obj 文件。",
+  ModelImportWarningTwoObjFilesZH: "最多选择一个 .obj 文件或 .stl 文件。",
 
   ModelExported: "Model exported!",
   ModelExportedZH: "模型已导出！",

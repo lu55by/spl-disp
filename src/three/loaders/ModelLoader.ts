@@ -1,7 +1,7 @@
-import * as THREE from 'three/webgpu';
-import {MTLLoader} from "three/examples/jsm/loaders/MTLLoader.js";
-import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
-import { OBJLoaderInstance } from "../constants";
+import * as THREE from "three/webgpu";
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { OBJLoaderInstance, STLLoaderInstance } from "../constants";
 
 export interface LoadObjOptions {
   mtlPath?: string | undefined;
@@ -63,4 +63,22 @@ export async function loadObj(
   }
 
   return loadedObj;
+}
+
+export async function loadSTLFile(file: File) {
+  // Read file as ArrayBuffer as the stl file is binary or ASCII
+  const arrayBuffer = await file.arrayBuffer();
+
+  // Parse the geometry of STL using STLLoader
+  const geo = STLLoaderInstance.parse(arrayBuffer);
+
+  // Create a Mesh
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial());
+
+  // Set name for the mesh
+  m.name = file.name.toLocaleLowerCase().split(".")[0] + "Node";
+  // Set name for the material
+  m.material.name = m.name + "Mat";
+
+  return m;
 }

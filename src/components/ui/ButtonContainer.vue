@@ -194,8 +194,8 @@ const handleFileChange = async (e: Event) => {
   /*
     Import Obj File
    */
-  // TODO: Change the imoprtObjWithModelHeight fn to imoprtObjWithNodeNames fn later.
-  await modelsStore.imoprtObjWithModelHeight(files);
+  // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
+  await modelsStore.imoprtObjStlModelWithHeight(files);
 
   console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 

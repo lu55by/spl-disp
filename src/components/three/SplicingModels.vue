@@ -56,8 +56,8 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
     const relevantActions = [
       "addChild",
-      "imoprtObjWithModelHeight",
-      "imoprtObjWithNodeNames",
+      "imoprtObjStlModelWithHeight",
+      "imoprtObjStlWithNodeNames",
       "clear",
     ];
     if (relevantActions.includes(name)) {
@@ -97,6 +97,7 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far
   );
+  // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
   camera.position.set(
     CameraProps.PosNormal.x,
     CameraProps.PosNormal.y,

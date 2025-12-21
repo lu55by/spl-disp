@@ -2,7 +2,9 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { UIContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { validateImportFiles } from "../../utils/fileValidators";
+import {
+  validateImportFiles
+} from "../../utils/fileValidators";
 
 const isDragging = ref(false);
 const modelsStore = useModelsStore();
@@ -36,12 +38,10 @@ const onDrop = async (e: DragEvent) => {
   dragCounter = 0;
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-    modelsStore.importSTL(e.dataTransfer.files);
-    return;
     // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
     const isValid = await validateImportFiles(e.dataTransfer.files);
-    // TODO: Change the imoprtObjWithModelHeight fn to imoprtObjWithNodeNames fn later.
-    if (isValid) modelsStore.imoprtObjWithModelHeight(e.dataTransfer.files);
+    // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
+    if (isValid) modelsStore.imoprtObjStlModelWithHeight(e.dataTransfer.files);
   }
 };
 

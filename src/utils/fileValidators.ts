@@ -26,9 +26,13 @@ export const validateImportFiles = async (
   if (!files || files.length === 0) return false;
 
   /*
-    ! Only One File Selected and Not an Obj File
+    ! Only One File Selected and Not an Obj File or STL File
    */
-  if (files.length === 1 && !files[0].name.endsWith(".obj")) {
+  if (
+    files.length === 1 &&
+    !files[0].name.toLocaleLowerCase().endsWith(".obj") &&
+    !files[0].name.toLocaleLowerCase().endsWith(".stl")
+  ) {
     toast(ToastContents.ModelImportWarningOneFileNotObjZH, {
       autoClose: 1000,
       type: "warning",
@@ -48,12 +52,15 @@ export const validateImportFiles = async (
   }
 
   /*
-    ! No Obj File Selected
+    ! No Obj File or STL File Selected
    */
   let hasObjFile = false;
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    if (file.name.endsWith(".obj")) {
+    if (
+      file.name.toLocaleLowerCase().endsWith(".obj") ||
+      file.name.toLocaleLowerCase().endsWith(".stl")
+    ) {
       hasObjFile = true;
       break;
     }
@@ -67,12 +74,11 @@ export const validateImportFiles = async (
   }
 
   /*
-    ! Two Obj Files Selected
+    ! Two Model Files Selected
    */
   if (
     files.length === 2 &&
-    files[0].name.endsWith(".obj") &&
-    files[1].name.endsWith(".obj")
+    Array.from(files).every((file) => /\.(obj|stl)$/i.test(file.name))
   ) {
     toast(ToastContents.ModelImportWarningTwoObjFilesZH, {
       autoClose: 1000,
@@ -104,16 +110,21 @@ export const validateImportFilesWithNodeNames = async (
     Node Name Validation
    */
   let objFile: File | null = null;
+  let stlFile: File | null = null;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    if (file.name.endsWith(".obj")) {
+    if (file.name.toLocaleLowerCase().endsWith(".obj")) {
       objFile = file;
+      break;
+    } else if (file.name.toLocaleLowerCase().endsWith(".stl")) {
+      stlFile = file;
+      break;
     }
   }
 
-  // Check if the .obj file exists
-  if (!objFile) {
+  // Check if the .obj or .stl file exists
+  if (!objFile && !stlFile) {
     toast(ToastContents.ModelImportWarningNoObjFileZH, {
       autoClose: 1000,
       type: "warning",
@@ -121,6 +132,28 @@ export const validateImportFilesWithNodeNames = async (
     return false;
   }
 
+  /*
+    STL File Validation
+   */
+  if (stlFile) {
+    // ! The stl file name must match one of the valid node names, or we don't know what kind of model is imported (hair or body)
+    if (
+      !stlFile.name.toLocaleLowerCase().includes("hair") &&
+      !stlFile.name.toLocaleLowerCase().includes("body")
+    ) {
+      toast(ToastContents.ModelNodeNameErrorContentZH, {
+        autoClose: 1000,
+        type: "warning",
+      });
+      return false;
+    }
+    // STL file validation passed, return true
+    return true;
+  }
+
+  /*
+    Not a STL File, must be an OBJ File to validate
+   */
   // Parse the obj file
   const text = await objFile.text();
   const importedParsedObject: Group<Object3DEventMap> =
@@ -131,7 +164,7 @@ export const validateImportFilesWithNodeNames = async (
   );
 
   // Check if the imported object has the correct node names
-  const nodeName = importedParsedObject.children[0].name;
+  const nodeName = importedParsedObject.children[0].name.toLocaleLowerCase();
   console.log("\n -- validateImportFiles -- nodeName ->", nodeName);
   if (!nodeName.length || !ValidNodeNames.includes(nodeName)) {
     toast(ToastContents.ModelNodeNameErrorContentZH, {
@@ -141,5 +174,6 @@ export const validateImportFilesWithNodeNames = async (
     return false;
   }
 
+  // OBJ file validation passed, return true
   return true;
 };

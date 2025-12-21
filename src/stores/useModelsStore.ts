@@ -6,11 +6,11 @@ import {
   ModelPaths,
   NodeNames,
   OBJLoaderInstance,
-  STLLoaderInstance,
   type PhongMesh,
 } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
 import { GUIGlobal } from "../three/gui/global";
+import { loadSTLFile } from "../three/loaders/ModelLoader.ts";
 import { loadTexture } from "../three/loaders/TextureLoader";
 import {
   applyDoubleSide,
@@ -131,30 +131,69 @@ export const useModelsStore = defineStore("models", {
      * @param files Files to import
      * @returns void
      */
-    async imoprtObjWithModelHeight(files: FileList) {
+    async imoprtObjStlModelWithHeight(files: FileList) {
       console.log("\nfiles to import ->", files);
 
       let objFile: File | null = null;
+      let stlFile: File | null = null;
       let texFile: File | null = null;
 
-      // Iterate over the files to find the .obj and texture files
+      // Iterate over the files to find the .obj, .stl and texture files
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.name.endsWith(".obj")) {
+        if (file.name.toLocaleLowerCase().endsWith(".obj")) {
           objFile = file;
+        } else if (file.name.toLocaleLowerCase().endsWith(".stl")) {
+          stlFile = file;
         } else if (file.type.startsWith("image/")) {
           texFile = file;
         }
       }
 
-      // Check if the .obj file exists
-      if (!objFile) {
-        console.warn("No .obj file found.");
+      // Check if the .obj or .stl file exists
+      if (!objFile && !stlFile) {
+        console.warn("No .obj or .stl file found.");
         return;
       }
 
+      // ! STL File Import
+      if (stlFile) {
+        // Set the textFile to null as the stlFile is not supporting uv texture mapping
+        texFile = null;
+
+        // Get the STL Mesh
+        const stlMesh: THREE.Mesh<
+          THREE.BufferGeometry,
+          THREE.MeshStandardMaterial
+        > = await loadSTLFile(stlFile);
+
+        // !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
+
+        // Create a Group
+        const stlModelGroup = new THREE.Group().add(stlMesh);
+
+        // Check if it is hair or body
+        const isHair =
+          getObject3DHeight(stlModelGroup) < CutHeadBoundingBoxHeight;
+        console.log("\nis Hair imported model ->", isHair);
+
+        // Call the removeAndAddModelWithModelHeight fn
+        removeAndAddModelWithModelHeight(
+          this.splicingGroupGlobal,
+          stlModelGroup,
+          isHair
+        );
+
+        // Sync the splicing group length
+        this.syncSplicingGroupLength();
+
+        // Return if it is stl file
+        return;
+      }
+
+      // ! OBJ File Import
       const text = await objFile.text();
-      const importedParsedObject = OBJLoaderInstance.parse(text);
+      const importedParsedObj = OBJLoaderInstance.parse(text);
 
       // If texture file exists, load and apply it
       if (texFile) {
@@ -162,7 +201,7 @@ export const useModelsStore = defineStore("models", {
         console.log("\ntexUrl ->", texUrl);
         const texture = await loadTexture(texUrl);
         // Retrieve the first node (child) of the object and apply the texture to it
-        const node = importedParsedObject.children[0] as THREE.Mesh<
+        const node = importedParsedObj.children[0] as THREE.Mesh<
           THREE.BufferGeometry,
           THREE.MeshPhongMaterial
         >;
@@ -170,18 +209,18 @@ export const useModelsStore = defineStore("models", {
         node.material.needsUpdate = true;
       }
       // Apply PBR Material and SRGB Color Space
-      applyPBRMaterialAndSRGBColorSpace(importedParsedObject, true);
-      applyDoubleSide(importedParsedObject);
+      applyPBRMaterialAndSRGBColorSpace(importedParsedObj, true);
+      applyDoubleSide(importedParsedObj);
 
       /**
+       * !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
        * Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, remove the current body model from the splicing group and add the new body model to the splicing group if the splicing group has the corresponding model in it.
        */
 
       // Log the height of the imported model first
-      const importedParsedObjectHeight =
-        getObject3DHeight(importedParsedObject);
+      const importedParsedObjectHeight = getObject3DHeight(importedParsedObj);
       console.log("\nImported Model Height ->", importedParsedObjectHeight);
 
       /**
@@ -194,8 +233,8 @@ export const useModelsStore = defineStore("models", {
       console.log("\nisHair imported model ->", isHairImported);
 
       // Set the name of the imported model
-      importedParsedObject.name = isHairImported ? "HairGrp" : "BodyGrp";
-      const importedParsedObjectChild = importedParsedObject
+      importedParsedObj.name = isHairImported ? "HairGrp" : "BodyGrp";
+      const importedParsedObjectChild = importedParsedObj
         .children[0] as PhongMesh;
       // Set the name of the imported model's child
       importedParsedObjectChild.name = isHairImported ? "HairNode" : "BodyNode";
@@ -209,7 +248,7 @@ export const useModelsStore = defineStore("models", {
        */
       removeAndAddModelWithModelHeight(
         this.splicingGroupGlobal,
-        importedParsedObject,
+        importedParsedObj,
         isHairImported
       );
       this.syncSplicingGroupLength();
@@ -220,31 +259,71 @@ export const useModelsStore = defineStore("models", {
      * @param files Files to import
      * @returns void
      */
-    async imoprtObjWithNodeNames(files: FileList) {
+    async imoprtObjStlWithNodeNames(files: FileList) {
       // Log the files to import
       console.log("\nfiles to import ->", files);
 
       // Create variables to store the .obj and texture files
       let objFile: File | null = null;
+      let stlFile: File | null = null;
       let texFile: File | null = null;
 
-      // Iterate over the files to find the .obj and texture files and assign them to the variables
+      // Iterate over the files to find the .obj, .stl and texture files
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.name.endsWith(".obj")) {
+        if (file.name.toLocaleLowerCase().endsWith(".obj")) {
           objFile = file;
+        } else if (file.name.toLocaleLowerCase().endsWith(".stl")) {
+          stlFile = file;
         } else if (file.type.startsWith("image/")) {
           texFile = file;
         }
       }
 
-      // Check if the .obj file exists
-      if (!objFile) {
-        console.warn("No .obj file found.");
+      // Check if the .obj or .stl file exists
+      if (!objFile && !stlFile) {
+        console.warn("No .obj or .stl file found.");
         return;
       }
 
-      // Get the text content of the .obj file
+      // ! STL File Import
+      if (stlFile) {
+        // Set the textFile to null as the stlFile is not supporting uv texture mapping
+        texFile = null;
+
+        // Get the STL Mesh
+        const stlMesh: THREE.Mesh<
+          THREE.BufferGeometry,
+          THREE.MeshStandardMaterial
+        > = await loadSTLFile(stlFile);
+
+        // !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
+
+        // Create a Group
+        const stlModelGroup = new THREE.Group().add(stlMesh);
+        stlModelGroup.name = stlFile.name.toLocaleLowerCase().includes("hair")
+          ? "hair"
+          : "body";
+
+        // Check if it is hair or body
+        const isHair = stlFile.name.toLocaleLowerCase().includes("hair");
+        console.log("\nis Hair imported model ->", isHair);
+
+        // Call the removeAndAddModelWithNodeNames fn
+        removeAndAddModelWithNodeNames(
+          this.splicingGroupGlobal,
+          stlModelGroup,
+          isHair
+        );
+
+        // Sync the splicing group length
+        this.syncSplicingGroupLength();
+
+        // Return if it is stl file
+        return;
+      }
+
+      // ! OBJ File Import
       const text = await objFile.text();
       // Parse the .obj file text content with the OBJLoaderInstance
       const importedParsedObject = OBJLoaderInstance.parse(text);
@@ -268,6 +347,7 @@ export const useModelsStore = defineStore("models", {
       applyDoubleSide(importedParsedObject);
 
       /**
+       * !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
        * Check if the imported object is hair or body by getting the name of the imported model single node.
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, it's the same logic as the hair.
@@ -309,20 +389,7 @@ export const useModelsStore = defineStore("models", {
         return;
       }
 
-      // Read file as ArrayBuffer
-      const arrayBuffer = await stlFile.arrayBuffer();
-
-      // Parse using STLLoader
-      const geometry = STLLoaderInstance.parse(arrayBuffer);
-
-      // Create Mesh
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xaaaaaa,
-        roughness: 0.5,
-        metalness: 0.5,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.name = stlFile.name; // Set name from filename
+      const mesh = await loadSTLFile(stlFile);
 
       // Add to global group
       this.addChild(mesh);

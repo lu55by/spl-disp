@@ -359,8 +359,7 @@ export function disposeHairBodyFromSplicingGroupGlobal(
   filteredSubGroups: Group<Object3DEventMap>[]
 ) {
   /*
-    ! The Hair or Body Group or both are definitely the children of the splicingGroupGlobal 
-    ! as we checked in `clearModels` fn from `ButtonContainer.vue` if this fn is called.
+    ! The Hair or Body Group or both are definitely the children of the splicingGroupGlobal as we checked in `clearModels` fn from `ButtonContainer.vue` if this fn is called.
    */
   filteredSubGroups.forEach((hairOrBodyGroup) => {
     disposeHairBodyGroup(splicingGroupGlobal, hairOrBodyGroup);
