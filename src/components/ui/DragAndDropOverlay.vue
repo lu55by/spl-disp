@@ -99,7 +99,7 @@ onUnmounted(() => {
 
         <!-- Text Label -->
         <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 mt-32 md:mt-40 text-cyan-300 font-mono text-sm md:text-lg tracking-[0.2em] font-light text-shadow-glow text-center w-max max-w-[80vw]"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 mt-32 md:mt-40 text-cyan-300 font-futuristic text-sm md:text-xl tracking-[0.2em] font-light text-shadow-glow text-center w-max max-w-[80vw]"
         >
           {{ UIContents.DropZoneIndicatorContentZH }}
         </div>
