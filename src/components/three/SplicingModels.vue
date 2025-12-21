@@ -9,19 +9,7 @@ import {
   UltraHDRLoader,
 } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import {
-  cameraPosition,
-  color,
-  dot,
-  Fn,
-  materialColor,
-  mix,
-  normalLocal,
-  positionLocal,
-  smoothstep,
-  uniform,
-  vec2,
-} from "three/tsl";
+import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
@@ -90,7 +78,7 @@ let camera: THREE.PerspectiveCamera,
   transform: TransformControls,
   raycaster: THREE.Raycaster,
   // uniforms
-  uniformOutlineFactor: THREE.UniformNode<THREE.Vector2>,
+  uOutlinePatternFactor: THREE.UniformNode<THREE.Vector2>,
   // raycaster intersection object
   raycasterIntersectionObject: THREE.Object3D | null;
 // clock: THREE.Clock;
@@ -202,23 +190,10 @@ const init = async () => {
   */
 
   // Uniforms
-  const uniformBaseColor = uniform(color("#fff"));
-  const uniformIsShowMap = uniform(isShowMap.value ? 1 : 0);
-  const uniformOutlineColor = uniform(color("#0ff"));
-  uniformOutlineFactor = uniform(vec2(0.98, 0.99));
-
-  // Effect Patterns
-
-  // Outline Effect Pattern
-  const getOutlinePattern = Fn(() => {
-    return smoothstep(
-      uniformOutlineFactor.x,
-      uniformOutlineFactor.y,
-      dot(positionLocal.sub(cameraPosition).normalize(), normalLocal)
-        .abs()
-        .oneMinus()
-    );
-  });
+  const uBaseColor = uniform(color("#fff"));
+  const uIsShowMap = uniform(isShowMap.value ? 1 : 0);
+  // const uOutlineColor = uniform(color("#0ff"));
+  uOutlinePatternFactor = uniform(vec2(0.99, 0.999));
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
@@ -233,20 +208,19 @@ const init = async () => {
           Mix the mixed baseColor and materialColor with outlineColor based on the outlinePat
         */
         // child.material.colorNode = mix(
-        //   mix(uniformBaseColor, materialColor, uniformIsShowMap),
-        //   uniformOutlineColor,
-        //   getOutlinePattern()
+        //   mix(uBaseColor, materialColor, uIsShowMap),
+        //   uOutlineColor,
+        //   getOutlinePattern(uOutlinePatternFactor)
         // );
+
         /*
           Mix the baseColor and materialColor based on the uniformIsShowMap
         */
-        child.material.colorNode = mix(
-          uniformBaseColor,
-          materialColor,
-          uniformIsShowMap
-        );
+        child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
 
-        // Try to deactivate the normal transformation (not working properly)
+        /*
+          Try to deactivate the normal transformation (not working properly)
+        */
         // child.material.normalNode = modelViewProjection
         //   .mul(modelViewMatrix)
         //   .mul(normalLocal, 0);
@@ -266,7 +240,7 @@ const init = async () => {
   // Update the uniformIsShowMap based on the global isShowMap boolean
   watch(isShowMap, (newVal) => {
     console.log("\n -- init -- isShowMap changed to ->", newVal);
-    uniformIsShowMap.value = newVal ? 1 : 0;
+    uIsShowMap.value = newVal ? 1 : 0;
   });
 
   // Add the global group
@@ -309,7 +283,7 @@ const onPointerMove = (event: PointerEvent) => {
     //   }
     // });
     raycasterIntersectionObject = null;
-    if (uniformOutlineFactor) uniformOutlineFactor.value.set(0.98, 0.99);
+    if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.98, 0.99);
   }
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -346,16 +320,16 @@ const onPointerMove = (event: PointerEvent) => {
       // });
 
       // Change the outline factor
-      if (uniformOutlineFactor) {
+      if (uOutlinePatternFactor) {
         console.log(
           "\nuniformOutlineFactor x ->",
-          uniformOutlineFactor.value.x
+          uOutlinePatternFactor.value.x
         );
         console.log(
           "\nuniformOutlineFactor y ->",
-          uniformOutlineFactor.value.y
+          uOutlinePatternFactor.value.y
         );
-        uniformOutlineFactor.value.set(0.8, 0.82);
+        uOutlinePatternFactor.value.set(0.8, 0.82);
       }
     }
   }
@@ -363,12 +337,16 @@ const onPointerMove = (event: PointerEvent) => {
 
 // On Mouse Click fn
 const onMouseClick = (event: MouseEvent) => {
-  console.log("\n -- onMouseClick -- event ->", event);
+  // console.log("\n -- onMouseClick -- event ->", event);
 
   // Check if there is an intersection
   if (raycasterIntersectionObject) {
+    // Set raycasterIntersectionObject to null
     raycasterIntersectionObject = null;
+    // Detach the transform
     transform.detach();
+    // Deactivate the outline
+    // uOutlinePatternFactor.value.set(0.99, 0.999);
   }
 
   // Update the mouse position
@@ -401,6 +379,8 @@ const onMouseClick = (event: MouseEvent) => {
       raycasterIntersectionObject = parentGroup;
       // Attach the transform to the raycasterIntersectionObject
       transform.attach(raycasterIntersectionObject);
+      // Activate the outline
+      // uOutlinePatternFactor.value.set(0.8, 0.82);
     }
   }
 };
