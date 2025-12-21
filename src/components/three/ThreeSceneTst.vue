@@ -20,6 +20,7 @@ import {
   HeadMaleSubPath,
   ModelPaths,
   NodeNames,
+  STLLoaderInstance,
   type CutHeadInspectorDebugProps,
   type PhongMesh,
   type StandardMesh,
@@ -848,6 +849,17 @@ const init = async () => {
     });
   };
 
+  const loadStlFileTst = async () => {
+    const loadedStl = await STLLoaderInstance.loadAsync("models/stl/swirl.stl");
+    console.log("loadedStl -> ", loadedStl);
+    const stlMesh = new THREE.Mesh(
+      loadedStl,
+      new THREE.MeshStandardNodeMaterial()
+    );
+    stlMesh.scale.setScalar(0.01);
+    scene.add(stlMesh);
+  };
+
   // loadHairTst();
 
   // loadHeadTst();
@@ -856,9 +868,11 @@ const init = async () => {
 
   // loadBodyTst();
 
-  loadMultipleCutHeads();
+  // loadMultipleCutHeads();
 
   // loadExportedFullModelsTst();
+
+  loadStlFileTst();
 };
 
 // Resize fn

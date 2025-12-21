@@ -2,7 +2,7 @@
   <div
     class="flex flex-col items-start justify-start gap-4 p-4 w-full md:w-72 max-h-full transition-all duration-500"
   >
-    <!-- Backdrop Overlay (Mobile Only) -->
+    <!-- Backdrop Overlay to close the HUD Panel (Mobile Only) -->
     <Transition name="fade">
       <div
         v-if="isMenuOpen"
