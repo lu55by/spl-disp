@@ -1,25 +1,62 @@
 <template>
   <div
-    class="max-w-1/6 w-auto h-full flex flex-col items-start justify-start gap-4"
+    class="flex flex-col items-start justify-start gap-6 p-4 w-full md:w-auto transition-all duration-500"
   >
-    <!-- Imports -->
-    <Button @click="openFilePicker">导入文件夹</Button>
-    <Button @click="openFilesPicker">导入文件</Button>
+    <!-- HUD Header -->
+    <div class="flex flex-col gap-1 w-full mb-2 group">
+      <h2 class="text-cyan-500 font-futuristic tracking-[0.2em] text-lg uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
+        Control Center
+      </h2>
+      <div class="h-px w-full bg-linear-to-r from-cyan-500/50 via-cyan-500/20 to-transparent group-hover:from-cyan-400 transition-all duration-300"></div>
+    </div>
 
-    <Button @click="toggleIsShowMap"
-      >切换{{ isShowMap ? "白" : "彩" }}模</Button
-    >
+    <!-- Actions Container - Responsive Layout -->
+    <div class="w-full flex flex-row flex-wrap md:flex-col gap-4">
+      <!-- Imports Section -->
+      <div class="flex flex-row md:flex-col gap-3 w-full sm:w-auto">
+        <Button @click="openFilePicker">
+          <i class="opacity-50 text-[10px] uppercase">Dir</i> 导入文件夹
+        </Button>
+        <Button @click="openFilesPicker">
+          <i class="opacity-50 text-[10px] uppercase">File</i> 导入文件
+        </Button>
+      </div>
 
-    <!-- Export (not implemented here) -->
-    <!-- <Button :disabled="isExportBtnDisabled" :customClass="`exporter`">导出</Button> -->
-    <Button :disabled="false" @click="handleExport">导出</Button>
+      <!-- Divider for mobile view (hidden on small) -->
+      <div class="hidden md:block h-px w-full bg-slate-700/30"></div>
 
-    <!-- Clear -->
-    <Button :disabled="false" @click="clearModels">清空</Button>
+      <!-- Tools Section -->
+      <div class="flex flex-row md:flex-col gap-3 w-full sm:w-auto">
+        <Button @click="toggleIsShowMap">
+          <i class="opacity-50 text-[10px] uppercase">Vis</i> 
+          切换{{ isShowMap ? "白" : "彩" }}模
+        </Button>
+        <Button @click="handleExport">
+          <i class="opacity-50 text-[10px] uppercase">Out</i> 导出
+        </Button>
+        <Button @click="clearModels">
+          <i class="opacity-50 text-[10px] uppercase">Clr</i> 清空
+        </Button>
+      </div>
+    </div>
 
-    <p class="text-stone-100">当前模型组长度: {{ splicingGroupLen }}</p>
+    <!-- Digital Readout / Status -->
+    <div class="w-full mt-2 p-3 bg-slate-900/30 backdrop-blur-md border-l-2 border-cyan-500/60 flex flex-col gap-1 group hover:bg-slate-900/40 transition-colors">
+      <div class="flex justify-between items-center">
+        <p class="text-cyan-400/70 font-futuristic text-[10px] tracking-widest uppercase">
+          Unit Data Stream
+        </p>
+        <div class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_5px_rgba(34,211,238,0.8)]"></div>
+      </div>
+      <div class="flex items-baseline gap-3">
+        <span class="text-stone-400 text-xs font-chinese tracking-tight">当前模型组长度:</span>
+        <span class="text-cyan-400 font-futuristic text-2xl tabular-nums drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+          {{ splicingGroupLen.toString().padStart(2, '0') }}
+        </span>
+      </div>
+    </div>
 
-    <!-- Hidden file input -->
+    <!-- Hidden file inputs -->
     <input
       type="file"
       ref="fileInput"
@@ -29,8 +66,6 @@
       class="hidden"
       @change="handleFileChange"
     />
-
-    <!-- Hidden files input -->
     <input
       type="file"
       ref="filesInput"
@@ -41,6 +76,7 @@
     />
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
