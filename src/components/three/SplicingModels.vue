@@ -163,7 +163,7 @@ const init = async () => {
   /**
    * Axes Helper
    */
-  // scene.add(new AxesHelper(20));
+  scene.add(new THREE.AxesHelper(20));
 
   /**
    * Load HDR(IBL(Image-Based Lighting))
@@ -205,7 +205,7 @@ const init = async () => {
         child.material instanceof THREE.MeshStandardNodeMaterial
       ) {
         /*
-          Mix the mixed baseColor and materialColor with outlineColor based on the outlinePat
+          Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
         */
         // child.material.colorNode = mix(
         //   mix(uBaseColor, materialColor, uIsShowMap),
@@ -214,7 +214,7 @@ const init = async () => {
         // );
 
         /*
-          Mix the baseColor and materialColor based on the uniformIsShowMap
+          Mix the uBaseColor and materialColor based on the uIsShowMap
         */
         child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
 

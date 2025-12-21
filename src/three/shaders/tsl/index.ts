@@ -1,14 +1,12 @@
-import * as THREE from "three/webgpu";
 import {
   cameraPosition,
   dot,
   Fn,
-  mix,
   normalLocal,
   positionLocal,
   smoothstep,
 } from "three/tsl";
-import type MathNode from "three/src/nodes/math/MathNode.js";
+import * as THREE from "three/webgpu";
 
 /**
  * Get Outline Pattern

@@ -61,7 +61,7 @@ onUnmounted(() => {
 <template>
   <Transition name="fade">
     <div
-      v-if="isDragging"
+      v-if="true"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
     >
       <!-- Futuristic UI Overlay -->
@@ -101,7 +101,7 @@ onUnmounted(() => {
         <div
           class="absolute mt-56 text-cyan-300 font-mono text-lg tracking-[0.2em] font-light text-shadow-glow"
         >
-          {{ UIContents.DropZoneIndicatorContentZH }}
+          {{ UIContents.DropZoneIndicatorContent }}
         </div>
       </div>
     </div>
