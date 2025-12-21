@@ -42,6 +42,15 @@ import {
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
+import {
+  color,
+  HALF_PI,
+  mx_rotate2d,
+  positionLocal,
+  sin,
+  time,
+  vec3,
+} from "three/tsl";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -852,10 +861,19 @@ const init = async () => {
   const loadStlFileTst = async () => {
     const loadedStl = await STLLoaderInstance.loadAsync("models/stl/swirl.stl");
     console.log("loadedStl -> ", loadedStl);
-    const stlMesh = new THREE.Mesh(
-      loadedStl,
-      new THREE.MeshStandardNodeMaterial()
+    const stlMat = new THREE.MeshStandardNodeMaterial();
+    stlMat.colorNode = color("#f00");
+
+    /*
+      Twisted XZ Effect
+     */
+    const twistedXZ = mx_rotate2d(
+      positionLocal.xz,
+      positionLocal.y.mul(sin(time.mul(0.8)).mul(HALF_PI))
     );
+    stlMat.positionNode = vec3(twistedXZ.x, positionLocal.y, twistedXZ.y);
+
+    const stlMesh = new THREE.Mesh(loadedStl, stlMat);
     stlMesh.scale.setScalar(0.01);
     scene.add(stlMesh);
   };
