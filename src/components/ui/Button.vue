@@ -9,7 +9,7 @@
       'hover:border-cyan-400 hover:text-cyan-200 hover:shadow-[0_0_20px_rgba(34,211,238,0.25)]',
       'active:scale-[0.98]',
       'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:active:scale-100',
-      'flex items-center justify-center gap-2 pointer-events-auto',
+      'flex items-center justify-center gap-2 cursor-pointer',
       customClass
     ]"
   >

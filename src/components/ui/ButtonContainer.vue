@@ -1,62 +1,93 @@
 <template>
   <div
-    class="flex flex-col items-start justify-start gap-6 p-4 w-full md:w-auto transition-all duration-500"
+    class="flex flex-col items-start justify-start gap-4 p-4 w-full md:w-72 max-h-full transition-all duration-500"
   >
-    <!-- HUD Header -->
-    <div class="flex flex-col gap-1 w-full mb-2 group">
-      <h2 class="text-cyan-500 font-futuristic tracking-[0.2em] text-lg uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
-        Control Center
-      </h2>
-      <div class="h-px w-full bg-linear-to-r from-cyan-500/50 via-cyan-500/20 to-transparent group-hover:from-cyan-400 transition-all duration-300"></div>
+    <!-- Backdrop Overlay (Mobile Only) -->
+    <Transition name="fade">
+      <div
+        v-if="isMenuOpen"
+        class="md:hidden fixed inset-0 z-0 bg-black/40 backdrop-blur-xs pointer-events-auto transition-opacity duration-300"
+        @click="isMenuOpen = false"
+      ></div>
+    </Transition>
+
+    <!-- Mobile Toggle Button -->
+    <button
+      @click="toggleMenu"
+      class="md:hidden relative z-10 pointer-events-auto flex items-center gap-5 px-4 py-2 bg-slate-900/60 backdrop-blur-lg border border-cyan-500/40 rounded-sm text-cyan-400 font-futuristic group transition-all duration-300 hover:border-cyan-400 cursor-pointer"
+    >
+      <div class="relative w-5 h-4">
+        <span :class="['absolute h-px w-5 bg-cyan-400 transition-all duration-300', isMenuOpen ? 'top-2 rotate-45' : 'top-0']"></span>
+        <span :class="['absolute top-2 h-px w-5 bg-cyan-400 transition-all duration-300', isMenuOpen ? 'opacity-0' : 'opacity-100']"></span>
+        <span :class="['absolute h-px w-5 bg-cyan-400 transition-all duration-300', isMenuOpen ? 'top-2 -rotate-45' : 'top-4']"></span>
+      </div>
+      <span class="text-xs tracking-[0.3em] uppercase">{{ isMenuOpen ? 'Close HUD' : 'Open HUD' }}</span>
+    </button>
+
+    <!-- Main HUD Panel -->
+    <div
+      :class="[
+        'relative z-10 flex flex-col gap-6 w-full transition-all duration-500',
+        'md:pointer-events-auto',
+        'max-md:bg-slate-900/80 max-md:backdrop-blur-xl max-md:p-6 max-md:rounded-lg max-md:border max-md:border-cyan-500/20 max-md:shadow-2xl max-md:overflow-y-auto max-md:max-h-[85vh]',
+        !isMenuOpen ? 'max-md:opacity-0 max-md:pointer-events-none max-md:-translate-y-4 max-md:invisible' : 'max-md:opacity-100 max-md:pointer-events-auto max-md:translate-y-0 max-md:visible'
+      ]"
+    >
+      <!-- HUD Header -->
+      <div class="flex flex-col gap-1 w-full group">
+        <h2 class="text-cyan-500 font-futuristic tracking-[0.2em] text-lg uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
+          Control Center
+        </h2>
+        <div class="h-px w-full bg-linear-to-r from-cyan-500/50 via-cyan-500/20 to-transparent group-hover:from-cyan-400 transition-all duration-300"></div>
+      </div>
+
+      <!-- Actions Container - Vertical Stacking -->
+      <div class="w-full flex flex-col gap-5">
+        <!-- Imports Section -->
+        <div class="flex flex-col gap-3">
+          <Button @click="openFilePicker">
+            <i class="opacity-50 text-[10px] uppercase">Dir</i> 导入文件夹
+          </Button>
+          <Button @click="openFilesPicker">
+            <i class="opacity-50 text-[10px] uppercase">File</i> 导入文件
+          </Button>
+        </div>
+
+        <div class="h-px w-full bg-slate-700/30"></div>
+
+        <!-- Tools Section -->
+        <div class="flex flex-col gap-3">
+          <Button @click="toggleIsShowMap">
+            <i class="opacity-50 text-[10px] uppercase">Vis</i> 
+            切换{{ isShowMap ? "白" : "彩" }}模
+          </Button>
+          <Button @click="handleExport">
+            <i class="opacity-50 text-[10px] uppercase">Out</i> 导出
+          </Button>
+          <Button @click="clearModels">
+            <i class="opacity-50 text-[10px] uppercase">Clr</i> 清空
+          </Button>
+        </div>
+      </div>
+
+      <!-- Digital Readout / Status -->
+      <div class="w-full mt-2 p-3 bg-slate-900/30 backdrop-blur-md border-l-2 border-cyan-500/60 flex flex-col gap-1 group hover:bg-slate-900/40 transition-colors">
+        <div class="flex justify-between items-center">
+          <p class="text-cyan-400/70 font-futuristic text-[10px] tracking-widest uppercase">
+            Unit Data Stream
+          </p>
+          <div class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_5px_rgba(34,211,238,0.8)]"></div>
+        </div>
+        <div class="flex items-baseline gap-3">
+          <span class="text-stone-400 text-xs font-chinese tracking-tight">模型长度:</span>
+          <span class="text-cyan-400 font-futuristic text-2xl tabular-nums drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+            {{ splicingGroupLen.toString().padStart(2, '0') }}
+          </span>
+        </div>
+      </div>
     </div>
 
-    <!-- Actions Container - Responsive Layout -->
-    <div class="w-full flex flex-row flex-wrap md:flex-col gap-4">
-      <!-- Imports Section -->
-      <div class="flex flex-row md:flex-col gap-3 w-full sm:w-auto">
-        <Button @click="openFilePicker">
-          <i class="opacity-50 text-[10px] uppercase">Dir</i> 导入文件夹
-        </Button>
-        <Button @click="openFilesPicker">
-          <i class="opacity-50 text-[10px] uppercase">File</i> 导入文件
-        </Button>
-      </div>
-
-      <!-- Divider for mobile view (hidden on small) -->
-      <div class="hidden md:block h-px w-full bg-slate-700/30"></div>
-
-      <!-- Tools Section -->
-      <div class="flex flex-row md:flex-col gap-3 w-full sm:w-auto">
-        <Button @click="toggleIsShowMap">
-          <i class="opacity-50 text-[10px] uppercase">Vis</i> 
-          切换{{ isShowMap ? "白" : "彩" }}模
-        </Button>
-        <Button @click="handleExport">
-          <i class="opacity-50 text-[10px] uppercase">Out</i> 导出
-        </Button>
-        <Button @click="clearModels">
-          <i class="opacity-50 text-[10px] uppercase">Clr</i> 清空
-        </Button>
-      </div>
-    </div>
-
-    <!-- Digital Readout / Status -->
-    <div class="w-full mt-2 p-3 bg-slate-900/30 backdrop-blur-md border-l-2 border-cyan-500/60 flex flex-col gap-1 group hover:bg-slate-900/40 transition-colors">
-      <div class="flex justify-between items-center">
-        <p class="text-cyan-400/70 font-futuristic text-[10px] tracking-widest uppercase">
-          Unit Data Stream
-        </p>
-        <div class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_5px_rgba(34,211,238,0.8)]"></div>
-      </div>
-      <div class="flex items-baseline gap-3">
-        <span class="text-stone-400 text-xs font-chinese tracking-tight">当前模型组长度:</span>
-        <span class="text-cyan-400 font-futuristic text-2xl tabular-nums drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
-          {{ splicingGroupLen.toString().padStart(2, '0') }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Hidden file inputs -->
+    <!-- Hidden file inputs (keep outside functional UI) -->
     <input
       type="file"
       ref="fileInput"
@@ -88,6 +119,11 @@ import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
 import { validateImportFiles } from "../../utils/fileValidators";
 import Button from "./Button.vue";
+
+const isMenuOpen = ref(false);
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
 
 /**
  * Get the store
