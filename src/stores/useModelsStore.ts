@@ -6,6 +6,7 @@ import {
   ModelPaths,
   NodeNames,
   OBJLoaderInstance,
+  STLLoaderInstance,
   type PhongMesh,
 } from "../three/constants";
 import { addTransformDebug } from "../three/gui";
@@ -282,6 +283,51 @@ export const useModelsStore = defineStore("models", {
         isHairImported
       );
       this.syncSplicingGroupLength();
+    },
+
+    /**
+     * Import .stl file.
+     * @param files Files to import
+     * @returns void
+     */
+    async importSTL(files: FileList) {
+      console.log("\nfiles to import (STL) ->", files);
+
+      let stlFile: File | null = null;
+
+      // Find the .stl file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.name.toLowerCase().endsWith(".stl")) {
+          stlFile = file;
+          break;
+        }
+      }
+
+      if (!stlFile) {
+        console.warn("No .stl file found.");
+        return;
+      }
+
+      // Read file as ArrayBuffer
+      const arrayBuffer = await stlFile.arrayBuffer();
+
+      // Parse using STLLoader
+      const geometry = STLLoaderInstance.parse(arrayBuffer);
+
+      // Create Mesh
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xaaaaaa,
+        roughness: 0.5,
+        metalness: 0.5,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = stlFile.name; // Set name from filename
+
+      // Add to global group
+      this.addChild(mesh);
+
+      console.log(`\nImported STL: ${stlFile.name}`, mesh);
     },
 
     /**

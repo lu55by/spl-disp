@@ -36,6 +36,8 @@ const onDrop = async (e: DragEvent) => {
   dragCounter = 0;
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+    modelsStore.importSTL(e.dataTransfer.files);
+    return;
     // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
     const isValid = await validateImportFiles(e.dataTransfer.files);
     // TODO: Change the imoprtObjWithModelHeight fn to imoprtObjWithNodeNames fn later.

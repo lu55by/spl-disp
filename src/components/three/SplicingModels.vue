@@ -97,7 +97,11 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far
   );
-  camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
+  camera.position.set(
+    CameraProps.PosNormal.x,
+    CameraProps.PosNormal.y,
+    CameraProps.PosNormal.z
+  );
   // addTransformDebug("Camera", GUIGlobal, camera, {
   //   posMin: -300,
   //   posMax: 300,
