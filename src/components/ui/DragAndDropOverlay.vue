@@ -71,19 +71,19 @@ onUnmounted(() => {
       >
         <!-- Outer Glowing Ring -->
         <div
-          class="absolute w-64 h-64 rounded-full border-4 border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.4)] animate-spin-slow"
+          class="absolute w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.4)] animate-spin-slow"
         ></div>
         <div
-          class="absolute w-56 h-56 rounded-full border-2 border-cyan-400/20 border-dashed animate-reverse-spin"
+          class="absolute w-40 h-40 md:w-56 md:h-56 rounded-full border-2 border-cyan-400/20 border-dashed animate-reverse-spin"
         ></div>
 
         <!-- Center Circle with Plus -->
         <div
-          class="relative w-40 h-40 rounded-full bg-slate-900/80 border border-cyan-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.2)] backdrop-blur-md transition-transform duration-300 scale-100 group-hover:scale-110"
+          class="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-slate-900/80 border border-cyan-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.2)] backdrop-blur-md transition-transform duration-300 scale-100 group-hover:scale-110"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-20 w-20 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]"
+            class="h-16 w-16 md:h-20 md:w-20 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -99,9 +99,9 @@ onUnmounted(() => {
 
         <!-- Text Label -->
         <div
-          class="absolute mt-56 text-cyan-300 font-mono text-lg tracking-[0.2em] font-light text-shadow-glow"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 mt-32 md:mt-40 text-cyan-300 font-mono text-sm md:text-lg tracking-[0.2em] font-light text-shadow-glow text-center w-max max-w-[80vw]"
         >
-          {{ UIContents.DropZoneIndicatorContent }}
+          {{ UIContents.DropZoneIndicatorContentZH }}
         </div>
       </div>
     </div>
