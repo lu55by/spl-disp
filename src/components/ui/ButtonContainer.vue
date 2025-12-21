@@ -120,6 +120,9 @@ import { getFilteredSubGroups } from "../../three/meshOps";
 import { validateImportFiles } from "../../utils/fileValidators";
 import Button from "./Button.vue";
 
+/*
+  Toggle Menu (Mobile Only)
+ */
 const isMenuOpen = ref(false);
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;

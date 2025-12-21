@@ -859,8 +859,10 @@ const init = async () => {
   };
 
   const loadStlFileTst = async () => {
-    const loadedStl = await STLLoaderInstance.loadAsync("models/stl/swirl.stl");
-    console.log("loadedStl -> ", loadedStl);
+    const loadedStlGeo = await STLLoaderInstance.loadAsync(
+      "models/stl/swirl.stl"
+    );
+    console.log("loadedStl -> ", loadedStlGeo);
     const stlMat = new THREE.MeshStandardNodeMaterial();
     stlMat.colorNode = color("#f00");
 
@@ -873,7 +875,7 @@ const init = async () => {
     );
     stlMat.positionNode = vec3(twistedXZ.x, positionLocal.y, twistedXZ.y);
 
-    const stlMesh = new THREE.Mesh(loadedStl, stlMat);
+    const stlMesh = new THREE.Mesh(loadedStlGeo, stlMat);
     stlMesh.scale.setScalar(0.01);
     scene.add(stlMesh);
   };
