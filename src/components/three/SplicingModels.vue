@@ -210,6 +210,15 @@ const init = async () => {
         child.material instanceof THREE.MeshStandardNodeMaterial
       ) {
         /*
+          Try to Simulate redeclaring the `projectionMatrix * modelMatrix * viewMatrix * vec4(position, 1.)` in glsl
+         */
+        // const position = cameraProjectionMatrix
+        //   .mul(modelWorldMatrix)
+        //   .mul(cameraViewMatrix)
+        //   .mul(vec4(positionLocal, 1));
+        // child.material.positionNode = position;
+
+        /*
           Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
         */
         // child.material.colorNode = mix(
