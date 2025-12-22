@@ -17,11 +17,28 @@
       class="md:hidden relative z-10 pointer-events-auto flex items-center gap-5 px-4 py-2 bg-slate-900/60 backdrop-blur-lg border border-cyan-500/40 rounded-sm text-cyan-400 font-futuristic group transition-all duration-300 hover:border-cyan-400 cursor-pointer"
     >
       <div class="relative w-5 h-4">
-        <span :class="['absolute h-px w-5 bg-cyan-400 transition-all duration-300', isMenuOpen ? 'top-2 rotate-45' : 'top-0']"></span>
-        <span :class="['absolute top-2 h-px w-5 bg-cyan-400 transition-all duration-300', isMenuOpen ? 'opacity-0' : 'opacity-100']"></span>
-        <span :class="['absolute h-px w-5 bg-cyan-400 transition-all duration-300', isMenuOpen ? 'top-2 -rotate-45' : 'top-4']"></span>
+        <span
+          :class="[
+            'absolute h-px w-5 bg-cyan-400 transition-all duration-300',
+            isMenuOpen ? 'top-2 rotate-45' : 'top-0',
+          ]"
+        ></span>
+        <span
+          :class="[
+            'absolute top-2 h-px w-5 bg-cyan-400 transition-all duration-300',
+            isMenuOpen ? 'opacity-0' : 'opacity-100',
+          ]"
+        ></span>
+        <span
+          :class="[
+            'absolute h-px w-5 bg-cyan-400 transition-all duration-300',
+            isMenuOpen ? 'top-2 -rotate-45' : 'top-4',
+          ]"
+        ></span>
       </div>
-      <span class="text-xs tracking-[0.3em] uppercase">{{ isMenuOpen ? 'Close HUD' : 'Open HUD' }}</span>
+      <span class="text-xs tracking-[0.3em] uppercase">{{
+        isMenuOpen ? "Close HUD" : "Open HUD"
+      }}</span>
     </button>
 
     <!-- Main HUD Panel -->
@@ -30,15 +47,21 @@
         'relative z-10 flex flex-col gap-6 w-full transition-all duration-500',
         'md:pointer-events-auto',
         'max-md:bg-slate-900/80 max-md:backdrop-blur-xl max-md:p-6 max-md:rounded-lg max-md:border max-md:border-cyan-500/20 max-md:shadow-2xl max-md:overflow-y-auto max-md:max-h-[85vh]',
-        !isMenuOpen ? 'max-md:opacity-0 max-md:pointer-events-none max-md:-translate-y-4 max-md:invisible' : 'max-md:opacity-100 max-md:pointer-events-auto max-md:translate-y-0 max-md:visible'
+        !isMenuOpen
+          ? 'max-md:opacity-0 max-md:pointer-events-none max-md:-translate-y-4 max-md:invisible'
+          : 'max-md:opacity-100 max-md:pointer-events-auto max-md:translate-y-0 max-md:visible',
       ]"
     >
       <!-- HUD Header -->
       <div class="flex flex-col gap-1 w-full group">
-        <h2 class="text-cyan-500 font-futuristic tracking-[0.2em] text-lg uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
+        <h2
+          class="text-cyan-500 font-futuristic tracking-[0.2em] text-lg uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]"
+        >
           Control Center
         </h2>
-        <div class="h-px w-full bg-linear-to-r from-cyan-500/50 via-cyan-500/20 to-transparent group-hover:from-cyan-400 transition-all duration-300"></div>
+        <div
+          class="h-px w-full bg-linear-to-r from-cyan-500/50 via-cyan-500/20 to-transparent group-hover:from-cyan-400 transition-all duration-300"
+        ></div>
       </div>
 
       <!-- Actions Container - Vertical Stacking -->
@@ -58,7 +81,7 @@
         <!-- Tools Section -->
         <div class="flex flex-col gap-3">
           <Button @click="toggleIsShowMap">
-            <i class="opacity-50 text-[10px] uppercase">Vis</i> 
+            <i class="opacity-50 text-[10px] uppercase">Vis</i>
             切换{{ isShowMap ? "白" : "彩" }}模
           </Button>
           <Button @click="handleExport">
@@ -71,23 +94,34 @@
       </div>
 
       <!-- Digital Readout / Status -->
-      <div class="w-full mt-2 p-3 bg-slate-900/30 backdrop-blur-md border-l-2 border-cyan-500/60 flex flex-col gap-1 group hover:bg-slate-900/40 transition-colors">
+      <div
+        class="w-full mt-2 p-3 bg-slate-900/30 backdrop-blur-md border-l-2 border-cyan-500/60 flex flex-col gap-1 group hover:bg-slate-900/40 transition-colors"
+      >
         <div class="flex justify-between items-center">
-          <p class="text-cyan-400/70 font-futuristic text-[10px] tracking-widest uppercase">
+          <p
+            class="text-cyan-400/70 font-futuristic text-[10px] tracking-widest uppercase"
+          >
             Unit Data Stream
           </p>
-          <div class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_5px_rgba(34,211,238,0.8)]"></div>
+          <div
+            class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_5px_rgba(34,211,238,0.8)]"
+          ></div>
         </div>
         <div class="flex items-baseline gap-3">
-          <span class="text-stone-400 text-xs font-chinese tracking-tight">模型长度:</span>
-          <span class="text-cyan-400 font-futuristic text-2xl tabular-nums drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
-            {{ splicingGroupLen.toString().padStart(2, '0') }}
+          <span class="text-stone-400 text-xs font-chinese tracking-tight"
+            >模型长度:</span
+          >
+          <span
+            class="text-cyan-400 font-futuristic text-2xl tabular-nums drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]"
+          >
+            {{ splicingGroupLen.toString().padStart(2, "0") }}
           </span>
         </div>
       </div>
     </div>
 
     <!-- Hidden file inputs (keep outside functional UI) -->
+    <!-- Folder Input -->
     <input
       type="file"
       ref="fileInput"
@@ -97,17 +131,17 @@
       class="hidden"
       @change="handleFileChange"
     />
+    <!-- Files Input -->
     <input
       type="file"
       ref="filesInput"
-      accept=".obj,image/*"
+      accept=".obj,.stl,image/*"
       multiple
       class="hidden"
       @change="handleFileChange"
     />
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
