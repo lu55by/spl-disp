@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
 import { markRaw } from "vue";
 import {
   CutHeadBoundingBoxHeight,
@@ -164,7 +164,7 @@ export const useModelsStore = defineStore("models", {
         // Get the STL Mesh
         const stlMesh: THREE.Mesh<
           THREE.BufferGeometry,
-          THREE.MeshStandardMaterial
+          THREE.MeshStandardNodeMaterial
         > = await loadSTLFile(stlFile);
 
         // !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
@@ -294,7 +294,7 @@ export const useModelsStore = defineStore("models", {
         // Get the STL Mesh
         const stlMesh: THREE.Mesh<
           THREE.BufferGeometry,
-          THREE.MeshStandardMaterial
+          THREE.MeshStandardNodeMaterial
         > = await loadSTLFile(stlFile);
 
         // !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!

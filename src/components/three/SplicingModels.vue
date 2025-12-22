@@ -16,6 +16,7 @@ import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
+import { getOutlinePattern } from "../../three/shaders/tsl";
 
 /**
  * Canvas Element
@@ -197,7 +198,7 @@ const init = async () => {
   // Uniforms
   const uBaseColor = uniform(color("#fff"));
   const uIsShowMap = uniform(isShowMap.value ? 1 : 0);
-  // const uOutlineColor = uniform(color("#0ff"));
+  const uOutlineColor = uniform(color("#0ff"));
   uOutlinePatternFactor = uniform(vec2(0.99, 0.999));
 
   // Toggle the map by using TSL.
@@ -221,16 +222,16 @@ const init = async () => {
         /*
           Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
         */
-        // child.material.colorNode = mix(
-        //   mix(uBaseColor, materialColor, uIsShowMap),
-        //   uOutlineColor,
-        //   getOutlinePattern(uOutlinePatternFactor)
-        // );
+        child.material.colorNode = mix(
+          mix(uBaseColor, materialColor, uIsShowMap),
+          uOutlineColor,
+          getOutlinePattern(uOutlinePatternFactor)
+        );
 
         /*
           Mix the uBaseColor and materialColor based on the uIsShowMap
         */
-        child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
+        // child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
 
         /*
           Try to deactivate the normal transformation (not working properly)
@@ -360,7 +361,7 @@ const onMouseClick = (event: MouseEvent) => {
     // Detach the transform
     transform.detach();
     // Deactivate the outline
-    // uOutlinePatternFactor.value.set(0.99, 0.999);
+    uOutlinePatternFactor.value.set(0.99, 0.999);
   }
 
   // Update the mouse position
@@ -393,8 +394,14 @@ const onMouseClick = (event: MouseEvent) => {
       raycasterIntersectionObject = parentGroup;
       // Attach the transform to the raycasterIntersectionObject
       transform.attach(raycasterIntersectionObject);
-      // Activate the outline
-      // uOutlinePatternFactor.value.set(0.8, 0.82);
+      // Activate the outline effect
+      uOutlinePatternFactor.value.set(0.8, 0.82);
+      // TODO: Add the outline effect only on the intersected model by raycaster.
+      // if (
+      //   raycasterIntersectionObject instanceof
+      //   THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardNodeMaterial>
+      // ) {
+      // }
     }
   }
 };

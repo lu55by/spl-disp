@@ -73,7 +73,7 @@ export async function loadSTLFile(file: File) {
   const geo = STLLoaderInstance.parse(arrayBuffer);
 
   // Create a Mesh
-  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial());
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardNodeMaterial());
 
   // Set name for the mesh
   m.name = file.name.toLocaleLowerCase().split(".")[0] + "Node";
