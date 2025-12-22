@@ -360,15 +360,35 @@ const onMouseClick = (event: MouseEvent) => {
 
   // Check if there is a previous intersection
   if (raycasterIntersectionObject) {
-    // Change the colorNode back to the original colorNode with uIsShowMap of each material of each mesh in the raycasterIntersectionObject group
+    // Check if the previous raycasterIntersectionObject is a mesh
+    if (
+      raycasterIntersectionObject instanceof THREE.Mesh &&
+      raycasterIntersectionObject.geometry instanceof THREE.BufferGeometry &&
+      raycasterIntersectionObject.material instanceof
+        THREE.MeshStandardNodeMaterial
+    ) {
+      console.log(
+        "\nPrevious raycasterIntersectionObject is a mesh ->",
+        raycasterIntersectionObject
+      );
+      console.log("\nReady to reset the colorNode controlled by uIsShowMap...");
+      raycasterIntersectionObject.material.colorNode = mix(
+        uBaseColor,
+        materialColor,
+        uIsShowMap
+      );
+      raycasterIntersectionObject.material.needsUpdate = true;
+    }
+
+    // Change the colorNode back to the original colorNode controlled by uIsShowMap of each material of each mesh in the raycasterIntersectionObject group
     if (raycasterIntersectionObject instanceof THREE.Group) {
+      // TODO: Create a reusable fn for this traverse.
       raycasterIntersectionObject.traverse((child) => {
         if (
           child instanceof THREE.Mesh &&
           child.geometry instanceof THREE.BufferGeometry &&
           child.material instanceof THREE.MeshStandardNodeMaterial
         ) {
-          console.log("\nchild to be changed in after intersection ->", child);
           child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
           child.material.needsUpdate = true;
         }
@@ -414,7 +434,7 @@ const onMouseClick = (event: MouseEvent) => {
       transform.attach(raycasterIntersectionObject);
       // Activate the outline effect
       uOutlinePatternFactor.value.set(0.8, 0.82);
-      // TODO: Add the outline effect only on the intersected model by raycaster.
+      // Check if the raycasterIntersectionObject is a mesh
       if (
         raycasterIntersectionObject instanceof THREE.Mesh &&
         raycasterIntersectionObject.geometry instanceof THREE.BufferGeometry &&
@@ -430,8 +450,10 @@ const onMouseClick = (event: MouseEvent) => {
           uOutlineColor,
           getOutlinePattern(uOutlinePatternFactor)
         );
+        raycasterIntersectionObject.material.needsUpdate = true;
         return;
       }
+      // TODO: Create a reusable fn for this traverse.
       raycasterIntersectionObject.traverse((child) => {
         if (
           child instanceof THREE.Mesh &&
@@ -446,7 +468,6 @@ const onMouseClick = (event: MouseEvent) => {
           child.material.colorNode.setName(`${child.name}_colorNode`);
           // Setting this property to true indicates the engine the material needs to be recompiled.
           child.material.needsUpdate = true;
-          // child.material.colorNode.needsUpdate = true;
         }
       });
     }
