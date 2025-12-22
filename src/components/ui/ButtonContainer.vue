@@ -117,7 +117,7 @@ import { toast } from "vue3-toastify";
 import { ToastContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
-import { validateImportFiles } from "../../utils/fileValidators";
+import { validateImportFilesWithNodeNames } from "../../utils/fileValidators";
 import Button from "./Button.vue";
 
 /*
@@ -188,14 +188,16 @@ const handleFileChange = async (e: Event) => {
     Validate Files
    */
   // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
-  const isValid = await validateImportFiles(files);
+  // const isValid = await validateImportFiles(files);
+  const isValid = await validateImportFilesWithNodeNames(files);
   if (!isValid) return;
 
   /*
     Import Obj File
    */
   // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
-  await modelsStore.imoprtObjStlModelWithHeight(files);
+  // await modelsStore.imoprtObjStlModelWithHeight(files);
+  await modelsStore.imoprtObjStlWithNodeNames(files);
 
   console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
 

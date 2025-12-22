@@ -2,9 +2,7 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { UIContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
-import {
-  validateImportFiles
-} from "../../utils/fileValidators";
+import { validateImportFilesWithNodeNames } from "../../utils/fileValidators";
 
 const isDragging = ref(false);
 const modelsStore = useModelsStore();
@@ -39,9 +37,13 @@ const onDrop = async (e: DragEvent) => {
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
     // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
-    const isValid = await validateImportFiles(e.dataTransfer.files);
+    // const isValid = await validateImportFiles(e.dataTransfer.files);
+    const isValid = await validateImportFilesWithNodeNames(
+      e.dataTransfer.files
+    );
     // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
-    if (isValid) modelsStore.imoprtObjStlModelWithHeight(e.dataTransfer.files);
+    // if (isValid) modelsStore.imoprtObjStlModelWithHeight(e.dataTransfer.files);
+    if (isValid) modelsStore.imoprtObjStlWithNodeNames(e.dataTransfer.files);
   }
 };
 
