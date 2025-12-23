@@ -11,6 +11,7 @@ import SplicingModelsMainUIContainer from "./components/SplicingModelsMainUICont
   >
     <LoadingOverlay />
     <!-- <ThreeSceneTst /> -->
+    <!-- TODO: Optimize the code and make it cleaner. -->
     <SplicingModelsMainUIContainer />
   </div>
 </template>
