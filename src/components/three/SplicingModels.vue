@@ -53,43 +53,6 @@ const updateOrbitControlsTargetCenter = () => {
 
 updateOrbitControlsTargetCenter();
 
-// Drag and Drop Logic with Raycaster
-const onWindowDragOver = (e: DragEvent) => {
-  e.preventDefault();
-
-  // Calculate mouse position for raycasting
-  // We need to use clientX and clientY from the DragEvent
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-
-  // Intersect with splicingGroupGlobal
-  const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
-
-  if (intersects.length > 0) {
-    const firstIntersection = intersects[0];
-    if (firstIntersection.object instanceof THREE.Mesh) {
-      // Highlight logic or just state update
-      if (modelsStore.dragHoveredObject !== firstIntersection.object) {
-        // Reset previous if needed, though simple state update handles it
-        modelsStore.setDragHoveredObject(firstIntersection.object);
-        console.log(
-          "\n-- onWindowDragOver -- Hovered Object ->",
-          firstIntersection.object.name
-        );
-
-        // TODO: Optional: Visual Feedback (e.g., outline or color tint) could be added here
-        // For now, relying on the state update which allows the Overlay to know we are ready
-      }
-    }
-  } else {
-    if (modelsStore.dragHoveredObject) {
-      modelsStore.setDragHoveredObject(null);
-    }
-  }
-};
-
 const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
     const relevantActions = [
@@ -238,7 +201,7 @@ const init = async () => {
   // Uniforms
   uBaseColor = uniform(color("#fff"));
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
-  uOutlineColor = uniform(color("#0ff"));
+  uOutlineColor = uniform(color("#ffdbac"));
   uOutlinePatternFactor = uniform(vec2(0.99, 0.999));
 
   // Toggle the map by using TSL.
@@ -339,7 +302,7 @@ const onPointerMove = (event: PointerEvent) => {
     //   }
     // });
     raycasterIntersectionObject = null;
-    // if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.98, 0.99);
+    // if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.99, 0.999);
   }
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -390,6 +353,71 @@ const onPointerMove = (event: PointerEvent) => {
       //   );
       //   uOutlinePatternFactor.value.set(0.8, 0.82);
       // }
+    }
+  }
+};
+
+// Drag and Drop Logic with Raycaster
+const onWindowDragOver = (e: DragEvent) => {
+  e.preventDefault();
+
+  // Fix the issue of colorNode not being set back to the original colorNode based on uIsShowMap
+  if (modelsStore.dragHoveredObject) {
+    uOutlinePatternFactor.value.set(0.99, 0.999);
+    if (
+      modelsStore.dragHoveredObject.material instanceof
+      THREE.MeshStandardNodeMaterial
+    ) {
+      modelsStore.dragHoveredObject.material.colorNode = mix(
+        uBaseColor,
+        materialColor,
+        uIsShowMap
+      );
+      modelsStore.dragHoveredObject.material.needsUpdate = true;
+    }
+  }
+
+  // Calculate mouse position for raycasting
+  // We need to use clientX and clientY from the DragEvent
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  // Intersect with splicingGroupGlobal
+  const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
+
+  if (intersects.length > 0) {
+    const firstIntersection = intersects[0];
+    if (firstIntersection.object instanceof THREE.Mesh) {
+      // Highlight logic or just state update
+      if (modelsStore.dragHoveredObject !== firstIntersection.object) {
+        // Reset previous if needed, though simple state update handles it
+        modelsStore.setDragHoveredObject(firstIntersection.object);
+        console.log(
+          "\n-- onWindowDragOver -- Hovered Object ->",
+          firstIntersection.object.name
+        );
+
+        // TODO: Optional: Visual Feedback (e.g., outline or color tint) could be added here
+        // For now, relying on the state update which allows the Overlay to know we are ready
+        if (
+          modelsStore.dragHoveredObject.material instanceof
+          THREE.MeshStandardNodeMaterial
+        ) {
+          uOutlinePatternFactor.value.set(0.8, 0.82);
+          modelsStore.dragHoveredObject.material.colorNode = mix(
+            mix(uBaseColor, materialColor, uIsShowMap),
+            uOutlineColor,
+            getOutlinePattern(uOutlinePatternFactor)
+          );
+          modelsStore.dragHoveredObject.material.needsUpdate = true;
+        }
+      }
+    }
+  } else {
+    if (modelsStore.dragHoveredObject) {
+      modelsStore.setDragHoveredObject(null);
     }
   }
 };
