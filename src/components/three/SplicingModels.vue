@@ -53,6 +53,43 @@ const updateOrbitControlsTargetCenter = () => {
 
 updateOrbitControlsTargetCenter();
 
+// Drag and Drop Logic with Raycaster
+const onWindowDragOver = (e: DragEvent) => {
+  e.preventDefault();
+
+  // Calculate mouse position for raycasting
+  // We need to use clientX and clientY from the DragEvent
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  // Intersect with splicingGroupGlobal
+  const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
+
+  if (intersects.length > 0) {
+    const firstIntersection = intersects[0];
+    if (firstIntersection.object instanceof THREE.Mesh) {
+      // Highlight logic or just state update
+      if (modelsStore.dragHoveredObject !== firstIntersection.object) {
+        // Reset previous if needed, though simple state update handles it
+        modelsStore.setDragHoveredObject(firstIntersection.object);
+        console.log(
+          "\n-- onWindowDragOver -- Hovered Object ->",
+          firstIntersection.object.name
+        );
+
+        // TODO: Optional: Visual Feedback (e.g., outline or color tint) could be added here
+        // For now, relying on the state update which allows the Overlay to know we are ready
+      }
+    }
+  } else {
+    if (modelsStore.dragHoveredObject) {
+      modelsStore.setDragHoveredObject(null);
+    }
+  }
+};
+
 const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
     const relevantActions = [
@@ -324,7 +361,10 @@ const onPointerMove = (event: PointerEvent) => {
       // console.log("\nfirstIntersectedObject ->", firstIntersectedObject.object);
       // Get the Parent Group
       const parentGroup = firstIntersectedObject.object.parent;
-      console.log("\nintersected parent Group while mouse moving ->", parentGroup);
+      console.log(
+        "\nintersected parent Group while mouse moving ->",
+        parentGroup
+      );
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
       // Change the color of each material of each mesh in the parent group
@@ -496,6 +536,8 @@ onMounted(async () => {
   window.addEventListener("resize", onWindowResize);
   // document.addEventListener("pointermove", onPointerMove);
   window.addEventListener("click", onMouseClick);
+  // Drag over listener for raycasting
+  window.addEventListener("dragover", onWindowDragOver);
 });
 
 onBeforeUnmount(() => {
@@ -515,5 +557,6 @@ onBeforeUnmount(() => {
 
   // Remove pointer down listener
   window.removeEventListener("click", onMouseClick);
+  window.removeEventListener("dragover", onWindowDragOver);
 });
 </script>

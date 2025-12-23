@@ -221,7 +221,6 @@ const handleFileChange = async (e: Event) => {
   /*
     Validate Files
    */
-  // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
   // const isValid = await validateImportFiles(files);
   const isValid = await validateImportFilesWithNodeNames(files);
   if (!isValid) return;
@@ -229,7 +228,6 @@ const handleFileChange = async (e: Event) => {
   /*
     Import Obj File
    */
-  // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
   // await modelsStore.imoprtObjStlModelWithHeight(files);
   await modelsStore.imoprtObjStlWithNodeNames(files);
 

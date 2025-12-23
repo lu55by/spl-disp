@@ -91,6 +91,8 @@ export const useModelsStore = defineStore("models", {
     // bodyModelGlobal: null as THREE.Object3D | null,
     // Cutters
     cuttersModelGlobal: CuttersModelGlobal,
+    // Drag and Drop
+    dragHoveredObject: null as THREE.Mesh | null,
     // GUI
     // guiGlobal: TweakPane as Pane,
     isShowMap: true,
@@ -102,7 +104,41 @@ export const useModelsStore = defineStore("models", {
 
   actions: {
     /**
+     * Set the drag hovered object.
+     * @param object The object being hovered
+     */
+    setDragHoveredObject(object: THREE.Mesh | null) {
+      this.dragHoveredObject = object;
+    },
+
+    /**
+     * Apply texture to the currently hovered object.
+     * @param file The image file to apply
+     */
+    async applyTextureToHoveredObject(file: File) {
+      if (!this.dragHoveredObject) return;
+
+      const texUrl = URL.createObjectURL(file);
+      const texture = await loadTexture(texUrl);
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      // Ensure the object has a material that supports maps
+      if (this.dragHoveredObject.material) {
+        // If it's a node material or standard material, we might need to handle it differently
+        // For now assuming standard property 'map' availability or using a compatible material
+        // In the context of SplicingModels, we are using MeshStandardNodeMaterial which might require .map property or node assignment
+
+        // Check if material has a map property
+        if ("map" in this.dragHoveredObject.material) {
+          (this.dragHoveredObject.material as any).map = texture;
+          (this.dragHoveredObject.material as any).needsUpdate = true;
+        }
+      }
+    },
+
+    /**
      * Sync the splicing group length.
+     * @param length The length of the splicing group (optional)
      */
     syncSplicingGroupLength() {
       this.splicingGroupLengthState = this.splicingGroupGlobal.children.length;

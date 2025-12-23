@@ -15,6 +15,10 @@ const onDragEnter = (e: DragEvent) => {
   if (e.dataTransfer?.types.includes("Files")) {
     isDragging.value = true;
   }
+  if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+    const files = e.dataTransfer?.files;
+    console.log("\n -- onDragEnter -- files ->", files);
+  }
 };
 
 const onDragOver = (e: DragEvent) => {
@@ -38,12 +42,27 @@ const onDrop = async (e: DragEvent) => {
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
     const files = e.dataTransfer?.files;
     console.log("\n -- onDrop -- files -- before validation ->", files);
-    // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
+
+    // Check if we are hovering over an object and have an image file
+    if (
+      modelsStore.dragHoveredObject &&
+      files.length === 1 &&
+      files[0].type.startsWith("image/")
+    ) {
+      await modelsStore.applyTextureToHoveredObject(files[0]);
+      // Reset hovered object
+      modelsStore.setDragHoveredObject(null);
+      return;
+    }
+
+    // Reset hovered object logic is handled in SplicingModels or here if needed,
+    // but lets ensure we clear it just in case if not dropped on object or if we fall through
+    modelsStore.setDragHoveredObject(null);
+
     // const isValid = await validateImportFiles(e.dataTransfer.files);
     const isValid = await validateImportFilesWithNodeNames(files);
     console.log("\n -- onDrop -- files -- after validation ->", files);
     // return;
-    // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
     // if (isValid) modelsStore.imoprtObjStlModelWithHeight(e.dataTransfer.files);
     if (isValid) await modelsStore.imoprtObjStlWithNodeNames(files);
   }
@@ -67,7 +86,7 @@ onUnmounted(() => {
 <template>
   <Transition name="fade">
     <div
-      v-if="isDragging"
+      v-if="false"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
     >
       <!-- Futuristic UI Overlay -->
