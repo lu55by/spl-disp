@@ -399,7 +399,10 @@ const onWindowDragOver = (e: DragEvent) => {
           firstIntersection.object.name
         );
 
-        // TODO: Optional: Visual Feedback (e.g., outline or color tint) could be added here
+        // Set the raycasterIntersectionObject to the hovered object so that we can change the colorNode back to the original colorNode controlled by uIsShowMap of the hovered object after clicking outside of the hovered object
+        raycasterIntersectionObject = firstIntersection.object;
+
+        // Optional: Visual Feedback (e.g., outline or color tint) could be added here
         // For now, relying on the state update which allows the Overlay to know we are ready
         if (
           modelsStore.dragHoveredObject.material instanceof
