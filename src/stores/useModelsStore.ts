@@ -124,14 +124,15 @@ export const useModelsStore = defineStore("models", {
 
       // Ensure the object has a material that supports maps
       if (this.dragHoveredObject.material) {
-        // If it's a node material or standard material, we might need to handle it differently
-        // For now assuming standard property 'map' availability or using a compatible material
-        // In the context of SplicingModels, we are using MeshStandardNodeMaterial which might require .map property or node assignment
-
         // Check if material has a map property
         if ("map" in this.dragHoveredObject.material) {
+          let previousMap = (this.dragHoveredObject.material as any)
+            .map as THREE.Texture;
           (this.dragHoveredObject.material as any).map = texture;
           (this.dragHoveredObject.material as any).needsUpdate = true;
+          // Dispose the privious map
+          previousMap?.dispose();
+          previousMap = null;
         }
       }
     },
