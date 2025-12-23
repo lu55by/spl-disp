@@ -382,7 +382,6 @@ const onMouseClick = (event: MouseEvent) => {
 
     // Change the colorNode back to the original colorNode controlled by uIsShowMap of each material of each mesh in the raycasterIntersectionObject group
     if (raycasterIntersectionObject instanceof THREE.Group) {
-      // TODO: Create a reusable fn for this traverse.
       raycasterIntersectionObject.traverse((child) => {
         if (
           child instanceof THREE.Mesh &&
@@ -453,7 +452,6 @@ const onMouseClick = (event: MouseEvent) => {
         raycasterIntersectionObject.material.needsUpdate = true;
         return;
       }
-      // TODO: Create a reusable fn for this traverse.
       raycasterIntersectionObject.traverse((child) => {
         if (
           child instanceof THREE.Mesh &&
