@@ -302,7 +302,7 @@ const onPointerMove = (event: PointerEvent) => {
     //   }
     // });
     raycasterIntersectionObject = null;
-    if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.98, 0.99);
+    // if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.98, 0.99);
   }
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -324,7 +324,7 @@ const onPointerMove = (event: PointerEvent) => {
       // console.log("\nfirstIntersectedObject ->", firstIntersectedObject.object);
       // Get the Parent Group
       const parentGroup = firstIntersectedObject.object.parent;
-      console.log("\nparentGroup ->", parentGroup);
+      console.log("\nintersected parent Group while mouse moving ->", parentGroup);
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
       // Change the color of each material of each mesh in the parent group
@@ -339,17 +339,17 @@ const onPointerMove = (event: PointerEvent) => {
       // });
 
       // Change the outline factor
-      if (uOutlinePatternFactor) {
-        console.log(
-          "\nuniformOutlineFactor x ->",
-          uOutlinePatternFactor.value.x
-        );
-        console.log(
-          "\nuniformOutlineFactor y ->",
-          uOutlinePatternFactor.value.y
-        );
-        uOutlinePatternFactor.value.set(0.8, 0.82);
-      }
+      // if (uOutlinePatternFactor) {
+      //   console.log(
+      //     "\nuniformOutlineFactor x ->",
+      //     uOutlinePatternFactor.value.x
+      //   );
+      //   console.log(
+      //     "\nuniformOutlineFactor y ->",
+      //     uOutlinePatternFactor.value.y
+      //   );
+      //   uOutlinePatternFactor.value.set(0.8, 0.82);
+      // }
     }
   }
 };

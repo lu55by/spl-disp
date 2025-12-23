@@ -109,7 +109,7 @@
         </div>
         <div class="flex items-baseline gap-3">
           <span class="text-stone-400 text-xs font-chinese tracking-tight"
-            >模型长度:</span
+            >模型组长度:</span
           >
           <span
             class="text-cyan-400 font-futuristic text-2xl tabular-nums drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]"
