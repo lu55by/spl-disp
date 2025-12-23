@@ -261,7 +261,7 @@ export const useModelsStore = defineStore("models", {
      */
     async imoprtObjStlWithNodeNames(files: FileList) {
       // Log the files to import
-      console.log("\nfiles to import ->", files);
+      console.log("\n -- imoprtObjStlWithNodeNames -- files ->", files);
 
       // Create variables to store the .obj and texture files
       let objFile: File | null = null;
@@ -301,13 +301,13 @@ export const useModelsStore = defineStore("models", {
 
         // Create a Group
         const stlModelGroup = new THREE.Group().add(stlMesh);
-        stlModelGroup.name = stlFile.name.toLocaleLowerCase().includes("hair")
-          ? "hair"
-          : "body";
-
+        const isHair = stlFile.name
+          .toLocaleLowerCase()
+          .includes(NodeNames.HairNames.Hair);
         // Check if it is hair or body
-        const isHair = stlFile.name.toLocaleLowerCase().includes("hair");
-        console.log("\nis Hair imported model ->", isHair);
+        console.log("\nis imported Hair stl model ->", isHair);
+        stlModelGroup.name = isHair ? "hairGrp" : "bodyGrp";
+        console.log("\nstlModelGroup name set ->", stlModelGroup.name);
 
         // Call the removeAndAddModelWithNodeNames fn
         removeAndAddModelWithNodeNames(
@@ -352,9 +352,15 @@ export const useModelsStore = defineStore("models", {
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, it's the same logic as the hair.
        */
-      const isHairImported =
-        importedParsedObject.children[0].name === NodeNames.HairNames.Hair;
+      const isHairImported = importedParsedObject.children[0].name
+        .toLocaleLowerCase()
+        .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
       console.log("\nisHair imported model ->", isHairImported);
+      importedParsedObject.name = isHairImported ? "hairGrp" : "bodyGrp";
+      console.log(
+        "\nimportedParsedObject name set ->",
+        importedParsedObject.name
+      );
 
       // Call the removeAndAddModel fn to remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
       removeAndAddModelWithNodeNames(

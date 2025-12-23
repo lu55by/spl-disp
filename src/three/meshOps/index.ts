@@ -483,8 +483,9 @@ export function removeAndAddModelWithNodeNames(
   if (filteredSubGroups.length === 1) {
     // Check if the existed one is hair or body
     const existedHairOrBodyGroup = filteredSubGroups[0];
-    const isHairGroupExisted =
-      existedHairOrBodyGroup.name === NodeNames.HairNames.Hair;
+    const isHairGroupExisted = existedHairOrBodyGroup.children[0].name
+      .toLowerCase()
+      .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
     if (isHairImported === isHairGroupExisted) {
       // Conflicting, remove the existed hair or body group and add the new one
       disposeHairBodyGroup(splicingGroupGlobal, existedHairOrBodyGroup);
@@ -504,7 +505,11 @@ export function removeAndAddModelWithNodeNames(
   let hairGroup = filteredSubGroups[0];
   let bodyGroup = filteredSubGroups[1];
   // Reverse the assignments if the first group is body
-  if (hairGroup.name === NodeNames.BodyNames.Body) {
+  if (
+    hairGroup.children[0].name
+      .toLocaleLowerCase()
+      .includes(NodeNames.BodyNames.Body.toLocaleLowerCase())
+  ) {
     hairGroup = filteredSubGroups[1];
     bodyGroup = filteredSubGroups[0];
   }

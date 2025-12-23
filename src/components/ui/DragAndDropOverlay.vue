@@ -36,14 +36,16 @@ const onDrop = async (e: DragEvent) => {
   dragCounter = 0;
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+    const files = e.dataTransfer?.files;
+    console.log("\n -- onDrop -- files -- before validation ->", files);
     // TODO: Change the validateImportFiles fn to validateImportFilesWithNodeNames fn later.
     // const isValid = await validateImportFiles(e.dataTransfer.files);
-    const isValid = await validateImportFilesWithNodeNames(
-      e.dataTransfer.files
-    );
+    const isValid = await validateImportFilesWithNodeNames(files);
+    console.log("\n -- onDrop -- files -- after validation ->", files);
+    // return;
     // TODO: Change the imoprtObjStlModelWithHeight fn to imoprtObjStlWithNodeNames fn later.
     // if (isValid) modelsStore.imoprtObjStlModelWithHeight(e.dataTransfer.files);
-    if (isValid) modelsStore.imoprtObjStlWithNodeNames(e.dataTransfer.files);
+    if (isValid) await modelsStore.imoprtObjStlWithNodeNames(files);
   }
 };
 

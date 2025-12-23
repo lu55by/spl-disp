@@ -54,18 +54,18 @@ export const validateImportFiles = async (
   /*
     ! No Obj File or STL File Selected
    */
-  let hasObjFile = false;
+  let hasObjStlFile = false;
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     if (
       file.name.toLocaleLowerCase().endsWith(".obj") ||
       file.name.toLocaleLowerCase().endsWith(".stl")
     ) {
-      hasObjFile = true;
+      hasObjStlFile = true;
       break;
     }
   }
-  if (!hasObjFile) {
+  if (!hasObjStlFile) {
     toast(ToastContents.ModelImportWarningNoObjFileZH, {
       autoClose: 1000,
       type: "warning",
@@ -103,6 +103,7 @@ export const validateImportFiles = async (
 export const validateImportFilesWithNodeNames = async (
   files: FileList | null
 ): Promise<boolean> => {
+  console.log("\n -- validateImportFilesWithNodeNames -- files ->", files);
   const isValid = await validateImportFiles(files);
   if (!isValid) return false;
 
@@ -165,8 +166,18 @@ export const validateImportFilesWithNodeNames = async (
 
   // Check if the imported object has the correct node names
   const nodeName = importedParsedObject.children[0].name.toLocaleLowerCase();
-  console.log("\n -- validateImportFiles -- nodeName ->", nodeName);
-  if (!nodeName.length || !ValidNodeNames.includes(nodeName)) {
+  let isValidNodeName = false;
+  for (const validNodeName of ValidNodeNames) {
+    if (nodeName.length > 0 && nodeName.includes(validNodeName)) {
+      isValidNodeName = true;
+      break;
+    }
+  }
+  isValidNodeName &&
+    console.log("\n -- validateImportFiles -- nodeName ->", nodeName);
+  !isValidNodeName &&
+    console.warn("\n -- validateImportFiles -- nodeName ->", nodeName);
+  if (!isValidNodeName) {
     toast(ToastContents.ModelNodeNameErrorContentZH, {
       autoClose: 1000,
       type: "warning",
