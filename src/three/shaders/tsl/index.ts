@@ -2,7 +2,7 @@ import {
   cameraPosition,
   dot,
   Fn,
-  normalLocal,
+  normalWorld,
   positionWorld,
   smoothstep,
 } from "three/tsl";
@@ -26,8 +26,8 @@ export const getOutlinePattern = Fn(
     return smoothstep(
       uOutlineFactor.x,
       uOutlineFactor.y,
-      // ! Fixed the issue of weird outline with positionWorld while we are repositioning the model.
-      dot(positionWorld.sub(cameraPosition).normalize(), normalLocal)
+      // ! Fixed the issue of weird outline with positionWorld and normalWorld while we are repositioning and rotating the model.
+      dot(positionWorld.sub(cameraPosition).normalize(), normalWorld)
         .abs()
         .oneMinus()
     );
