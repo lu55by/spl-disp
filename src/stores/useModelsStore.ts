@@ -27,7 +27,7 @@ import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 // const TweakPane = new Pane({ title: "Global Settings" });
 
 /*
-  Cutters Model
+  Loaded Cutters Model
  */
 const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
@@ -35,7 +35,7 @@ const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   );
 
 /*
-  Default Cut Head
+  Load Default Cut Head
  */
 const loadDefaultCutHeadAsync = async () => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
@@ -72,6 +72,9 @@ const SplicingGroupGlobal = markRaw(
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
+/*
+  Cutters Model
+ */
 const CuttersModelGlobal = markRaw(
   LoadedCuttersModel
 ) as THREE.Group<THREE.Object3DEventMap>;
@@ -82,19 +85,15 @@ CuttersModelGlobal.name = "CuttersModelGlobal";
  */
 export const useModelsStore = defineStore("models", {
   state: () => ({
-    // Splicing Group
+    // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
+    // Splicing Group Length State
     splicingGroupLengthState: 1,
-    // Hair
-    // hairModelGlobal: null as THREE.Object3D | null,
-    // Body
-    // bodyModelGlobal: null as THREE.Object3D | null,
-    // Cutters
+    // Global Cutters Model
     cuttersModelGlobal: CuttersModelGlobal,
-    // Drag and Drop
+    // Drag and Drop Hovered Object
     dragHoveredObject: null as THREE.Mesh | null,
-    // GUI
-    // guiGlobal: TweakPane as Pane,
+    // Set isShowMap to false to hide the map of all the materials
     isShowMap: true,
   }),
 
@@ -406,38 +405,6 @@ export const useModelsStore = defineStore("models", {
         isHairImported
       );
       this.syncSplicingGroupLength();
-    },
-
-    /**
-     * Import .stl file.
-     * @param files Files to import
-     * @returns void
-     */
-    async importSTL(files: FileList) {
-      console.log("\nfiles to import (STL) ->", files);
-
-      let stlFile: File | null = null;
-
-      // Find the .stl file
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.name.toLowerCase().endsWith(".stl")) {
-          stlFile = file;
-          break;
-        }
-      }
-
-      if (!stlFile) {
-        console.warn("No .stl file found.");
-        return;
-      }
-
-      const mesh = await loadSTLFile(stlFile);
-
-      // Add to global group
-      this.addChild(mesh);
-
-      console.log(`\nImported STL: ${stlFile.name}`, mesh);
     },
 
     /**
