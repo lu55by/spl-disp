@@ -40,15 +40,8 @@ const updateOrbitControlsTargetCenter = () => {
     "\nsplicingGroupGlobal in SplicingModels after updateOrbitControlsTargetCenter ->",
     splicingGroupGlobal
   );
-  // Log all the material names
-  // splicingGroupGlobal.traverse((object) => {
-  //   if (object instanceof THREE.Mesh) {
-  //     console.log("\nMaterial Name ->", object.material.name);
-  //   }
-  // });
-  orbitControlsTargetCenter.copy(
-    getObject3DBoundingBoxCenter(splicingGroupGlobal)
-  );
+  const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
+  orbitControlsTargetCenter.copy(boundingBoxCenter);
 };
 
 updateOrbitControlsTargetCenter();
