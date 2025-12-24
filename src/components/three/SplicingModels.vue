@@ -92,6 +92,12 @@ const updateOrbitControlsTargetCenter = () => {
 
   adjustPivots(splicingGroupGlobal);
 
+  // Move all 3D Objects in splicingGroupGlobal to the world original position vec3(0)
+  // splicingGroupGlobal.children.forEach((child) => {
+  //   child.position.set(0, 0, 0);
+  // });
+  // splicingGroupGlobal.position.set(0, 0, 0);
+
   const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
   orbitControlsTargetCenter.copy(boundingBoxCenter);
 };
@@ -238,7 +244,7 @@ const init = async () => {
       scene.environment = texture;
     });
   };
-  // loadEnvironment();
+  loadEnvironment();
 
   /**
    * Lights From AiBus
@@ -251,13 +257,13 @@ const init = async () => {
     const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
     console.log("\nsplicingGroupGlobal.position ->", boundingBoxCenter);
     const rotatingLightOffestPos = new THREE.Vector3(
-      boundingBoxCenter.x + 3,
-      boundingBoxCenter.y + 10,
+      boundingBoxCenter.x + 7,
+      boundingBoxCenter.y + 15,
       boundingBoxCenter.z
     );
     rotatingLight.position.copy(rotatingLightOffestPos);
     console.log("\nrotatingLight.position ->", rotatingLight.position);
-    addTransformDebug("Cut Head", GUIGlobal, rotatingLight, {
+    addTransformDebug("Rotating Light", GUIGlobal, rotatingLight, {
       showRotation: true,
       showScale: true,
       posMin: -100,
@@ -290,7 +296,7 @@ const init = async () => {
     const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.4);
     scene.add(hemisphereLight);
   };
-  applyLightsAiBus();
+  // applyLightsAiBus();
 
   /**
    * Load Models

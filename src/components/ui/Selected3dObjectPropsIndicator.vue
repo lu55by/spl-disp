@@ -31,6 +31,7 @@ const syncFromObject = () => {
 
 const syncToObject = () => {
   const obj = modelsStore.selectedObject;
+  console.log("\n -- syncToObject -- while input -- obj ->", obj);
   if (!obj) return;
 
   obj.position.set(pos.value.x, pos.value.y, pos.value.z);
@@ -74,6 +75,8 @@ const handleInput = () => {
 <template>
   <Transition name="slide-up">
     <div
+      v-if="modelsStore.selectedObject"
+      @click.stop
       class="pointer-events-auto absolute bottom-6 right-6 w-72 bg-slate-900/80 backdrop-blur-xl border border-cyan-500/30 p-5 font-futuristic shadow-[0_0_30px_rgba(34,211,238,0.15)] rounded-sm"
     >
       <!-- Header -->
