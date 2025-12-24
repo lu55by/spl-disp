@@ -23,9 +23,6 @@ import {
 } from "../three/meshOps/index.ts";
 import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
-// const ObjLoader = new OBJLoader();
-// const TweakPane = new Pane({ title: "Global Settings" });
-
 /*
   Loaded Cutters Model
  */
@@ -41,10 +38,10 @@ const loadDefaultCutHeadAsync = async () => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(
       // Male
-      ModelPaths.HeadMale.Model
+      ModelPaths.HeadFemale.Model
     );
   // Apply textures
-  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, false);
+  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, true);
   // Get Cut Head
   const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Apply PBR Material and SRGB Color Space

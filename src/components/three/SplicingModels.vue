@@ -14,6 +14,8 @@ import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, HDRPath } from "../../three/constants";
+import { addTransformDebug } from "../../three/gui";
+import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
@@ -121,6 +123,9 @@ let camera: THREE.PerspectiveCamera,
   orbit: OrbitControls,
   transform: TransformControls,
   raycaster: THREE.Raycaster,
+  timer: THREE.Timer,
+  // Lights
+  rotatingLight: THREE.DirectionalLight,
   // uniforms
   uBaseColor: THREE.UniformNode<THREE.Color>,
   uIsShowMap: THREE.UniformNode<number>,
@@ -128,7 +133,6 @@ let camera: THREE.PerspectiveCamera,
   uOutlineColor: THREE.UniformNode<THREE.Color>,
   // raycaster intersection object
   raycasterIntersectionObject: THREE.Object3D | null;
-// clock: THREE.Clock;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -166,9 +170,9 @@ const init = async () => {
   raycaster = new THREE.Raycaster();
 
   /**
-   * Clock
+   * Timer
    */
-  // clock = new THREE.Clock();
+  timer = new THREE.Timer();
 
   /**
    * Renderer
@@ -234,8 +238,59 @@ const init = async () => {
       scene.environment = texture;
     });
   };
+  // loadEnvironment();
 
-  loadEnvironment();
+  /**
+   * Lights From AiBus
+   */
+  const applyLightsAiBus = () => {
+    // === 改进的光源设置，更适合人头模型 ===
+    // 主光（可旋转）
+    rotatingLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    // rotatingLight.position.set(5, 10, 7);
+    const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
+    console.log("\nsplicingGroupGlobal.position ->", boundingBoxCenter);
+    const rotatingLightOffestPos = new THREE.Vector3(
+      boundingBoxCenter.x + 3,
+      boundingBoxCenter.y + 10,
+      boundingBoxCenter.z
+    );
+    rotatingLight.position.copy(rotatingLightOffestPos);
+    console.log("\nrotatingLight.position ->", rotatingLight.position);
+    addTransformDebug("Cut Head", GUIGlobal, rotatingLight, {
+      showRotation: true,
+      showScale: true,
+      posMin: -100,
+      posMax: 200,
+    });
+    rotatingLight.castShadow = true;
+    scene.add(new THREE.DirectionalLightHelper(rotatingLight, 5));
+    scene.add(rotatingLight);
+
+    // 补光 - 软化阴影
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    fillLight.position.set(-5, 3, 5);
+    scene.add(fillLight);
+
+    // 背光 - 增强轮廓
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    rimLight.position.set(0, 3, -10);
+    scene.add(rimLight);
+
+    // 顶部环境光 - 确保头顶有足够的光线
+    const topLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    topLight.position.set(0, 10, 0);
+    scene.add(topLight);
+
+    // 环境光 - 提供基础照明
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    // 半球光 - 提供更自然的环境照明
+    const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.4);
+    scene.add(hemisphereLight);
+  };
+  applyLightsAiBus();
 
   /**
    * Load Models
@@ -689,15 +744,27 @@ const onKeyUp = (event: KeyboardEvent) => {
 /**
  * Animation fn used for renderer
  */
+let time: number;
 const animate = async () => {
   // Elapsed Time
-  // const time = clock.getElapsedTime();
+  time = timer.getElapsed();
 
   /*
     Update controls
    */
   orbit.target.lerp(orbitControlsTargetCenter, 0.1);
   orbit.update();
+
+  /*
+    Update Light
+   */
+  // 主光旋转
+  // if (rotatingLight) {
+  //   const radius = 15;
+  //   rotatingLight.position.x += Math.cos(time) * 3;
+  //   rotatingLight.position.z += Math.sin(time) * 3;
+  //   // rotatingLight.position.y = 10;
+  // }
 
   /*
     Update renderer
