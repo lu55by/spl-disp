@@ -33,6 +33,53 @@ const { splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
 /*
   Orbit Controls Target Center Update Logic
  */
+/**
+ * Adjust the pivot point of each object in the group to its bounding box center
+ * @param group THREE.Group
+ */
+const adjustPivots = (group: THREE.Group) => {
+  group.updateMatrixWorld();
+  group.children.forEach((child) => {
+    if (child instanceof THREE.Mesh) {
+      if (child.geometry.boundingBox === null)
+        child.geometry.computeBoundingBox();
+      const center = child.geometry.boundingBox!.getCenter(new THREE.Vector3());
+
+      // Apply the negative offset to the geometry to center it around (0,0,0)
+      child.geometry.translate(-center.x, -center.y, -center.z);
+
+      // Apply the positive offset to the object's position to keep it in the same visual place
+      const vec = center.clone();
+      vec.applyQuaternion(child.quaternion);
+      vec.multiply(child.scale);
+      child.position.add(vec);
+    } else if (child instanceof THREE.Group) {
+      const box = new THREE.Box3().setFromObject(child);
+      const center = box.getCenter(new THREE.Vector3());
+
+      // Calculate the offset in the parent's coordinate system
+      // child.parent is group
+      if (child.parent) {
+        const centerInParent = center.clone();
+        child.parent.worldToLocal(centerInParent);
+        const offset = centerInParent.clone().sub(child.position);
+
+        // Move the child group to the center
+        child.position.add(offset);
+
+        // Move children inversely to keep them in the same visual place
+        child.children.forEach((c) => {
+          const localOffset = offset
+            .clone()
+            .applyQuaternion(child.quaternion.clone().invert())
+            .divide(child.scale);
+          c.position.sub(localOffset);
+        });
+      }
+    }
+  });
+};
+
 const orbitControlsTargetCenter = new THREE.Vector3();
 const updateOrbitControlsTargetCenter = () => {
   console.log("\nupdateOrbitControlsTargetCenter called...");
@@ -40,6 +87,9 @@ const updateOrbitControlsTargetCenter = () => {
     "\nsplicingGroupGlobal in SplicingModels after updateOrbitControlsTargetCenter ->",
     splicingGroupGlobal
   );
+
+  adjustPivots(splicingGroupGlobal);
+
   const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
   orbitControlsTargetCenter.copy(boundingBoxCenter);
 };
