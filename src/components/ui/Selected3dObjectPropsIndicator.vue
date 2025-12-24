@@ -31,7 +31,6 @@ const syncFromObject = () => {
 
 const syncToObject = () => {
   const obj = modelsStore.selectedObject;
-  console.log("\n -- syncToObject -- while input -- obj ->", obj);
   if (!obj) return;
 
   obj.position.set(pos.value.x, pos.value.y, pos.value.z);
@@ -107,43 +106,87 @@ const handleInput = () => {
             >
           </div>
           <div class="grid grid-cols-3 gap-3">
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >X</span
-              >
+            <!-- X -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >X</span
+                >
+                <input
+                  v-model.number="pos.x"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="pos.x"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="-50"
+                max="50"
+                step="0.01"
+                class="telemetry-slider"
               />
             </div>
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >Y</span
-              >
+            <!-- Y -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >Y</span
+                >
+                <input
+                  v-model.number="pos.y"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
+              <!-- TODO: Make the min and max range based on the posY value with some offsets -->
               <input
+                type="range"
                 v-model.number="pos.y"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="-50"
+                max="50"
+                step="0.01"
+                class="telemetry-slider"
               />
             </div>
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >Z</span
-              >
+            <!-- Z -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >Z</span
+                >
+                <input
+                  v-model.number="pos.z"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
+              <!-- TODO: Make the min and max range based on the posZ value with some offsets -->
               <input
+                type="range"
                 v-model.number="pos.z"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="-50"
+                max="50"
+                step="0.01"
+                class="telemetry-slider"
               />
             </div>
           </div>
@@ -161,43 +204,85 @@ const handleInput = () => {
             >
           </div>
           <div class="grid grid-cols-3 gap-3">
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >X</span
-              >
+            <!-- X -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >X</span
+                >
+                <input
+                  v-model.number="rot.x"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="rot.x"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="-180"
+                max="180"
+                step="0.1"
+                class="telemetry-slider"
               />
             </div>
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >Y</span
-              >
+            <!-- Y -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >Y</span
+                >
+                <input
+                  v-model.number="rot.y"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="rot.y"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="-180"
+                max="180"
+                step="0.1"
+                class="telemetry-slider"
               />
             </div>
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >Z</span
-              >
+            <!-- Z -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >Z</span
+                >
+                <input
+                  v-model.number="rot.z"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="rot.z"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="-180"
+                max="180"
+                step="0.1"
+                class="telemetry-slider"
               />
             </div>
           </div>
@@ -215,43 +300,85 @@ const handleInput = () => {
             >
           </div>
           <div class="grid grid-cols-3 gap-3">
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >X</span
-              >
+            <!-- X -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >X</span
+                >
+                <input
+                  v-model.number="scale.x"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="scale.x"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="0.01"
+                max="10"
+                step="0.01"
+                class="telemetry-slider"
               />
             </div>
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >Y</span
-              >
+            <!-- Y -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >Y</span
+                >
+                <input
+                  v-model.number="scale.y"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="scale.y"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="0.01"
+                max="10"
+                step="0.01"
+                class="telemetry-slider"
               />
             </div>
-            <div class="relative">
-              <span
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                >Z</span
-              >
+            <!-- Z -->
+            <div class="flex flex-col gap-2">
+              <div class="relative">
+                <span
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                  >Z</span
+                >
+                <input
+                  v-model.number="scale.z"
+                  @input="handleInput"
+                  @focus="isFocused = true"
+                  @blur="isFocused = false"
+                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                />
+              </div>
               <input
+                type="range"
                 v-model.number="scale.z"
                 @input="handleInput"
-                @focus="isFocused = true"
-                @blur="isFocused = false"
-                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
+                @mousedown="isFocused = true"
+                @mouseup="isFocused = false"
+                min="0.01"
+                max="10"
+                step="0.01"
+                class="telemetry-slider"
               />
             </div>
           </div>
@@ -302,5 +429,56 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* Futuristic Slider Styling */
+.telemetry-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: rgba(34, 211, 238, 0.1);
+  border-radius: 2px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.telemetry-slider:hover {
+  background: rgba(34, 211, 238, 0.2);
+}
+
+/* Thumb Styling - Chrome/Safari/Edge/Opera */
+.telemetry-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 8px;
+  height: 8px;
+  background: #22d3ee;
+  border-radius: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  transition: all 0.2s ease;
+}
+
+.telemetry-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.8);
+}
+
+/* Thumb Styling - Firefox */
+.telemetry-slider::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+  background: #22d3ee;
+  border: none;
+  border-radius: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  transition: all 0.2s ease;
+}
+
+.telemetry-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.8);
 }
 </style>
