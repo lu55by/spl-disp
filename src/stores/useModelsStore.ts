@@ -93,6 +93,8 @@ export const useModelsStore = defineStore("models", {
     cuttersModelGlobal: CuttersModelGlobal,
     // Drag and Drop Hovered Object
     dragHoveredObject: null as THREE.Mesh | null,
+    // Selected Object by mouse click
+    selectedObject: null as THREE.Object3D | null,
     // isShowMap state to toggle the uIsShowMap uniform (0 or 1) of the MeshStandardNodeMaterial
     isShowMap: true,
   }),
@@ -102,6 +104,14 @@ export const useModelsStore = defineStore("models", {
   },
 
   actions: {
+    /**
+     * Set the selected object by mouse click.
+     * @param object The object being selected by mouse click
+     */
+    setSelectedObject(object: THREE.Object3D | null) {
+      this.selectedObject = object;
+    },
+
     /**
      * Set the drag hovered object.
      * @param object The object being hovered

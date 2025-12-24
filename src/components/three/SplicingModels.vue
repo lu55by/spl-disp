@@ -244,7 +244,8 @@ const init = async () => {
   // Uniforms used for TSL
   uBaseColor = uniform(color("#fff"));
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
-  uOutlineColor = uniform(color("#ffdbac"));
+  // uOutlineColor = uniform(color("#ffdbac"));
+  uOutlineColor = uniform(color("#0ff"));
   uOutlinePatternFactor = uniform(vec2(0.99, 0.999));
 
   // Toggle the map by using TSL.
@@ -529,6 +530,15 @@ const onMouseClick = (event: MouseEvent) => {
     uOutlinePatternFactor.value.set(0.99, 0.999);
   }
 
+  // Check if there is a previous selected object in modelsStore
+  if (modelsStore.selectedObject) {
+    console.log(
+      "\nPrevious selected object in modesStore ->",
+      modelsStore.selectedObject
+    );
+    modelsStore.setSelectedObject(null);
+  }
+
   // Update the mouse position
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -559,6 +569,12 @@ const onMouseClick = (event: MouseEvent) => {
       raycasterIntersectionObject = parentGroup;
       // Attach the transform to the raycasterIntersectionObject
       transform.attach(raycasterIntersectionObject);
+      // Set the global selected object in modelsStore
+      modelsStore.setSelectedObject(parentGroup);
+      console.log(
+        "\nCurrent selected object in modelsStore ->",
+        modelsStore.selectedObject
+      );
       // Activate the outline effect
       uOutlinePatternFactor.value.set(0.8, 0.82);
       // Check if the raycasterIntersectionObject is a mesh
