@@ -605,43 +605,46 @@ const onMouseClick = (event: MouseEvent) => {
  * @param event KeyboardEvent
  */
 const onKeyDown = (event: KeyboardEvent) => {
-  // console.log("\nkey down ->", event);
+  const code = event.code;
+  // console.log("\Key down code ->", code);
 
-  switch (event.key.toLocaleLowerCase()) {
-    case "q":
+  switch (code.toLocaleLowerCase()) {
+    case "keyq":
       transform?.setSpace(transform?.space === "local" ? "world" : "local");
       break;
-    case "w":
+    case "keyw":
       transform?.setMode("translate");
       break;
-    case "e":
+    case "keye":
       transform?.setMode("rotate");
       break;
-    case "r":
+    case "keyr":
       transform?.setMode("scale");
       break;
-    case "_":
-    case "-":
+    case "minus":
       transform?.setSize(transform?.size - 0.1);
       break;
-    case "+":
-    case "=":
+    case "equal":
       transform?.setSize(transform?.size + 0.1);
       break;
-    case " ":
+    case "space":
       transform && (transform.enabled = !transform.enabled);
       break;
-    case "shift":
+    case "shiftleft":
+    case "shiftright":
       transform?.setTranslationSnap(1);
       transform?.setRotationSnap(THREE.MathUtils.degToRad(15));
       transform?.setScaleSnap(0.08);
       break;
-    case "x":
+    case "keyx":
       transform && (transform.showX = !transform.showX);
-    case "y":
+      break;
+    case "keyy":
       transform && (transform.showY = !transform.showY);
-    case "z":
+      break;
+    case "keyz":
       transform && (transform.showZ = !transform.showZ);
+      break;
     default:
       break;
   }
@@ -652,8 +655,12 @@ const onKeyDown = (event: KeyboardEvent) => {
  * @param event KeyboardEvent
  */
 const onKeyUp = (event: KeyboardEvent) => {
-  switch (event.key.toLocaleLowerCase()) {
-    case "shift":
+  const code = event.code;
+  // console.log("\nKey up code ->", code);
+
+  switch (code.toLocaleLowerCase()) {
+    case "shiftleft":
+    case "shiftright":
       transform?.setTranslationSnap(null);
       transform?.setRotationSnap(null);
       transform?.setScaleSnap(null);
