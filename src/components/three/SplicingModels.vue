@@ -631,6 +631,33 @@ const onKeyDown = (event: KeyboardEvent) => {
     case " ":
       transform && (transform.enabled = !transform.enabled);
       break;
+    case "shift":
+      transform?.setTranslationSnap(1);
+      transform?.setRotationSnap(THREE.MathUtils.degToRad(15));
+      transform?.setScaleSnap(0.08);
+      break;
+    case "x":
+      transform && (transform.showX = !transform.showX);
+    case "y":
+      transform && (transform.showY = !transform.showY);
+    case "z":
+      transform && (transform.showZ = !transform.showZ);
+    default:
+      break;
+  }
+};
+
+/**
+ * Key up event handler
+ * @param event KeyboardEvent
+ */
+const onKeyUp = (event: KeyboardEvent) => {
+  switch (event.key.toLocaleLowerCase()) {
+    case "shift":
+      transform?.setTranslationSnap(null);
+      transform?.setRotationSnap(null);
+      transform?.setScaleSnap(null);
+      break;
     default:
       break;
   }
@@ -669,6 +696,8 @@ onMounted(async () => {
   window.addEventListener("dragover", onWindowDragOver);
   // Key down listener for transform
   window.addEventListener("keydown", onKeyDown);
+  // Key up listender for transform
+  window.addEventListener("keyup", onKeyUp);
 });
 
 /**
@@ -697,5 +726,8 @@ onBeforeUnmount(() => {
 
   // Remove key down listener
   window.removeEventListener("keydown", onKeyDown);
+
+  // Remove key up listener
+  window.removeEventListener("keyup", onKeyUp);
 });
 </script>
