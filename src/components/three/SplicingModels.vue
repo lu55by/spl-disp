@@ -198,7 +198,7 @@ const init = async () => {
    * Load Models
    */
 
-  // Uniforms
+  // Uniforms used for TSL
   uBaseColor = uniform(color("#fff"));
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
   uOutlineColor = uniform(color("#ffdbac"));
@@ -267,7 +267,9 @@ const init = async () => {
   scene.add(splicingGroupGlobal);
 };
 
-// Resize fn
+/**
+ * On Window Resize fn
+ */
 const onWindowResize = () => {
   // console.log('Resizing...')
 
@@ -287,9 +289,15 @@ const onWindowResize = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 };
 
+/**
+ * Mouse position vector to be used for raycasting
+ */
 const mouse = new THREE.Vector2();
 
-// On Pointer Move fn
+/**
+ * On Pointer Move fn
+ * @param event PointerEvent
+ */
 const onPointerMove = (event: PointerEvent) => {
   if (raycasterIntersectionObject) {
     console.log(
@@ -357,7 +365,10 @@ const onPointerMove = (event: PointerEvent) => {
   }
 };
 
-// Drag and Drop Logic with Raycaster
+/**
+ * On Window Drag Over of Drag and Drop Logic with Raycaster
+ * @param e DragEvent
+ */
 const onWindowDragOver = (e: DragEvent) => {
   e.preventDefault();
 
@@ -425,7 +436,10 @@ const onWindowDragOver = (e: DragEvent) => {
   }
 };
 
-// On Mouse Click fn
+/**
+ * On mouse click fn
+ * @param event MouseEvent
+ */
 const onMouseClick = (event: MouseEvent) => {
   // console.log("\n -- onMouseClick -- event ->", event);
 
@@ -543,7 +557,45 @@ const onMouseClick = (event: MouseEvent) => {
   }
 };
 
-// Animate fn
+/**
+ * Key down event handler
+ * @param event KeyboardEvent
+ */
+const onKeyDown = (event: KeyboardEvent) => {
+  // console.log("\nkey down ->", event);
+
+  switch (event.key.toLocaleLowerCase()) {
+    case "q":
+      transform?.setSpace(transform?.space === "local" ? "world" : "local");
+      break;
+    case "w":
+      transform?.setMode("translate");
+      break;
+    case "e":
+      transform?.setMode("rotate");
+      break;
+    case "r":
+      transform?.setMode("scale");
+      break;
+    case "_":
+    case "-":
+      transform?.setSize(transform?.size - 0.1);
+      break;
+    case "+":
+    case "=":
+      transform?.setSize(transform?.size + 0.1);
+      break;
+    case " ":
+      transform && (transform.enabled = !transform.enabled);
+      break;
+    default:
+      break;
+  }
+};
+
+/**
+ * Animation fn used for renderer
+ */
 const animate = async () => {
   // Elapsed Time
   // const time = clock.getElapsedTime();
@@ -561,6 +613,9 @@ const animate = async () => {
   renderer.render(scene, camera);
 };
 
+/**
+ * Component on mounted fn
+ */
 onMounted(async () => {
   init();
   animate();
@@ -569,8 +624,13 @@ onMounted(async () => {
   window.addEventListener("click", onMouseClick);
   // Drag over listener for raycasting
   window.addEventListener("dragover", onWindowDragOver);
+  // Key down listener for transform
+  window.addEventListener("keydown", onKeyDown);
 });
 
+/**
+ * Component on before unmounted fn
+ */
 onBeforeUnmount(() => {
   console.log("\nReady to dispose the SplicingModels Component...");
   // Unsubscribe the callback fn is called based on the actions in the modelsStore
@@ -588,6 +648,11 @@ onBeforeUnmount(() => {
 
   // Remove pointer down listener
   window.removeEventListener("click", onMouseClick);
+
+  // Remove drag over listener
   window.removeEventListener("dragover", onWindowDragOver);
+
+  // Remove key down listener
+  window.removeEventListener("keydown", onKeyDown);
 });
 </script>

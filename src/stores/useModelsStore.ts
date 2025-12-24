@@ -93,7 +93,7 @@ export const useModelsStore = defineStore("models", {
     cuttersModelGlobal: CuttersModelGlobal,
     // Drag and Drop Hovered Object
     dragHoveredObject: null as THREE.Mesh | null,
-    // Set isShowMap to false to hide the map of all the materials
+    // isShowMap state to toggle the uIsShowMap uniform (0 or 1) of the MeshStandardNodeMaterial
     isShowMap: true,
   }),
 
