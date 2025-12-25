@@ -43,7 +43,12 @@ const loadDefaultCutHeadAsync = async () => {
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(loadedHeadModel, true);
   // Get Cut Head
-  const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
+  // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
+  /*
+    ! Set the cutHeadDefault to the original loadedHeadModel as we are about to add the 
+    ! feature of letting the user import the cutters model and cut the loadedHeadModel dynamically
+   */
+  const cutHeadDefault = loadedHeadModel;
   // Apply PBR Material and SRGB Color Space
   applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
   // Apply Double Side
@@ -51,11 +56,11 @@ const loadDefaultCutHeadAsync = async () => {
   // Set Scale
   // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
   // Add to GUI
-  addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
-    showScale: true,
-  });
+  // addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
+  //   showScale: true,
+  // });
   // Compute the bounding box of the cut head and get the height and log it
-  getObject3DHeight(cutHeadDefault);
+  // getObject3DHeight(cutHeadDefault);
   return cutHeadDefault;
 };
 const CutHeadDefault = await loadDefaultCutHeadAsync();

@@ -331,10 +331,10 @@ export async function getCutHead(
  * @param {THREE.Mesh | Brush} obj2Cut 被切割模型
  * @param {THREE.Mesh | Brush} cutter 切割模型
  * @param {boolean} isHollowSub 是否为孔洞切割
- * @param {string[] | null} evaluatorAttributes 计算器属性 {@remarks ["position", "normal", "uv"]}
+ * @param {string[] | null} evaluatorAttributes 计算器属性 {@remarks ["position", "normal", "uv"]} @see {@link https://threejs.org/docs/?q=BufferAttribute#BufferAttribute}
  * @param {THREE.Material | null}  material 执行切割操作时所使用的材质
  * @param {CSGOperationLog} operationLog 切割操作 DEBUG 日志
- * @returns {Brush} 切割后的模型 {@remarks @see Brush extends THREE.Mesh}
+ * @returns {Brush} 切割后的模型 {@see Brush extends THREE.Mesh}
  */
 function csgSubtract(
   obj2Cut: THREE.Mesh | Brush,
