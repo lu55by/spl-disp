@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-import { MathUtils } from "three";
+import { MathUtils, Vector3 } from "three";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 
 const modelsStore = useModelsStore();
 
 // Local state for inputs
-const pos = ref({ x: 0, y: 0, z: 0 });
-const rot = ref({ x: 0, y: 0, z: 0 }); // In degrees
-const scale = ref({ x: 1, y: 1, z: 1 });
+const pos = ref(new Vector3());
+const posInitial = ref(new Vector3());
+const rot = ref(new Vector3()); // In degrees
+const scalar = ref(1);
 
 const isFocused = ref(false);
 
@@ -16,30 +17,34 @@ const syncFromObject = () => {
   const obj = modelsStore.selectedObject;
   if (!obj || isFocused.value) return;
 
-  pos.value.x = Number(obj.position.x.toFixed(3));
-  pos.value.y = Number(obj.position.y.toFixed(3));
-  pos.value.z = Number(obj.position.z.toFixed(3));
+  pos.value.copy(obj.position);
+  if (!posInitial.value.x) posInitial.value.copy(obj.position);
+
+  // rot.value.copy(obj.rotation);
+
+  scalar.value = obj.scale.x;
 
   rot.value.x = Number(MathUtils.radToDeg(obj.rotation.x).toFixed(2));
   rot.value.y = Number(MathUtils.radToDeg(obj.rotation.y).toFixed(2));
   rot.value.z = Number(MathUtils.radToDeg(obj.rotation.z).toFixed(2));
 
-  scale.value.x = Number(obj.scale.x.toFixed(3));
-  scale.value.y = Number(obj.scale.y.toFixed(3));
-  scale.value.z = Number(obj.scale.z.toFixed(3));
+  // scale.value.x = Number(obj.scale.x.toFixed(3));
+  // scale.value.y = Number(obj.scale.y.toFixed(3));
+  // scale.value.z = Number(obj.scale.z.toFixed(3));
 };
 
 const syncToObject = () => {
   const obj = modelsStore.selectedObject;
   if (!obj) return;
 
-  obj.position.set(pos.value.x, pos.value.y, pos.value.z);
+  obj.position.copy(pos.value);
   obj.rotation.set(
     MathUtils.degToRad(rot.value.x),
     MathUtils.degToRad(rot.value.y),
     MathUtils.degToRad(rot.value.z)
   );
-  obj.scale.set(scale.value.x, scale.value.y, scale.value.z);
+  // obj.scale.copy(scale.value);
+  obj.scale.setScalar(scalar.value);
 };
 
 watch(
@@ -148,15 +153,14 @@ const handleInput = () => {
                   class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
                 />
               </div>
-              <!-- TODO: Make the min and max range based on the posY value with some offsets -->
               <input
                 type="range"
                 v-model.number="pos.y"
                 @input="handleInput"
                 @mousedown="isFocused = true"
                 @mouseup="isFocused = false"
-                min="-50"
-                max="50"
+                :min="posInitial.y - 50"
+                :max="posInitial.y + 50"
                 step="0.01"
                 class="telemetry-slider"
               />
@@ -176,15 +180,14 @@ const handleInput = () => {
                   class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
                 />
               </div>
-              <!-- TODO: Make the min and max range based on the posZ value with some offsets -->
               <input
                 type="range"
                 v-model.number="pos.z"
                 @input="handleInput"
                 @mousedown="isFocused = true"
                 @mouseup="isFocused = false"
-                min="-50"
-                max="50"
+                :min="posInitial.z - 10"
+                :max="posInitial.z + 10"
                 step="0.01"
                 class="telemetry-slider"
               />
@@ -299,88 +302,31 @@ const handleInput = () => {
               >Scale</label
             >
           </div>
-          <div class="grid grid-cols-3 gap-3">
-            <!-- X -->
-            <div class="flex flex-col gap-2">
-              <div class="relative">
-                <span
-                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                  >X</span
-                >
-                <input
-                  v-model.number="scale.x"
-                  @input="handleInput"
-                  @focus="isFocused = true"
-                  @blur="isFocused = false"
-                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
-                />
-              </div>
+          <div class="flex flex-col gap-2">
+            <div class="relative">
+              <span
+                class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
+                >S</span
+              >
               <input
-                type="range"
-                v-model.number="scale.x"
+                v-model.number="scalar"
                 @input="handleInput"
-                @mousedown="isFocused = true"
-                @mouseup="isFocused = false"
-                min="0.01"
-                max="10"
-                step="0.01"
-                class="telemetry-slider"
+                @focus="isFocused = true"
+                @blur="isFocused = false"
+                class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
               />
             </div>
-            <!-- Y -->
-            <div class="flex flex-col gap-2">
-              <div class="relative">
-                <span
-                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                  >Y</span
-                >
-                <input
-                  v-model.number="scale.y"
-                  @input="handleInput"
-                  @focus="isFocused = true"
-                  @blur="isFocused = false"
-                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
-                />
-              </div>
-              <input
-                type="range"
-                v-model.number="scale.y"
-                @input="handleInput"
-                @mousedown="isFocused = true"
-                @mouseup="isFocused = false"
-                min="0.01"
-                max="10"
-                step="0.01"
-                class="telemetry-slider"
-              />
-            </div>
-            <!-- Z -->
-            <div class="flex flex-col gap-2">
-              <div class="relative">
-                <span
-                  class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-cyan-500/40 uppercase"
-                  >Z</span
-                >
-                <input
-                  v-model.number="scale.z"
-                  @input="handleInput"
-                  @focus="isFocused = true"
-                  @blur="isFocused = false"
-                  class="w-full bg-slate-800/40 border-b border-white/5 focus:border-cyan-500/60 placeholder-slate-600 text-cyan-50 text-xs py-2 pl-6 pr-2 outline-none transition-all"
-                />
-              </div>
-              <input
-                type="range"
-                v-model.number="scale.z"
-                @input="handleInput"
-                @mousedown="isFocused = true"
-                @mouseup="isFocused = false"
-                min="0.01"
-                max="10"
-                step="0.01"
-                class="telemetry-slider"
-              />
-            </div>
+            <input
+              type="range"
+              v-model.number="scalar"
+              @input="handleInput"
+              @mousedown="isFocused = true"
+              @mouseup="isFocused = false"
+              min="0.01"
+              max="10"
+              step="0.01"
+              class="telemetry-slider"
+            />
           </div>
         </div>
       </div>
