@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import LoadingOverlay from "./components/ui/LoadingOverlay.vue";
 // import ThreeSceneTst from "./components/three/ThreeSceneTst.vue";
-import SplicingModelsMainUIContainer from "./components/SplicingModelsMainUIContainer.vue";
+import SplicingModelsMainContainer from "./components/SplicingModelsMainContainer.vue";
 </script>
 
 <template>
@@ -12,6 +12,6 @@ import SplicingModelsMainUIContainer from "./components/SplicingModelsMainUICont
     <LoadingOverlay />
     <!-- <ThreeSceneTst /> -->
     <!-- TODO: Optimize the code and make it cleaner. -->
-    <SplicingModelsMainUIContainer />
+    <SplicingModelsMainContainer />
   </div>
 </template>
