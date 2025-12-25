@@ -50,7 +50,8 @@ interface LoadObjOptions {
  */
 export async function getCutHead(
   headModel: THREE.Group<THREE.Object3DEventMap>,
-  cutters: THREE.Group<THREE.Object3DEventMap> | string
+  cutters: THREE.Group<THREE.Object3DEventMap> | string,
+  isDispose: boolean = true
 ): Promise<THREE.Group<THREE.Object3DEventMap>> {
   console.log("\nheadModel 2 be cut ->", headModel);
   // return;
@@ -67,6 +68,7 @@ export async function getCutHead(
     return headModel;
   }
 
+  // 判断是否为单个切割节点
   const isCuttersLen1 = cuttersLen === 1;
 
   // 加载口腔切割模型
@@ -151,17 +153,20 @@ export async function getCutHead(
     cutterSingleBrush.updateMatrixWorld();
 
     cutHeadBrush = csgSubtract(headNode, cutterSingleBrush, false, null, null, {
-      isLog: IsCSGOperationLog,
+      isLog: true,
       value: "One single Cutter Node Subtraction.",
     });
     // Set the name of the cut head node
     cutHeadBrush.name = "CutHeadNode";
     // Set the name of the cut head node material
     (cutHeadBrush.material as THREE.MeshPhongMaterial).name = "CutHeadNodeMat";
-    console.log("\ncutHeadBrush.material ->", cutHeadBrush.material);
+    console.log("\ncutHeadBrush.material set ->", cutHeadBrush.material);
 
     // 释放资源
-    disposeGeoMat(headModel);
+    if (isDispose) {
+      disposeGeoMat(headModel);
+      headModel = null;
+    }
     // 返回切割过后的头部节点，左眼节点和右眼节点组
     return combineMeshesToGroup(
       "CutHeadEyesNodeCombinedGrp",
@@ -315,10 +320,13 @@ export async function getCutHead(
   // console.log("\ncutHeadBrush.material ->", cutHeadBrush.material);
 
   // 释放资源
-  disposeGeoMat(headModel);
+  if (isDispose) {
+    disposeGeoMat(headModel);
+    headModel = null;
+  }
   // 返回切割过后的头部节点，左眼节点和右眼节点组
   return combineMeshesToGroup(
-    "CutHeadEyesCombinedGrp",
+    "CutHeadEyesNodeCombinedGrp",
     cutHeadBrush,
     teethNode,
     eyeLNode,
@@ -447,12 +455,10 @@ function modifyNewVerticesUv(
 
 /**
  * Dispose the geometry and material of the object.
- * @param {THREE.Object3D<THREE.Object3DEventMap>} obj3D The object to dispose.
+ * @param {THREE.Group<THREE.Object3DEventMap>} obj3D The object to dispose.
  */
-function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap> | null) {
-  if (!obj3D || !(obj3D instanceof THREE.Group)) return;
-  // console.log("obj3D 2 dispose ->", obj3D);
-
+function disposeGeoMat(obj3D: THREE.Group<THREE.Object3DEventMap>) {
+  console.log("\n -- disposeGeoMat -- ready to dispose obj3D ->", obj3D);
   obj3D.traverse((m) => {
     if (m instanceof THREE.Mesh) {
       // 1. Dispose GPU resources
@@ -477,7 +483,6 @@ function disposeGeoMat(obj3D: THREE.Object3D<THREE.Object3DEventMap> | null) {
   }
 
   obj3D.clear();
-  obj3D = null;
 }
 
 /**

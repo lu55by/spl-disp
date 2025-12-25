@@ -1,7 +1,11 @@
 import type { Group, Object3DEventMap } from "three";
 import { toast } from "vue3-toastify";
 import { ToastContents } from "../constants";
-import { OBJLoaderInstance, ValidNodeNames } from "../three/constants";
+import {
+  NodeNames,
+  OBJLoaderInstance,
+  ValidNodeNames,
+} from "../three/constants";
 
 /**
  * Validates the imported files for the splicing model.
@@ -139,8 +143,15 @@ export const validateImportFilesWithNodeNames = async (
   if (stlFile) {
     // ! The stl file name must match one of the valid node names, or we don't know what kind of model is imported (hair or body)
     if (
-      !stlFile.name.toLocaleLowerCase().includes("hair") &&
-      !stlFile.name.toLocaleLowerCase().includes("body")
+      !stlFile.name
+        .toLocaleLowerCase()
+        .includes(NodeNames.HairNames.Hair.toLocaleLowerCase()) &&
+      !stlFile.name
+        .toLocaleLowerCase()
+        .includes(NodeNames.BodyNames.Body.toLocaleLowerCase()) &&
+      !stlFile.name
+        .toLocaleLowerCase()
+        .includes(NodeNames.CuttersNames.Single.toLocaleLowerCase())
     ) {
       toast(ToastContents.ModelNodeNameErrorContentZH, {
         autoClose: 1000,
@@ -164,7 +175,9 @@ export const validateImportFilesWithNodeNames = async (
     importedParsedObject
   );
 
-  // Check if the imported object has the correct node names
+  /*
+    ! Check if the imported object has the correct node names (Currently, supporting one single cutter node only)
+   */
   const nodeName = importedParsedObject.children[0].name.toLocaleLowerCase();
   let isValidNodeName = false;
   for (const validNodeName of ValidNodeNames) {
@@ -173,10 +186,18 @@ export const validateImportFilesWithNodeNames = async (
       break;
     }
   }
+
+  /*
+    Logs
+   */
   isValidNodeName &&
     console.log("\n -- validateImportFiles -- nodeName ->", nodeName);
   !isValidNodeName &&
     console.warn("\n -- validateImportFiles -- nodeName ->", nodeName);
+
+  /*
+    Toast Warning
+   */
   if (!isValidNodeName) {
     toast(ToastContents.ModelNodeNameErrorContentZH, {
       autoClose: 1000,
@@ -185,6 +206,8 @@ export const validateImportFilesWithNodeNames = async (
     return false;
   }
 
-  // OBJ file validation passed, return true
+  /*
+    OBJ file validation passed, return true
+   */
   return true;
 };

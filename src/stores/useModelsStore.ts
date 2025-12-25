@@ -3,13 +3,12 @@ import * as THREE from "three/webgpu";
 import { markRaw } from "vue";
 import {
   CutHeadBoundingBoxHeight,
+  CutHeadEyesNodeCombinedGroupName,
   ModelPaths,
   NodeNames,
   OBJLoaderInstance,
   type PhongMesh,
 } from "../three/constants";
-import { addTransformDebug } from "../three/gui";
-import { GUIGlobal } from "../three/gui/global";
 import { loadSTLFile } from "../three/loaders/ModelLoader.ts";
 import { loadTexture } from "../three/loaders/TextureLoader";
 import {
@@ -20,8 +19,8 @@ import {
   getObject3DHeight,
   removeAndAddModelWithModelHeight,
   removeAndAddModelWithNodeNames,
+  replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
-import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 /*
   Loaded Cutters Model
@@ -38,10 +37,10 @@ const loadDefaultCutHeadAsync = async () => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(
       // Male
-      ModelPaths.HeadFemale.Model
+      ModelPaths.HeadMale.Model
     );
   // Apply textures
-  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, true);
+  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, false);
   // Get Cut Head
   // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   /*
@@ -49,6 +48,7 @@ const loadDefaultCutHeadAsync = async () => {
     ! feature of letting the user import the cutters model and cut the loadedHeadModel dynamically
    */
   const cutHeadDefault = loadedHeadModel;
+  cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
   // Apply PBR Material and SRGB Color Space
   applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
   // Apply Double Side
@@ -70,7 +70,7 @@ console.log("\n CutHeadDefault ->", CutHeadDefault);
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(CutHeadDefault)
+  new THREE.Group().add(CutHeadDefault.clone())
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -89,6 +89,8 @@ export const useModelsStore = defineStore("models", {
   state: () => ({
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
+    // Default Original Head
+    defaultOriginalHead: CutHeadDefault,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model
@@ -351,7 +353,7 @@ export const useModelsStore = defineStore("models", {
         const stlModelGroup = new THREE.Group().add(stlMesh);
         const isHair = stlFile.name
           .toLocaleLowerCase()
-          .includes(NodeNames.HairNames.Hair);
+          .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
         // Check if it is hair or body
         console.log("\nis imported Hair stl model ->", isHair);
         stlModelGroup.name = isHair ? "hairGrp" : "bodyGrp";
@@ -375,6 +377,22 @@ export const useModelsStore = defineStore("models", {
       const text = await objFile.text();
       // Parse the .obj file text content with the OBJLoaderInstance
       const importedParsedObject = OBJLoaderInstance.parse(text);
+
+      // Check if it is the cutter single model being imported
+      const isCutterSingle =
+        importedParsedObject.children.length === 1 &&
+        importedParsedObject.children[0].name.toLocaleLowerCase() ===
+          NodeNames.CuttersNames.Single.toLocaleLowerCase();
+      console.log("\nisCutterSingle imoprted ->", isCutterSingle);
+      if (isCutterSingle) {
+        // Do the getCutHead operation
+        replaceCurrentHeadWithCutHead(
+          this.splicingGroupGlobal,
+          this.defaultOriginalHead,
+          importedParsedObject
+        );
+        return;
+      }
 
       // If texture file exists, load and apply it to the imported model
       if (texFile) {

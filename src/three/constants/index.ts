@@ -114,7 +114,7 @@ export const OffsetPosNegPercentages = {
   },
 };
 
-export const CutHeadEyesCombinedGroupName = "CutHeadEyesCombinedGrp";
+export const CutHeadEyesNodeCombinedGroupName = "CutHeadEyesNodeCombinedGrp";
 
 export const CutHeadBoundingBoxHeight = 22.35 + 40;
 
@@ -164,7 +164,7 @@ export const NodeNames = {
   CuttersNames: {
     Sphere: "Sphere006",
     Cylinder: "Cylinder004",
-    Single: "cutter-single",
+    Single: "cutting",
   },
   HairNames: {
     Hair: "hair",
@@ -174,7 +174,7 @@ export const NodeNames = {
   },
 };
 
-export const ValidNodeNames = ["hair", "body"];
+export const ValidNodeNames = ["hair", "body", "cutting"];
 
 /*
  * -----------------------------------------------------------------------------

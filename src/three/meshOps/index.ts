@@ -23,7 +23,7 @@ import {
   Colors,
   CutHeadBoundingBoxHeight,
   CutHeadDebugProps,
-  CutHeadEyesCombinedGroupName,
+  CutHeadEyesNodeCombinedGroupName,
   ModelPaths,
   NodeNames,
   type PhongMesh,
@@ -31,6 +31,7 @@ import {
 } from "../constants";
 import { exportObjectToOBJ } from "../exporters";
 import { loadTexture } from "../loaders/TextureLoader";
+import { getCutHead } from "../utils/csgCutHeadV3";
 
 export function combineMeshes(meshes: Mesh[]) {
   const geometries = meshes.map((mesh) => {
@@ -381,7 +382,7 @@ export function getFilteredSubGroups(
 ): Group<Object3DEventMap>[] {
   // Filter out the cut head group
   return splicingGroupGlobal.children.filter(
-    (c) => c.name !== CutHeadEyesCombinedGroupName
+    (c) => c.name !== CutHeadEyesNodeCombinedGroupName
   ) as Group<Object3DEventMap>[];
 }
 
@@ -467,10 +468,10 @@ export function removeAndAddModelWithNodeNames(
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
   const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
-  // console.log(
-  //   "\n -- removeAndAddModelV2 -- filteredSubGroups length ->",
-  //   filteredSubGroups.length
-  // );
+  console.log(
+    "\n -- removeAndAddModelV2 -- filteredSubGroups length ->",
+    filteredSubGroups.length
+  );
   // return;
 
   if (filteredSubGroups.length === 0) {
@@ -529,4 +530,82 @@ export function removeAndAddModelWithNodeNames(
   disposeHairBodyGroup(splicingGroupGlobal, group2Dispose);
   // Add the new group
   splicingGroupGlobal.add(importedGroup);
+}
+
+/**
+ * Disposes the current cut head in the splicing group global.
+ * @param splicingGroupGlobal The splicing group global.
+ */
+function disposeAndRemoveCurrentCutHead(
+  splicingGroupGlobal: Group<Object3DEventMap>
+) {
+  let currentCutHead: Group<Object3DEventMap> | null = null;
+  // Find the current cut head
+  currentCutHead = splicingGroupGlobal.children.find((child) => {
+    return (
+      child.name.toLocaleLowerCase() ===
+      CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()
+    );
+  }) as Group<Object3DEventMap>;
+  console.log(
+    "\n -- disposeCurrentCutHead -- currentCutHead to be disposed ->",
+    currentCutHead
+  );
+
+  // Check if the current cut head is found
+  if (!currentCutHead) {
+    console.warn("\n -- disposeCurrentCutHead -- No cut head found to dispose");
+    return;
+  }
+  // Execute the dispose operation
+  currentCutHead.traverse((child) => {
+    if (child instanceof Mesh) {
+      child.geometry?.dispose();
+      if (child.material) {
+        const materials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
+        materials.forEach((mat) => {
+          // Dispose textures in material properties
+          for (const key in mat) {
+            const value = (mat as any)[key];
+            if (value && value instanceof Texture) {
+              value.dispose();
+            }
+          }
+          mat.dispose();
+        });
+      }
+    }
+  });
+
+  // Finally remove from the splicingGroupGlobal
+  splicingGroupGlobal.remove(currentCutHead);
+}
+
+/**
+ * Replaces the default head with the imported cutter.
+ * @param splicingGroupGlobal The splicing group global.
+ * @param defaultOriginalHead The default original head.
+ * @param importedCutter The imported cutter.
+ */
+export async function replaceCurrentHeadWithCutHead(
+  splicingGroupGlobal: Group<Object3DEventMap>,
+  defaultOriginalHead: Group<Object3DEventMap>,
+  importedCutter: Group<Object3DEventMap>
+) {
+  // Remove the current default original head in the splicing group global
+  disposeAndRemoveCurrentCutHead(splicingGroupGlobal);
+  // Execute the getCutHead operation
+  const newCutHead = await getCutHead(
+    defaultOriginalHead,
+    importedCutter,
+    false
+  );
+  console.log(
+    "\n -- replaceDefaultHeadWithCutHead -- newCutHead ->",
+    newCutHead
+  );
+  // Add the new cut head to the splicing group global
+  splicingGroupGlobal.add(newCutHead);
 }

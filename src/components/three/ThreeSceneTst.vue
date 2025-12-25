@@ -14,7 +14,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
   CameraProps,
-  CutHeadEyesCombinedGroupName,
+  CutHeadEyesNodeCombinedGroupName,
   HDRPath,
   HeadFeMaleSubPath,
   HeadMaleSubPath,
@@ -471,7 +471,7 @@ const init = async () => {
     // camera.updateMatrixWorld();
 
     const combinedCutHeadEyesGrp: THREE.Group = combineMeshesToGroup(
-      CutHeadEyesCombinedGroupName,
+      CutHeadEyesNodeCombinedGroupName,
       cutHead,
       eyeLMaleNode,
       eyeRMaleNode

@@ -40,9 +40,15 @@ const { splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
  * @param group THREE.Group
  */
 const adjustPivots = (group: THREE.Group) => {
+  console.log("\nadjustPivots called...");
+  console.log("\n -- adjustPivots -- group ->", group);
   group.updateMatrixWorld();
   group.children.forEach((child) => {
     if (child instanceof THREE.Mesh) {
+      const childName = child.name;
+
+      console.log(`\nReady to adjust the pivots of child ${childName}`);
+
       if (child.geometry.boundingBox === null)
         child.geometry.computeBoundingBox();
       const center = child.geometry.boundingBox!.getCenter(new THREE.Vector3());
@@ -54,8 +60,13 @@ const adjustPivots = (group: THREE.Group) => {
       const vec = center.clone();
       vec.applyQuaternion(child.quaternion);
       vec.multiply(child.scale);
+      console.log(
+        `\n -- adjustPivots -- vec to be add to ${childName} position ->`,
+        vec
+      );
       child.position.add(vec);
     } else if (child instanceof THREE.Group) {
+      // child -> HeadGrp, HairGrp or BodyGrp
       const box = new THREE.Box3().setFromObject(child);
       const center = box.getCenter(new THREE.Vector3());
 
@@ -86,10 +97,11 @@ const orbitControlsTargetCenter = new THREE.Vector3();
 const updateOrbitControlsTargetCenter = () => {
   console.log("\nupdateOrbitControlsTargetCenter called...");
   console.log(
-    "\nsplicingGroupGlobal in SplicingModels after updateOrbitControlsTargetCenter ->",
+    "\n-- updateOrbitControlsTargetCenter -- splicingGroupGlobal ->",
     splicingGroupGlobal
   );
 
+  // Adjust the pivot point of each object in the group to its bounding box center
   adjustPivots(splicingGroupGlobal);
 
   // Move all 3D Objects in splicingGroupGlobal to the world original position vec3(0)
