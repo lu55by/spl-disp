@@ -284,7 +284,7 @@ const clearModels = () => {
  */
 const handleExport = async () => {
   try {
-    // TODO: Show a loading bar on the UI while exporting.
+    // TODO: Show a loading bar on the UI while exporting and let the user select where to save the file.
     const result = await modelsStore.exportModel();
     if (result) {
       toast.success("导出成功", { autoClose: 2000 });

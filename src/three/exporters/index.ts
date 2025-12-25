@@ -113,7 +113,7 @@ import JSZip from "jszip";
  * 3. Texture files (PNG)
  * Packs everything into a ZIP file.
  */
-export async function exportSplicingGroup(group: Object3D) {
+export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
   const zip = new JSZip();
   const exporter = new OBJExporter();
 
