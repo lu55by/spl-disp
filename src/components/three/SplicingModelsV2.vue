@@ -149,6 +149,7 @@ let camera: THREE.PerspectiveCamera,
   uIsShowMap: THREE.UniformNode<number>,
   uOutlinePatternFactor: THREE.UniformNode<THREE.Vector2>,
   uOutlineColor: THREE.UniformNode<THREE.Color>,
+  // uToggleOutline: THREE.UniformNode<number>,
   // raycaster intersection object
   raycasterIntersectionObject: THREE.Object3D | null;
 
@@ -319,7 +320,8 @@ const init = async () => {
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
   // uOutlineColor = uniform(color("#ffdbac"));
   uOutlineColor = uniform(color("#0ff"));
-  uOutlinePatternFactor = uniform(vec2(0.99, 0.999));
+  uOutlinePatternFactor = uniform(vec2(0.8, 0.82));
+  // uToggleOutline = uniform(0);
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
@@ -330,36 +332,20 @@ const init = async () => {
         child instanceof THREE.Mesh &&
         child.material instanceof THREE.MeshStandardNodeMaterial
       ) {
-        /*
-          Try to Simulate redeclaring the `projectionMatrix * modelMatrix * viewMatrix * vec4(position, 1.)` in glsl
-         */
-        // const position = cameraProjectionMatrix
-        //   .mul(modelWorldMatrix)
-        //   .mul(cameraViewMatrix)
-        //   .mul(vec4(positionLocal, 1));
-        // child.material.positionNode = position;
+        // Individual UniformNode for each mesh
+        const uLocalToggleOutline = uniform(0);
+        child.userData.uLocalToggleOutline = uLocalToggleOutline;
 
         /*
           Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
         */
-        // child.material.colorNode = mix(
-        //   mix(uBaseColor, materialColor, uIsShowMap),
-        //   uOutlineColor,
-        //   getOutlinePattern(uOutlinePatternFactor)
-        // );
-
-        /*
-          Mix the uBaseColor and materialColor based on the uIsShowMap
-        */
-        child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
-        child.material.colorNode.setName(`${child.name}_colorNode`);
-
-        /*
-          Try to deactivate the normal transformation (not working properly)
-        */
-        // child.material.normalNode = modelViewProjection
-        //   .mul(modelViewMatrix)
-        //   .mul(normalLocal, 0);
+        child.material.colorNode = mix(
+          mix(uBaseColor, materialColor, uIsShowMap),
+          uOutlineColor,
+          getOutlinePattern(uOutlinePatternFactor).mul(
+            child.userData.uLocalToggleOutline
+          )
+        );
       }
     });
   };
@@ -412,6 +398,32 @@ const onWindowResize = () => {
 const mouse = new THREE.Vector2();
 
 /**
+ * Set the outline visibility for the object
+ * @param object THREE.Object3D
+ * @param isVisible boolean
+ */
+const setOutlineVisibility = (
+  object: THREE.Object3D | null,
+  isVisible: boolean
+) => {
+  if (!object) return;
+  const value = isVisible ? 1 : 0;
+  if (object instanceof THREE.Mesh) {
+    if (object.userData.uLocalToggleOutline)
+      object.userData.uLocalToggleOutline.value = value;
+  } else if (object instanceof THREE.Group) {
+    object.traverse((child) => {
+      if (
+        child instanceof THREE.Mesh &&
+        child.userData.uLocalToggleOutline
+      ) {
+        child.userData.uLocalToggleOutline.value = value;
+      }
+    });
+  }
+};
+
+/**
  * On Pointer Move fn
  * @param event PointerEvent
  */
@@ -426,6 +438,7 @@ const onPointerMove = (event: PointerEvent) => {
     //     child.material.color.set("#fff");
     //   }
     // });
+    setOutlineVisibility(raycasterIntersectionObject, false);
     raycasterIntersectionObject = null;
     // if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.99, 0.999);
   }
@@ -455,6 +468,8 @@ const onPointerMove = (event: PointerEvent) => {
       );
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
+      setOutlineVisibility(raycasterIntersectionObject, true);
+
       // Change the color of each material of each mesh in the parent group
       // raycasterIntersectionObject.children.forEach((child) => {
       //   if (
@@ -491,18 +506,7 @@ const onWindowDragOver = (e: DragEvent) => {
 
   // Fix the issue of colorNode not being set back to the original colorNode based on uIsShowMap
   if (modelsStore.dragHoveredObject) {
-    uOutlinePatternFactor.value.set(0.99, 0.999);
-    if (
-      modelsStore.dragHoveredObject.material instanceof
-      THREE.MeshStandardNodeMaterial
-    ) {
-      modelsStore.dragHoveredObject.material.colorNode = mix(
-        uBaseColor,
-        materialColor,
-        uIsShowMap
-      );
-      modelsStore.dragHoveredObject.material.needsUpdate = true;
-    }
+    setOutlineVisibility(modelsStore.dragHoveredObject, false);
   }
 
   // Calculate mouse position for raycasting
@@ -536,13 +540,8 @@ const onWindowDragOver = (e: DragEvent) => {
           modelsStore.dragHoveredObject.material instanceof
           THREE.MeshStandardNodeMaterial
         ) {
-          uOutlinePatternFactor.value.set(0.8, 0.82);
-          modelsStore.dragHoveredObject.material.colorNode = mix(
-            mix(uBaseColor, materialColor, uIsShowMap),
-            uOutlineColor,
-            getOutlinePattern(uOutlinePatternFactor)
-          );
-          modelsStore.dragHoveredObject.material.needsUpdate = true;
+          // modelsStore.dragHoveredObject is a Mesh
+          setOutlineVisibility(modelsStore.dragHoveredObject, true);
         }
       }
     }
@@ -574,12 +573,7 @@ const onMouseClick = (event: MouseEvent) => {
         raycasterIntersectionObject
       );
       console.log("\nReady to reset the colorNode controlled by uIsShowMap...");
-      raycasterIntersectionObject.material.colorNode = mix(
-        uBaseColor,
-        materialColor,
-        uIsShowMap
-      );
-      raycasterIntersectionObject.material.needsUpdate = true;
+      setOutlineVisibility(raycasterIntersectionObject, false);
     }
 
     // Change the colorNode back to the original colorNode controlled by uIsShowMap of each material of each mesh in the raycasterIntersectionObject group
@@ -590,8 +584,7 @@ const onMouseClick = (event: MouseEvent) => {
           child.geometry instanceof THREE.BufferGeometry &&
           child.material instanceof THREE.MeshStandardNodeMaterial
         ) {
-          child.material.colorNode = mix(uBaseColor, materialColor, uIsShowMap);
-          child.material.needsUpdate = true;
+          setOutlineVisibility(child, false);
         }
       });
     }
@@ -599,8 +592,6 @@ const onMouseClick = (event: MouseEvent) => {
     raycasterIntersectionObject = null;
     // Detach the transform
     transform.detach();
-    // Deactivate the outline effect
-    uOutlinePatternFactor.value.set(0.99, 0.999);
   }
 
   // Check if there is a previous selected object in modelsStore
@@ -648,8 +639,6 @@ const onMouseClick = (event: MouseEvent) => {
         "\nCurrent selected object in modelsStore ->",
         modelsStore.selectedObject
       );
-      // Activate the outline effect
-      uOutlinePatternFactor.value.set(0.8, 0.82);
       // Check if the raycasterIntersectionObject is a mesh
       if (
         raycasterIntersectionObject instanceof THREE.Mesh &&
@@ -661,28 +650,17 @@ const onMouseClick = (event: MouseEvent) => {
           "\nraycasterIntersectionObject is mesh ->",
           raycasterIntersectionObject
         );
-        raycasterIntersectionObject.material.colorNode = mix(
-          mix(uBaseColor, materialColor, uIsShowMap),
-          uOutlineColor,
-          getOutlinePattern(uOutlinePatternFactor)
-        );
-        raycasterIntersectionObject.material.needsUpdate = true;
+        setOutlineVisibility(raycasterIntersectionObject, true);
         return;
       }
+      // raycasterIntersectionObject is a group
       raycasterIntersectionObject.traverse((child) => {
         if (
           child instanceof THREE.Mesh &&
           child.geometry instanceof THREE.BufferGeometry &&
           child.material instanceof THREE.MeshStandardNodeMaterial
         ) {
-          child.material.colorNode = mix(
-            mix(uBaseColor, materialColor, uIsShowMap),
-            uOutlineColor,
-            getOutlinePattern(uOutlinePatternFactor)
-          );
-          child.material.colorNode.setName(`${child.name}_colorNode`);
-          // Setting this property to true indicates the engine the material needs to be recompiled.
-          child.material.needsUpdate = true;
+          setOutlineVisibility(child, true);
         }
       });
     }
