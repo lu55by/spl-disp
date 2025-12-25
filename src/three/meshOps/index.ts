@@ -532,6 +532,29 @@ export function removeAndAddModelWithNodeNames(
   splicingGroupGlobal.add(importedGroup);
 }
 
+export function disposeGroupObject(obj2Dispose: Group<Object3DEventMap>) {
+  obj2Dispose.traverse((child) => {
+    if (child instanceof Mesh) {
+      child.geometry?.dispose();
+      if (child.material) {
+        const materials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
+        materials.forEach((mat) => {
+          // Dispose textures in material properties
+          for (const key in mat) {
+            const value = (mat as any)[key];
+            if (value && value instanceof Texture) {
+              value.dispose();
+            }
+          }
+          mat.dispose();
+        });
+      }
+    }
+  });
+}
+
 /**
  * Disposes the current cut head in the splicing group global.
  * @param splicingGroupGlobal The splicing group global.
@@ -558,26 +581,7 @@ function disposeAndRemoveCurrentCutHead(
     return;
   }
   // Execute the dispose operation
-  currentCutHead.traverse((child) => {
-    if (child instanceof Mesh) {
-      child.geometry?.dispose();
-      if (child.material) {
-        const materials = Array.isArray(child.material)
-          ? child.material
-          : [child.material];
-        materials.forEach((mat) => {
-          // Dispose textures in material properties
-          for (const key in mat) {
-            const value = (mat as any)[key];
-            if (value && value instanceof Texture) {
-              value.dispose();
-            }
-          }
-          mat.dispose();
-        });
-      }
-    }
-  });
+  disposeGroupObject(currentCutHead);
 
   // Finally remove from the splicingGroupGlobal
   splicingGroupGlobal.remove(currentCutHead);
@@ -606,6 +610,7 @@ export async function replaceCurrentHeadWithCutHead(
     "\n -- replaceDefaultHeadWithCutHead -- newCutHead ->",
     newCutHead
   );
+  disposeGroupObject(importedCutter);
   // Add the new cut head to the splicing group global
   splicingGroupGlobal.add(newCutHead);
 }

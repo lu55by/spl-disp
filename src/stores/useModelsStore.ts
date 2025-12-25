@@ -376,21 +376,36 @@ export const useModelsStore = defineStore("models", {
       // ! OBJ File Import
       const text = await objFile.text();
       // Parse the .obj file text content with the OBJLoaderInstance
+      // TODO: Add a loading bar ui to show the progress of parsing the obj text content as there might be some obj file with large number of vertices.
       const importedParsedObject = OBJLoaderInstance.parse(text);
 
       // Check if it is the cutter single model being imported
-      const isCutterSingle =
-        importedParsedObject.children.length === 1 &&
-        importedParsedObject.children[0].name.toLocaleLowerCase() ===
-          NodeNames.CuttersNames.Single.toLocaleLowerCase();
-      console.log("\nisCutterSingle imoprted ->", isCutterSingle);
-      if (isCutterSingle) {
+      const isCutterImported =
+        importedParsedObject.children.find((child) => {
+          return child.name
+            .toLocaleLowerCase()
+            .startsWith(NodeNames.CuttersNames.Single.toLocaleLowerCase());
+        }) !== undefined;
+
+      console.log("\nisCutterImported ->", isCutterImported);
+      if (isCutterImported) {
         // Do the getCutHead operation
-        replaceCurrentHeadWithCutHead(
-          this.splicingGroupGlobal,
-          this.defaultOriginalHead,
-          importedParsedObject
-        );
+        if (
+          importedParsedObject.children.length === 1 &&
+          importedParsedObject.children[0].name.toLocaleLowerCase() ===
+            NodeNames.CuttersNames.Single.toLocaleLowerCase()
+        )
+          replaceCurrentHeadWithCutHead(
+            this.splicingGroupGlobal,
+            this.defaultOriginalHead,
+            importedParsedObject
+          );
+        else
+          console.warn(
+            "Invalid cutter single model name ->",
+            importedParsedObject.children[0].name
+          );
+        // Return the function immediately to prevent the cutter single model from being added to the splicing group
         return;
       }
 
