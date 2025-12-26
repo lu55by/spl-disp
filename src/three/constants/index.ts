@@ -199,7 +199,7 @@ export const HeadMaleSubPath = `/cutHead-uv-issue-01-isspd01`;
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
 // Head Female sub path
-export const HeadFeMaleSubPath = `/default`;
+export const HeadFeMaleSubPath = `/default/new`;
 
 // --- Body Prefix ---
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
