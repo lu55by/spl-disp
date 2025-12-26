@@ -33,14 +33,14 @@ const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
 /*
   Load Default Cut Head
  */
-const loadDefaultCutHeadAsync = async () => {
+const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(
       // Male
-      ModelPaths.HeadFemale.Model
+      isFemale ? ModelPaths.HeadFemale.Model : ModelPaths.HeadMale.Model
     );
   // Apply textures
-  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, true);
+  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, isFemale);
   // Get Cut Head
   // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   /*
@@ -63,14 +63,24 @@ const loadDefaultCutHeadAsync = async () => {
   // getObject3DHeight(cutHeadDefault);
   return cutHeadDefault;
 };
-const CutHeadDefault = await loadDefaultCutHeadAsync();
-console.log("\n CutHeadDefault ->", CutHeadDefault);
+
+/*
+  Default Original Head Female
+ */
+const DefaultOriginalHeadFemale = await loadDefaultCutHeadAsync(true);
+console.log("\n DefaultOriginalHeadFemale ->", DefaultOriginalHeadFemale);
+
+/*
+  Default Original Head Male
+ */
+const DefaultOriginalHeadMale = await loadDefaultCutHeadAsync(false);
+console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
 
 /*
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(CutHeadDefault.clone())
+  new THREE.Group().add(DefaultOriginalHeadFemale.clone())
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -90,7 +100,9 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: CutHeadDefault,
+    defaultOriginalHead: DefaultOriginalHeadFemale,
+    // isDefaultHeadFemale state to toggle the gender of the default original head
+    isDefaultHeadFemale: true,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model
@@ -108,6 +120,28 @@ export const useModelsStore = defineStore("models", {
   },
 
   actions: {
+    /**
+     * Set the default original head.
+     * @param isFemale The gender of the default original head
+     */
+    setDefaultOriginalHead(isFemale: boolean) {
+      console.log("\n-- setDefaultOriginalHead -- isFemale ->", isFemale);
+      this.defaultOriginalHead = isFemale
+        ? DefaultOriginalHeadFemale
+        : DefaultOriginalHeadMale;
+      this.splicingGroupGlobal.remove(
+        this.splicingGroupGlobal.getObjectByName(
+          CutHeadEyesNodeCombinedGroupName
+        )
+      );
+      this.splicingGroupGlobal.add(this.defaultOriginalHead.clone());
+      console.log(
+        "\n -- setDefaultOriginalHead -- defaultOriginalHead changed to ->",
+        this.defaultOriginalHead
+      );
+      this.isDefaultHeadFemale = isFemale;
+    },
+
     /**
      * Set the selected object by mouse click.
      * @param object The object being selected by mouse click

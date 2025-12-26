@@ -84,6 +84,10 @@
             <i class="opacity-50 text-[10px] uppercase">Vis</i>
             切换{{ isShowMap ? "白" : "彩" }}模
           </Button>
+          <Button @click="toggleIsFemale">
+            <i class="opacity-50 text-[10px] uppercase">Vis</i>
+            切换{{ isDefaultHeadFemale ? "男" : "女" }}头模
+          </Button>
           <Button @click="handleExport">
             <i class="opacity-50 text-[10px] uppercase">Out</i> 导出
           </Button>
@@ -166,8 +170,12 @@ const toggleMenu = () => {
  * Get the store
  */
 const modelsStore = useModelsStore();
-const { splicingGroupGlobal, splicingGroupLen, isShowMap } =
-  storeToRefs(modelsStore);
+const {
+  splicingGroupGlobal,
+  splicingGroupLen,
+  isShowMap,
+  isDefaultHeadFemale,
+} = storeToRefs(modelsStore);
 
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
 watch(splicingGroupLen, (newLength, oldLength) => {
@@ -206,6 +214,13 @@ const openFilesPicker = () => {
  */
 const toggleIsShowMap = () => {
   modelsStore.toggleIsShowMap();
+};
+
+/**
+ * Toggle isFemaleDefaultHead
+ */
+const toggleIsFemale = () => {
+  modelsStore.setDefaultOriginalHead(!isDefaultHeadFemale.value);
 };
 
 /**

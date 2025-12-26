@@ -34,7 +34,8 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
  */
 const modelsStore = useModelsStore();
 const { splicingGroupGlobal } = modelsStore;
-const { splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
+const { splicingGroupLen, isShowMap, isDefaultHeadFemale } =
+  storeToRefs(modelsStore);
 
 /*
   Orbit Controls Target Center Update Logic
@@ -126,6 +127,7 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
       "addChild",
       "imoprtObjStlModelWithHeight",
       "imoprtObjStlWithNodeNames",
+      "setDefaultOriginalHead",
       "clear",
     ];
     if (relevantActions.includes(name)) {
@@ -396,6 +398,11 @@ const init = async () => {
     applyMixedColorNode(splicingGroupGlobal);
   });
 
+  // Reapply the mixed colorNode if isDefaultHeadFemale state changes
+  watch(isDefaultHeadFemale, () => {
+    applyMixedColorNode(splicingGroupGlobal);
+  });
+
   // Update the uniformIsShowMap based on the global isShowMap boolean
   watch(isShowMap, (newVal) => {
     console.log("\n -- init -- isShowMap changed to ->", newVal);
@@ -637,10 +644,8 @@ const onMouseClick = (event: MouseEvent) => {
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
       // Attach the transform to the raycasterIntersectionObject
-      transform.attach(raycasterIntersectionObject);
-      // Disable the transform if the raycasterIntersectionObject is the CutHeadEyesNodeCombinedGroup
-      transform.enabled =
-        raycasterIntersectionObject.name !== CutHeadEyesNodeCombinedGroupName;
+      if (raycasterIntersectionObject.name !== CutHeadEyesNodeCombinedGroupName)
+        transform.attach(raycasterIntersectionObject);
       // Set the global selected object in modelsStore
       modelsStore.setSelectedObject(parentGroup);
       console.log(
