@@ -222,7 +222,7 @@ const init = async () => {
   orbit = new OrbitControls(camera, renderer.domElement);
   orbit.enableDamping = true;
   orbit.minDistance = 0.1;
-  orbit.maxDistance = 170;
+  orbit.maxDistance = 270;
 
   // Transform Controls
   transform = new TransformControls(camera, renderer.domElement);
@@ -753,10 +753,10 @@ const onKeyUp = (event: KeyboardEvent) => {
 /**
  * Animation fn used for renderer
  */
-let time: number;
+// let time: number;
 const animate = async () => {
   // Elapsed Time
-  time = timer.getElapsed();
+  // time = timer.getElapsed();
 
   /*
     Update controls
