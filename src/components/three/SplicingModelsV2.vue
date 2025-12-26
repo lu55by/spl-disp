@@ -9,7 +9,7 @@ import {
   UltraHDRLoader,
 } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
+import { color, materialColor, mix, pass, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
@@ -21,6 +21,8 @@ import {
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
+import { dotScreen } from "three/examples/jsm/tsl/display/DotScreenNode.js";
+import { bloom } from "three/examples/jsm/tsl/display/BloomNode.js";
 
 /**
  * Canvas Element
@@ -390,6 +392,20 @@ const init = async () => {
     console.log("\n -- init -- isShowMap changed to ->", newVal);
     uIsShowMap.value = newVal ? 1 : 0;
   });
+
+  /**
+   * Post-Processing
+   */
+  // const postProcessing = new THREE.PostProcessing(renderer);
+  // const scenePass = pass(scene, camera);
+  // const scenePassColor = scenePass.getTextureNode("output");
+
+  // // const dotScreenPass = dotScreen(scenePassColor);
+  // // dotScreenPass.scale.value = 1;
+
+  // const bloomPass = bloom(scenePassColor);
+
+  // postProcessing.outputNode = scenePassColor.add(bloomPass);
 
   // Add the global group
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));
