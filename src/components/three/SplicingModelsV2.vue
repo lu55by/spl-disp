@@ -327,25 +327,58 @@ const init = async () => {
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
     if (!splicingGroupGlobal || splicingGroupGlobal.children.length === 0)
       return;
-    splicingGroupGlobal.traverse((child) => {
-      if (
-        child instanceof THREE.Mesh &&
-        child.material instanceof THREE.MeshStandardNodeMaterial
-      ) {
-        // Individual UniformNode for each mesh
-        const uLocalToggleOutline = uniform(0);
-        child.userData.uLocalToggleOutline = uLocalToggleOutline;
+    // splicingGroupGlobal.traverse((child) => {
+    //   if (
+    //     child instanceof THREE.Mesh &&
+    //     child.material instanceof THREE.MeshStandardNodeMaterial
+    //   ) {
+    //     // Individual UniformNode for each mesh
+    //     const uLocalToggleOutline = uniform(0);
+    //     child.userData.uLocalToggleOutline = uLocalToggleOutline;
 
-        /*
-          Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
-        */
-        child.material.colorNode = mix(
-          mix(uBaseColor, materialColor, uIsShowMap),
-          uOutlineColor,
-          getOutlinePattern(uOutlinePatternFactor).mul(
-            child.userData.uLocalToggleOutline
-          )
+    //     /*
+    //       Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
+    //     */
+    //     child.material.colorNode = mix(
+    //       mix(uBaseColor, materialColor, uIsShowMap),
+    //       uOutlineColor,
+    //       getOutlinePattern(uOutlinePatternFactor).mul(
+    //         child.userData.uLocalToggleOutline
+    //       )
+    //     );
+    //   }
+    // });
+    splicingGroupGlobal.children.forEach((groupChild) => {
+      if (groupChild instanceof THREE.Group) {
+        const uLocalToggleOutline = uniform(0);
+        uLocalToggleOutline.name = `uLocalToggleOutline_${groupChild.name}`;
+        // Set the old uLocalToggleOutline in the userData to null if it exists
+        if (groupChild.userData.uLocalToggleOutline) {
+          groupChild.userData.uLocalToggleOutline = null;
+        }
+        // Set the uLocalToggleOutline to the group's userData, not a mesh
+        groupChild.userData.uLocalToggleOutline = uLocalToggleOutline;
+        console.log(
+          `\n-- applyMixedColorNode -- userData uLocalToggleOutline set for ${groupChild.name} ->`,
+          groupChild
         );
+        // Apply the mixed colorNode
+        groupChild.children.forEach((child) => {
+          if (
+            child instanceof THREE.Mesh &&
+            child.material instanceof THREE.MeshStandardNodeMaterial
+          ) {
+            child.material.colorNode = mix(
+              mix(uBaseColor, materialColor, uIsShowMap),
+              uOutlineColor,
+              getOutlinePattern(uOutlinePatternFactor).mul(
+                child.parent.userData.uLocalToggleOutline
+              )
+            );
+            // Works if we indicates the engine the material needs to be recompiled
+            child.material.needsUpdate = true;
+          }
+        });
       }
     });
   };
@@ -409,17 +442,10 @@ const setOutlineVisibility = (
   if (!object) return;
   const value = isVisible ? 1 : 0;
   if (object instanceof THREE.Mesh) {
-    if (object.userData.uLocalToggleOutline)
-      object.userData.uLocalToggleOutline.value = value;
+    if (object.parent?.userData.uLocalToggleOutline)
+      object.parent.userData.uLocalToggleOutline.value = value;
   } else if (object instanceof THREE.Group) {
-    object.traverse((child) => {
-      if (
-        child instanceof THREE.Mesh &&
-        child.userData.uLocalToggleOutline
-      ) {
-        child.userData.uLocalToggleOutline.value = value;
-      }
-    });
+    object.userData.uLocalToggleOutline.value = value;
   }
 };
 
@@ -469,30 +495,6 @@ const onPointerMove = (event: PointerEvent) => {
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
       setOutlineVisibility(raycasterIntersectionObject, true);
-
-      // Change the color of each material of each mesh in the parent group
-      // raycasterIntersectionObject.children.forEach((child) => {
-      //   if (
-      //     child instanceof THREE.Mesh &&
-      //     child.material instanceof THREE.MeshStandardNodeMaterial
-      //   ) {
-      //     console.log("\nchild to be changed in after intersection ->", child);
-      //     child.material.color.set("#f00");
-      //   }
-      // });
-
-      // Change the outline factor
-      // if (uOutlinePatternFactor) {
-      //   console.log(
-      //     "\nuniformOutlineFactor x ->",
-      //     uOutlinePatternFactor.value.x
-      //   );
-      //   console.log(
-      //     "\nuniformOutlineFactor y ->",
-      //     uOutlinePatternFactor.value.y
-      //   );
-      //   uOutlinePatternFactor.value.set(0.8, 0.82);
-      // }
     }
   }
 };
@@ -528,14 +530,13 @@ const onWindowDragOver = (e: DragEvent) => {
         modelsStore.setDragHoveredObject(firstIntersection.object);
         console.log(
           "\n-- onWindowDragOver -- Hovered Object ->",
-          firstIntersection.object.name
+          firstIntersection.object
         );
 
         // Set the raycasterIntersectionObject to the hovered object so that we can change the colorNode back to the original colorNode controlled by uIsShowMap of the hovered object after clicking outside of the hovered object
         raycasterIntersectionObject = firstIntersection.object;
 
-        // Optional: Visual Feedback (e.g., outline or color tint) could be added here
-        // For now, relying on the state update which allows the Overlay to know we are ready
+        // Visual Feedback (e.g., outline or color tint)
         if (
           modelsStore.dragHoveredObject.material instanceof
           THREE.MeshStandardNodeMaterial
