@@ -8,5 +8,6 @@ import MainUI from "./ui/MainUI.vue";
 <template>
   <MainUI />
   <DragAndDropOverlay />
+  <!-- <SplicingModels /> -->
   <SplicingModelsV2 />
 </template>

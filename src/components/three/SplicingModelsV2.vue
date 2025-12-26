@@ -626,8 +626,8 @@ const onMouseClick = (event: MouseEvent) => {
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
       // Attach the transform to the raycasterIntersectionObject
-      if (raycasterIntersectionObject.name !== CutHeadEyesNodeCombinedGroupName)
-        transform.attach(raycasterIntersectionObject);
+      // if (raycasterIntersectionObject.name !== CutHeadEyesNodeCombinedGroupName)
+      //   transform.attach(raycasterIntersectionObject);
       // Set the global selected object in modelsStore
       modelsStore.setSelectedObject(parentGroup);
       console.log(
