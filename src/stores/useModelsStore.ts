@@ -457,7 +457,9 @@ export const useModelsStore = defineStore("models", {
         node.material.needsUpdate = true;
       }
       // Apply PBR Material and SRGB Color Space
-      applyPBRMaterialAndSRGBColorSpace(importedParsedObject, true);
+      applyPBRMaterialAndSRGBColorSpace(importedParsedObject, true, {
+        roughness: 0.4,
+      });
       // Apply Double Side to the imported model
       applyDoubleSide(importedParsedObject);
 

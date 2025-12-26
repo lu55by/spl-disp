@@ -18,6 +18,7 @@ import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUti
 import {
   MeshPhysicalNodeMaterial,
   MeshStandardNodeMaterial,
+  type MeshStandardNodeMaterialParameters,
 } from "three/webgpu";
 import {
   Colors,
@@ -160,17 +161,20 @@ export function applyDebugTransformation(
 
 export function applyPBRMaterialAndSRGBColorSpace(
   obj: Object3D,
-  isStandard: boolean
+  isStandard: boolean,
+  params?: MeshStandardNodeMaterialParameters
 ): void {
   obj.traverse((m) => {
     if (m instanceof Mesh && m.material instanceof MeshPhongMaterial) {
       const orgMat = m.material;
       m.material = isStandard
         ? new MeshStandardNodeMaterial({
+            ...params,
             map: orgMat.map,
             name: orgMat.name,
           })
         : new MeshPhysicalNodeMaterial({
+            ...params,
             map: orgMat.map,
             name: orgMat.name,
           });

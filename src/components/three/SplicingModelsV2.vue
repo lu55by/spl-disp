@@ -18,8 +18,6 @@ import {
   CutHeadEyesNodeCombinedGroupName,
   HDRPath,
 } from "../../three/constants";
-import { addTransformDebug } from "../../three/gui";
-import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
@@ -263,7 +261,7 @@ const init = async () => {
       scene.environment = texture;
     });
   };
-  loadEnvironment();
+  // loadEnvironment();
 
   /**
    * Lights From AiBus
@@ -272,24 +270,8 @@ const init = async () => {
     // === 改进的光源设置，更适合人头模型 ===
     // 主光（可旋转）
     rotatingLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    // rotatingLight.position.set(5, 10, 7);
-    const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
-    console.log("\nsplicingGroupGlobal.position ->", boundingBoxCenter);
-    const rotatingLightOffestPos = new THREE.Vector3(
-      boundingBoxCenter.x + 7,
-      boundingBoxCenter.y + 15,
-      boundingBoxCenter.z
-    );
-    rotatingLight.position.copy(rotatingLightOffestPos);
-    console.log("\nrotatingLight.position ->", rotatingLight.position);
-    addTransformDebug("Rotating Light", GUIGlobal, rotatingLight, {
-      showRotation: true,
-      showScale: true,
-      posMin: -100,
-      posMax: 200,
-    });
+    rotatingLight.position.set(5, 10, 7);
     rotatingLight.castShadow = true;
-    scene.add(new THREE.DirectionalLightHelper(rotatingLight, 5));
     scene.add(rotatingLight);
 
     // 补光 - 软化阴影
@@ -315,7 +297,7 @@ const init = async () => {
     const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.4);
     scene.add(hemisphereLight);
   };
-  // applyLightsAiBus();
+  applyLightsAiBus();
 
   /**
    * Load Models
@@ -753,10 +735,12 @@ const onKeyUp = (event: KeyboardEvent) => {
 /**
  * Animation fn used for renderer
  */
-// let time: number;
+let time: number;
 const animate = async () => {
   // Elapsed Time
-  // time = timer.getElapsed();
+  timer.update();
+  time = timer.getElapsed();
+  // console.log("\ntime ->", time);
 
   /*
     Update controls
@@ -768,12 +752,10 @@ const animate = async () => {
     Update Light
    */
   // 主光旋转
-  // if (rotatingLight) {
-  //   const radius = 15;
-  //   rotatingLight.position.x += Math.cos(time) * 3;
-  //   rotatingLight.position.z += Math.sin(time) * 3;
-  //   // rotatingLight.position.y = 10;
-  // }
+  if (rotatingLight) {
+    rotatingLight.position.x = Math.cos(time) * 15;
+    rotatingLight.position.z = Math.sin(time) * 15;
+  }
 
   /*
     Update renderer
@@ -806,6 +788,9 @@ onBeforeUnmount(() => {
   console.log("\nReady to dispose the SplicingModels Component...");
   // Unsubscribe the callback fn is called based on the actions in the modelsStore
   unsubscribeModelsStoreActions();
+
+  // Dispose timer
+  timer.dispose();
 
   // Dispose operations
   orbit.dispose();
