@@ -13,7 +13,11 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps, HDRPath } from "../../three/constants";
+import {
+  CameraProps,
+  CutHeadEyesNodeCombinedGroupName,
+  HDRPath,
+} from "../../three/constants";
 import { addTransformDebug } from "../../three/gui";
 import { GUIGlobal } from "../../three/gui/global";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
@@ -634,6 +638,9 @@ const onMouseClick = (event: MouseEvent) => {
       raycasterIntersectionObject = parentGroup;
       // Attach the transform to the raycasterIntersectionObject
       transform.attach(raycasterIntersectionObject);
+      // Disable the transform if the raycasterIntersectionObject is the CutHeadEyesNodeCombinedGroup
+      transform.enabled =
+        raycasterIntersectionObject.name !== CutHeadEyesNodeCombinedGroupName;
       // Set the global selected object in modelsStore
       modelsStore.setSelectedObject(parentGroup);
       console.log(
