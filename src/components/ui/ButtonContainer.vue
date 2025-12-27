@@ -249,7 +249,7 @@ const handleFileChange = async (e: Event) => {
     const success = await modelsStore.imoprtObjStlWithNodeNames(files);
     toast.remove(loadingToastId);
     if (success) {
-      toast.success(ToastContents.ModelImportedReminderContentZH, {
+      toast.success(ToastContents.ModelImportedZH, {
         autoClose: 1000,
       });
       console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
@@ -283,7 +283,7 @@ const clearModels = () => {
    */
   if (filteredSubGroups.length === 0) {
     // Show toast of failing to clear models, return.
-    toast(ToastContents.ModelEmptyReminderContentZH, {
+    toast(ToastContents.ModelEmptyToClearZH, {
       autoClose: 1000,
       type: "warning",
     });
@@ -297,7 +297,7 @@ const clearModels = () => {
   modelsStore.clear(filteredSubGroups);
 
   // Show toast of successfully cleared models.
-  toast(ToastContents.ModelClearedReminderContentZH, {
+  toast(ToastContents.ModelClearedZH, {
     autoClose: 1000,
   });
 };

@@ -97,7 +97,7 @@ const onDrop = async (e: DragEvent) => {
         const success = await modelsStore.imoprtObjStlWithNodeNames(files);
         toast.remove(loadingToastId);
         if (success) {
-          toast.success(ToastContents.ModelImportedReminderContentZH, {
+          toast.success(ToastContents.ModelImportedZH, {
             autoClose: 1000,
           });
         }

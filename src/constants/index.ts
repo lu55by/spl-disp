@@ -1,7 +1,7 @@
 // Toast Contents
 export const ToastContents = {
-  ModelImportMaxLenReminderContent: "Model maximum length reached!",
-  ModelImportMaxLenReminderContentZH: "模型数量已达上限！",
+  ModelImportMaxLenReached: "Model maximum length reached!",
+  ModelImportMaxLenReachedZH: "模型数量已达上限！",
 
   ModelImportWarningOneFileNotObj: "Please select an .obj file.",
   ModelImportWarningOneFileNotObjZH: "请选择一个 .obj 文件或 .stl 文件。",
@@ -18,21 +18,21 @@ export const ToastContents = {
   ModelExported: "Model exported!",
   ModelExportedZH: "模型已导出！",
 
-  ModelClearedReminderContent: "Model cleared!",
-  ModelClearedReminderContentZH: "模型已清空！",
+  ModelCleared: "Model cleared!",
+  ModelClearedZH: "模型已清空！",
 
-  ModelEmptyReminderContent: "Nothing to clear!",
-  ModelEmptyReminderContentZH: "没有可清空的模型！",
+  ModelEmptyToClear: "Nothing to clear!",
+  ModelEmptyToClearZH: "没有可清空的模型！",
 
-  ModelNodeNameErrorContent: "Model node name error!",
-  ModelNodeNameErrorContentZH: "模型节点名称错误！",
+  ModelNodeNameError: "Model node name error!",
+  ModelNodeNameErrorZH: "模型节点名称错误！",
 
   ModelLoading: "Model loading...",
   ModelLoadingZH: "正在解析并加载模型...",
   ModelLoadingFailed: "Model loading failed!",
   ModelLoadingFailedZH: "模型加载失败！",
-  ModelImportedReminderContent: "Model imported!",
-  ModelImportedReminderContentZH: "模型已导入！",
+  ModelImported: "Model imported!",
+  ModelImportedZH: "模型已导入！",
 
   TextureApplying: "Applying texture...",
   TextureApplyingZH: "正在应用贴图...",

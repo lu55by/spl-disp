@@ -153,7 +153,7 @@ export const validateImportFilesWithNodeNames = async (
         .toLocaleLowerCase()
         .includes(NodeNames.CuttersNames.Single.toLocaleLowerCase())
     ) {
-      toast(ToastContents.ModelNodeNameErrorContentZH, {
+      toast(ToastContents.ModelNodeNameErrorZH, {
         autoClose: 1000,
         type: "warning",
       });
@@ -199,7 +199,7 @@ export const validateImportFilesWithNodeNames = async (
     Toast Warning
    */
   if (!isValidNodeName) {
-    toast(ToastContents.ModelNodeNameErrorContentZH, {
+    toast(ToastContents.ModelNodeNameErrorZH, {
       autoClose: 1000,
       type: "warning",
     });
