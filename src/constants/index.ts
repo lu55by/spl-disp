@@ -32,8 +32,17 @@ export const ToastContents = {
 
 // UI Contents
 export const UIContents = {
+  // Drop Zone Indicator
   DropZoneIndicatorContent: "DROP FILES TO IMPORT",
   DropZoneIndicatorContentZH: "松开以导入",
+
+  // Upload Modal Type
+  Default: "Default",
+  DefaultZH: "默认",
+  NormalOutfit: "Normal Outfit",
+  NormalOutfitZH: "日常造型",
+  IPOutfit: "IP Outfit",
+  IPOutfitZH: "IP 造型",
 };
 
 // Global Model

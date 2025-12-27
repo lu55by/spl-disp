@@ -58,19 +58,19 @@
 
             <div class="flex flex-col gap-4">
               <Button @click="handleUpload('Default')" :disabled="isUploading">
-                Default
+                {{ UIContents.DefaultZH }}
               </Button>
               <Button
                 @click="handleUpload('Normal Outfit')"
                 :disabled="isUploading"
               >
-                Normal Outfit
+                  {{ UIContents.NormalOutfitZH }}
               </Button>
               <Button
                 @click="handleUpload('IP Outfit')"
                 :disabled="isUploading"
               >
-                IP Outfit
+                  {{ UIContents.IPOutfitZH }}
               </Button>
             </div>
 
@@ -103,6 +103,7 @@ import { ref } from "vue";
 import { toast } from "vue3-toastify";
 import { useModelsStore } from "../../stores/useModelsStore";
 import Button from "./Button.vue";
+import { UIContents } from "../../constants";
 
 const modelsStore = useModelsStore();
 const { selectedObject, isUploadModalVisible } = storeToRefs(modelsStore);
@@ -124,9 +125,7 @@ const handleUpload = async (
   if (isUploading.value) return;
   isUploading.value = true;
 
-  const loadingToastId = toast.loading("正在上传模型数据...", {
-    position: toast.POSITION.BOTTOM_RIGHT,
-  });
+  const loadingToastId = toast.loading("正在上传模型数据...");
 
   try {
     const success = await modelsStore.uploadSelectedObject(type);
@@ -135,19 +134,16 @@ const handleUpload = async (
     if (success) {
       toast.success("模型成功同步至数据库", {
         autoClose: 2000,
-        position: toast.POSITION.BOTTOM_RIGHT,
       });
     } else {
       toast.error("上传失败，请稍后重试", {
         autoClose: 2000,
-        position: toast.POSITION.BOTTOM_RIGHT,
       });
     }
   } catch (error) {
     toast.remove(loadingToastId);
     toast.error("发生未知错误", {
       autoClose: 2000,
-      position: toast.POSITION.BOTTOM_RIGHT,
     });
     console.error(error);
   } finally {
