@@ -244,16 +244,24 @@ const handleFileChange = async (e: Event) => {
     Import Obj File
    */
   // await modelsStore.imoprtObjStlModelWithHeight(files);
-  await modelsStore.imoprtObjStlWithNodeNames(files);
-
-  console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
+  const loadingToastId = toast.loading(ToastContents.ModelLoadingZH);
+  try {
+    const success = await modelsStore.imoprtObjStlWithNodeNames(files);
+    toast.remove(loadingToastId);
+    if (success) {
+      toast.success(ToastContents.ModelImportedReminderContentZH, {
+        autoClose: 1000,
+      });
+      console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
+    }
+  } catch (error) {
+    toast.remove(loadingToastId);
+    toast.error("加载模型失败");
+    console.error(error);
+  }
 
   // clear input so selecting same file works
   target.value = "";
-
-  toast(ToastContents.ModelImportedReminderContentZH, {
-    autoClose: 1000,
-  });
 };
 
 /**

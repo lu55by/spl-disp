@@ -61,7 +61,21 @@ const onDrop = async (e: DragEvent) => {
       files.length === 1 &&
       files[0].type.startsWith("image/")
     ) {
-      await modelsStore.applyTextureToHoveredObject(files[0]);
+      const loadingToastId = toast.loading(ToastContents.TextureApplyingZH);
+
+      try {
+        // Simulate large texture loading delay
+        // await new Promise((resolve) => setTimeout(resolve, 5000));
+        await modelsStore.applyTextureToHoveredObject(files[0]);
+        toast.remove(loadingToastId);
+        toast.success(ToastContents.TextureAppliedZH, {
+          autoClose: 1000,
+        });
+      } catch (error) {
+        toast.remove(loadingToastId);
+        toast.error(ToastContents.TextureApplyingFailedZH);
+        console.error(error);
+      }
       // Reset hovered object
       modelsStore.setDragHoveredObject(null);
       return;
@@ -78,6 +92,8 @@ const onDrop = async (e: DragEvent) => {
     if (isValid) {
       const loadingToastId = toast.loading(ToastContents.ModelLoadingZH);
       try {
+        // Simulate large model loading delay
+        // await new Promise((resolve) => setTimeout(resolve, 5000));
         const success = await modelsStore.imoprtObjStlWithNodeNames(files);
         toast.remove(loadingToastId);
         if (success) {
@@ -87,7 +103,7 @@ const onDrop = async (e: DragEvent) => {
         }
       } catch (error) {
         toast.remove(loadingToastId);
-        toast.error("加载模型失败");
+        toast.error(ToastContents.ModelLoadingFailedZH);
         console.error(error);
       }
     }

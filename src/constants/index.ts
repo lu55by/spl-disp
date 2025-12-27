@@ -1,7 +1,5 @@
 // Toast Contents
 export const ToastContents = {
-  ModelImportedReminderContent: "Model imported!",
-  ModelImportedReminderContentZH: "模型已导入！",
   ModelImportMaxLenReminderContent: "Model maximum length reached!",
   ModelImportMaxLenReminderContentZH: "模型数量已达上限！",
 
@@ -31,6 +29,17 @@ export const ToastContents = {
 
   ModelLoading: "Model loading...",
   ModelLoadingZH: "正在解析并加载模型...",
+  ModelLoadingFailed: "Model loading failed!",
+  ModelLoadingFailedZH: "模型加载失败！",
+  ModelImportedReminderContent: "Model imported!",
+  ModelImportedReminderContentZH: "模型已导入！",
+
+  TextureApplying: "Applying texture...",
+  TextureApplyingZH: "正在应用贴图...",
+  TextureApplied: "Texture applied!",
+  TextureAppliedZH: "贴图应用成功！",
+  TextureApplyingFailed: "Texture applying failed!",
+  TextureApplyingFailedZH: "贴图应用失败！",
 };
 
 // UI Contents

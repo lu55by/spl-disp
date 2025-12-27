@@ -537,10 +537,10 @@ const onWindowDragOver = (e: DragEvent) => {
       if (modelsStore.dragHoveredObject !== firstIntersection.object) {
         // Reset previous if needed, though simple state update handles it
         modelsStore.setDragHoveredObject(firstIntersection.object);
-        console.log(
-          "\n-- onWindowDragOver -- Hovered Object ->",
-          firstIntersection.object
-        );
+        // console.log(
+        //   "\n-- onWindowDragOver -- Hovered Object ->",
+        //   firstIntersection.object
+        // );
 
         // Set the raycasterIntersectionObject to the hovered object so that we can change the colorNode back to the original colorNode controlled by uIsShowMap of the hovered object after clicking outside of the hovered object
         raycasterIntersectionObject = firstIntersection.object;
