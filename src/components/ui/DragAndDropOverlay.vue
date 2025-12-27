@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-import { UIContents } from "../../constants";
+import { UIContents, ToastContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { validateImportFilesWithNodeNames } from "../../utils/fileValidators";
+import { toast } from "vue3-toastify";
 
 const isDragging = ref(false);
 const modelsStore = useModelsStore();
@@ -62,9 +63,23 @@ const onDrop = async (e: DragEvent) => {
     // const isValid = await validateImportFiles(e.dataTransfer.files);
     const isValid = await validateImportFilesWithNodeNames(files);
     console.log("\n -- onDrop -- files -- after validation ->", files);
-    // return;
-    // if (isValid) modelsStore.imoprtObjStlModelWithHeight(e.dataTransfer.files);
-    if (isValid) await modelsStore.imoprtObjStlWithNodeNames(files);
+
+    if (isValid) {
+      const loadingToastId = toast.loading(ToastContents.ModelLoadingZH);
+      try {
+        const success = await modelsStore.imoprtObjStlWithNodeNames(files);
+        toast.remove(loadingToastId);
+        if (success) {
+          toast.success(ToastContents.ModelImportedReminderContentZH, {
+            autoClose: 1000,
+          });
+        }
+      } catch (error) {
+        toast.remove(loadingToastId);
+        toast.error("加载模型失败");
+        console.error(error);
+      }
+    }
   }
 };
 
@@ -86,7 +101,7 @@ onUnmounted(() => {
 <template>
   <Transition name="fade">
     <div
-      v-if="false"
+      v-if="isDragging"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
     >
       <!-- Futuristic UI Overlay -->

@@ -345,7 +345,7 @@ export const useModelsStore = defineStore("models", {
      * @param files Files to import
      * @returns void
      */
-    async imoprtObjStlWithNodeNames(files: FileList) {
+    async imoprtObjStlWithNodeNames(files: FileList): Promise<boolean> {
       // Log the files to import
       console.log("\n -- imoprtObjStlWithNodeNames -- files ->", files);
 
@@ -369,7 +369,7 @@ export const useModelsStore = defineStore("models", {
       // Check if the .obj or .stl file exists
       if (!objFile && !stlFile) {
         console.warn("No .obj or .stl file found.");
-        return;
+        return false;
       }
 
       // ! STL File Import
@@ -406,7 +406,7 @@ export const useModelsStore = defineStore("models", {
         this.syncSplicingGroupLength();
 
         // Return if it is stl file
-        return;
+        return true;
       }
 
       // ! OBJ File Import
@@ -415,7 +415,9 @@ export const useModelsStore = defineStore("models", {
       // TODO: Add a loading bar ui to show the progress of parsing the obj text content as there might be some obj file with large number of vertices.
       const importedParsedObject = OBJLoaderInstance.parse(text);
 
-      // Check if it is the cutter single model being imported
+      /**
+       * Cutter Import
+       */
       const isCutterImported =
         importedParsedObject.children.find((child) => {
           return child.name
@@ -441,11 +443,14 @@ export const useModelsStore = defineStore("models", {
             "Invalid cutter single model name ->",
             importedParsedObject.children[0].name
           );
+
         // Return the function immediately to prevent the cutter single model from being added to the splicing group
-        return;
+        return true;
       }
 
-      // If texture file exists, load and apply it to the imported model
+      /**
+       * Texture Import
+       */
       if (texFile) {
         const texUrl = URL.createObjectURL(texFile);
         console.log("\ntexUrl ->", texUrl);
@@ -467,7 +472,7 @@ export const useModelsStore = defineStore("models", {
 
       /**
        * !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
-       * Check if the imported object is hair or body by getting the name of the imported model single node.
+       * Check if the imported object is hair or body by getting the name of the imported model first node.
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, it's the same logic as the hair.
        */
@@ -488,6 +493,7 @@ export const useModelsStore = defineStore("models", {
         isHairImported
       );
       this.syncSplicingGroupLength();
+      return true;
     },
 
     /**

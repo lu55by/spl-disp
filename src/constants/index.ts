@@ -28,6 +28,9 @@ export const ToastContents = {
 
   ModelNodeNameErrorContent: "Model node name error!",
   ModelNodeNameErrorContentZH: "模型节点名称错误！",
+
+  ModelLoading: "Model loading...",
+  ModelLoadingZH: "正在解析并加载模型...",
 };
 
 // UI Contents
