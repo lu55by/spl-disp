@@ -6,6 +6,7 @@ import { validateImportFilesWithNodeNames } from "../../utils/fileValidators";
 import { toast } from "vue3-toastify";
 
 const isDragging = ref(false);
+const isImageDragging = ref(false);
 const modelsStore = useModelsStore();
 
 let dragCounter = 0;
@@ -13,12 +14,20 @@ let dragCounter = 0;
 const onDragEnter = (e: DragEvent) => {
   e.preventDefault();
   dragCounter++;
+
+  // Detect if we are dragging a single image file (best effort detection during dragover)
+  const items = e.dataTransfer?.items;
+  if (items && items.length === 1) {
+    if (items[0].kind === "file" && items[0].type.startsWith("image/")) {
+      isImageDragging.value = true;
+    }
+  } else if (items && items.length > 1) {
+    // If multiple files, it's likely a model set or folder
+    isImageDragging.value = false;
+  }
+
   if (e.dataTransfer?.types.includes("Files")) {
     isDragging.value = true;
-  }
-  if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-    const files = e.dataTransfer?.files;
-    console.log("\n -- onDragEnter -- files ->", files);
   }
 };
 
@@ -31,6 +40,7 @@ const onDragLeave = (e: DragEvent) => {
   dragCounter--;
   if (dragCounter === 0) {
     isDragging.value = false;
+    isImageDragging.value = false;
   }
 };
 
@@ -38,6 +48,7 @@ const onDrop = async (e: DragEvent) => {
   e.preventDefault();
   e.stopPropagation();
   isDragging.value = false;
+  isImageDragging.value = false;
   dragCounter = 0;
 
   if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
@@ -101,7 +112,7 @@ onUnmounted(() => {
 <template>
   <Transition name="fade">
     <div
-      v-if="isDragging"
+      v-if="isDragging && !isImageDragging"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
     >
       <!-- Futuristic UI Overlay -->
