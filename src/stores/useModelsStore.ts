@@ -113,6 +113,8 @@ export const useModelsStore = defineStore("models", {
     selectedObject: null as THREE.Object3D | null,
     // isShowMap state to toggle the uIsShowMap uniform (0 or 1) of the MeshStandardNodeMaterial
     isShowMap: true,
+    // isUploadModalVisible state to toggle the visibility of the upload modal
+    isUploadModalVisible: false,
   }),
 
   getters: {
@@ -503,6 +505,46 @@ export const useModelsStore = defineStore("models", {
      */
     toggleIsShowMap() {
       this.isShowMap = !this.isShowMap;
+    },
+
+    /**
+     * Toggle the visibility of the upload modal.
+     * @param visible The visibility of the upload modal
+     */
+    setUploadModalVisible(visible: boolean) {
+      this.isUploadModalVisible = visible;
+    },
+
+    /**
+     * Upload the selected object to the database (Placeholder).
+     * @param outfitType The outfit type for the uploaded model
+     */
+    async uploadSelectedObject(
+      outfitType: "Default" | "Normal Outfit" | "IP Outfit"
+    ) {
+      if (!this.selectedObject) {
+        console.warn("No object selected for upload.");
+        return;
+      }
+
+      console.log(`\n-- uploadSelectedObject -- type: ${outfitType}`);
+      console.log("Selected Object ->", this.selectedObject);
+
+      // In a real scenario, we would:
+      // 1. Export the selectedObject to a Blob (e.g. using OBJExporter or GLTFExporter)
+      // 2. Prepare Form Data with the Blob and the outfitType
+      // 3. Send a POST request to the backend API
+
+      // For now, we simulate the process
+      return new Promise<boolean>((resolve) => {
+        setTimeout(() => {
+          console.log(
+            `Upload successful for ${this.selectedObject?.name} with type ${outfitType}`
+          );
+          this.setUploadModalVisible(false);
+          resolve(true);
+        }, 1500);
+      });
     },
   },
 });

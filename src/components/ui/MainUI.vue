@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ButtonContainer from "./ButtonContainer.vue";
 import Selected3dObjectPropsIndicator from "./Selected3dObjectPropsIndicator.vue";
+import UploadManager from "./UploadManager.vue";
 </script>
 
 <template>
@@ -9,5 +10,6 @@ import Selected3dObjectPropsIndicator from "./Selected3dObjectPropsIndicator.vue
   >
     <ButtonContainer />
     <!-- <Selected3dObjectPropsIndicator /> -->
+    <UploadManager />
   </div>
 </template>
