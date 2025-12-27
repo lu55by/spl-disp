@@ -34,12 +34,30 @@ export const ToastContents = {
   ModelImported: "Model imported!",
   ModelImportedZH: "模型已导入！",
 
+  ModelCuttingOperation: "Cutting head...",
+  ModelCuttingOperationZH: "头模切割中...",
+  ModelCuttingOperationSuccess: "Cutting head success!",
+  ModelCuttingOperationSuccessZH: "头模切割成功！",
+  ModelCuttingOperationFailed: "Cutting head failed!",
+  ModelCuttingOperationFailedZH: "头模切割失败！",
+
   TextureApplying: "Applying texture...",
   TextureApplyingZH: "正在应用贴图...",
   TextureApplied: "Texture applied!",
   TextureAppliedZH: "贴图应用成功！",
   TextureApplyingFailed: "Texture applying failed!",
   TextureApplyingFailedZH: "贴图应用失败！",
+};
+
+export const ToastContentsImportDefault = {
+  Loading: ToastContents.ModelLoadingZH,
+  Success: ToastContents.ModelImportedZH,
+  Error: ToastContents.ModelLoadingFailedZH,
+};
+export const ToastContentsImportCutter = {
+  Loading: ToastContents.ModelCuttingOperationZH,
+  Success: ToastContents.ModelCuttingOperationSuccessZH,
+  Error: ToastContents.ModelCuttingOperationFailedZH,
 };
 
 // UI Contents

@@ -563,7 +563,7 @@ export function disposeGroupObject(obj2Dispose: Group<Object3DEventMap>) {
  * Disposes the current cut head in the splicing group global.
  * @param splicingGroupGlobal The splicing group global.
  */
-function disposeAndRemoveCurrentCutHead(
+export function disposeAndRemoveCurrentCutHead(
   splicingGroupGlobal: Group<Object3DEventMap>
 ) {
   let currentCutHead: Group<Object3DEventMap> | null = null;

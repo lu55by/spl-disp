@@ -15,6 +15,7 @@ import {
   applyDoubleSide,
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
+  disposeAndRemoveCurrentCutHead,
   disposeHairBodyFromSplicingGroupGlobal,
   getObject3DHeight,
   removeAndAddModelWithModelHeight,
@@ -126,16 +127,13 @@ export const useModelsStore = defineStore("models", {
      * Set the default original head.
      * @param isFemale The gender of the default original head
      */
+    // TODO: Optimize the setDefaultOriginalHead fn that will cause the frame dropping.
     setDefaultOriginalHead(isFemale: boolean) {
       console.log("\n-- setDefaultOriginalHead -- isFemale ->", isFemale);
       this.defaultOriginalHead = isFemale
         ? DefaultOriginalHeadFemale
         : DefaultOriginalHeadMale;
-      this.splicingGroupGlobal.remove(
-        this.splicingGroupGlobal.getObjectByName(
-          CutHeadEyesNodeCombinedGroupName
-        )
-      );
+      disposeAndRemoveCurrentCutHead(this.splicingGroupGlobal);
       this.splicingGroupGlobal.add(this.defaultOriginalHead.clone());
       console.log(
         "\n -- setDefaultOriginalHead -- defaultOriginalHead changed to ->",
@@ -345,7 +343,10 @@ export const useModelsStore = defineStore("models", {
      * @param files Files to import
      * @returns void
      */
-    async imoprtObjStlWithNodeNames(files: FileList): Promise<boolean> {
+    async imoprtObjStlWithNodeNames(
+      files: FileList,
+      parsedObjGroupFromValidators?: THREE.Group<THREE.Object3DEventMap>
+    ): Promise<boolean> {
       // Log the files to import
       console.log("\n -- imoprtObjStlWithNodeNames -- files ->", files);
 
@@ -372,7 +373,9 @@ export const useModelsStore = defineStore("models", {
         return false;
       }
 
-      // ! STL File Import
+      /**
+       * ! STL File Import
+       */
       if (stlFile) {
         // Set the textFile to null as the stlFile is not supporting uv texture mapping
         texFile = null;
@@ -409,17 +412,34 @@ export const useModelsStore = defineStore("models", {
         return true;
       }
 
-      // ! OBJ File Import
-      const text = await objFile.text();
-      // Parse the .obj file text content with the OBJLoaderInstance
-      // TODO: Add a loading bar ui to show the progress of parsing the obj text content as there might be some obj file with large number of vertices.
-      const importedParsedObject = OBJLoaderInstance.parse(text);
+      /**
+       * ! OBJ File Import
+       */
+
+      // Initialize the importedParsedObject first to the objGroupFromValidators
+      let parsedObjGroup: THREE.Group<THREE.Object3DEventMap> | null =
+        parsedObjGroupFromValidators;
+
+      // If the objGroupFromValidators is null, which means the objGroupFromValidators is not passed from the validators, parse the .obj file text content with the OBJLoaderInstance
+      if (!parsedObjGroup) {
+        console.log(
+          "\n-- imoprtObjStlWithNodeNames -- parsedObjGroupFromValidators is null, ready to parse the objFile's text content..."
+        );
+        const text = await objFile.text();
+        // Parse the .obj file text content with the OBJLoaderInstance
+        parsedObjGroup = OBJLoaderInstance.parse(text);
+      }
+
+      console.log(
+        "\n-- imoprtObjStlWithNodeNames -- Using parsedObjGroupFromValidators ->",
+        parsedObjGroup
+      );
 
       /**
        * Cutter Import
        */
       const isCutterImported =
-        importedParsedObject.children.find((child) => {
+        parsedObjGroup.children.find((child) => {
           return child.name
             .toLocaleLowerCase()
             .startsWith(NodeNames.CuttersNames.Single.toLocaleLowerCase());
@@ -429,19 +449,19 @@ export const useModelsStore = defineStore("models", {
       if (isCutterImported) {
         // Do the getCutHead operation
         if (
-          importedParsedObject.children.length === 1 &&
-          importedParsedObject.children[0].name.toLocaleLowerCase() ===
+          parsedObjGroup.children.length === 1 &&
+          parsedObjGroup.children[0].name.toLocaleLowerCase() ===
             NodeNames.CuttersNames.Single.toLocaleLowerCase()
         )
           replaceCurrentHeadWithCutHead(
             this.splicingGroupGlobal,
             this.defaultOriginalHead,
-            importedParsedObject
+            parsedObjGroup
           );
         else
           console.warn(
             "Invalid cutter single model name ->",
-            importedParsedObject.children[0].name
+            parsedObjGroup.children[0].name
           );
 
         // Return the function immediately to prevent the cutter single model from being added to the splicing group
@@ -456,7 +476,7 @@ export const useModelsStore = defineStore("models", {
         console.log("\ntexUrl ->", texUrl);
         const texture = await loadTexture(texUrl);
         // Retrieve the first node (child) of the object and apply the texture to it
-        const node = importedParsedObject.children[0] as THREE.Mesh<
+        const node = parsedObjGroup.children[0] as THREE.Mesh<
           THREE.BufferGeometry,
           THREE.MeshPhongMaterial
         >;
@@ -464,11 +484,11 @@ export const useModelsStore = defineStore("models", {
         node.material.needsUpdate = true;
       }
       // Apply PBR Material and SRGB Color Space
-      applyPBRMaterialAndSRGBColorSpace(importedParsedObject, true, {
+      applyPBRMaterialAndSRGBColorSpace(parsedObjGroup, true, {
         roughness: 0.4,
       });
       // Apply Double Side to the imported model
-      applyDoubleSide(importedParsedObject);
+      applyDoubleSide(parsedObjGroup);
 
       /**
        * !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
@@ -476,20 +496,17 @@ export const useModelsStore = defineStore("models", {
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, it's the same logic as the hair.
        */
-      const isHairImported = importedParsedObject.children[0].name
+      const isHairImported = parsedObjGroup.children[0].name
         .toLocaleLowerCase()
         .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
       console.log("\nisHair imported model ->", isHairImported);
-      importedParsedObject.name = isHairImported ? "hairGrp" : "bodyGrp";
-      console.log(
-        "\nimportedParsedObject name set ->",
-        importedParsedObject.name
-      );
+      parsedObjGroup.name = isHairImported ? "hairGrp" : "bodyGrp";
+      console.log("\nimportedParsedObject name set ->", parsedObjGroup.name);
 
       // Call the removeAndAddModel fn to remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
       removeAndAddModelWithNodeNames(
         this.splicingGroupGlobal,
-        importedParsedObject,
+        parsedObjGroup,
         isHairImported
       );
       this.syncSplicingGroupLength();
@@ -541,6 +558,7 @@ export const useModelsStore = defineStore("models", {
       // 2. Prepare Form Data with the Blob and the outfitType
       // 3. Send a POST request to the backend API
 
+      // TODO: Complete the upload process assuming there is a backend API ready.
       // For now, we simulate the process
       return new Promise<boolean>((resolve) => {
         setTimeout(() => {

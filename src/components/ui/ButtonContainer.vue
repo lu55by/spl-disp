@@ -152,10 +152,17 @@ import { storeToRefs } from "pinia";
 import type { Group, Object3DEventMap } from "three";
 import { ref, watch } from "vue";
 import { toast } from "vue3-toastify";
-import { ToastContents } from "../../constants";
+import {
+  ToastContents,
+  ToastContentsImportCutter,
+  ToastContentsImportDefault,
+} from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { getFilteredSubGroups } from "../../three/meshOps";
-import { validateImportFilesWithNodeNames } from "../../utils/fileValidators";
+import {
+  isObjGroupCutterNode,
+  validateImportFilesWithNodeNames,
+} from "../../utils/fileValidators";
 import Button from "./Button.vue";
 
 /*
@@ -237,26 +244,43 @@ const handleFileChange = async (e: Event) => {
     Validate Files
    */
   // const isValid = await validateImportFiles(files);
-  const isValid = await validateImportFilesWithNodeNames(files);
+  const { isValid, parsedObjGroupFromValidators } =
+    await validateImportFilesWithNodeNames(files);
   if (!isValid) return;
 
   /*
-    Import Obj File
+    Import Files
    */
-  // await modelsStore.imoprtObjStlModelWithHeight(files);
-  const loadingToastId = toast.loading(ToastContents.ModelLoadingZH);
+  let toastContentsImport = ToastContentsImportDefault;
+  if (isObjGroupCutterNode(parsedObjGroupFromValidators))
+    toastContentsImport = ToastContentsImportCutter;
+  const loadingToastId = toast.loading(toastContentsImport.Loading);
   try {
-    const success = await modelsStore.imoprtObjStlWithNodeNames(files);
-    toast.remove(loadingToastId);
+    // Simulate large texture loading delay
+    // await new Promise((resolve) => setTimeout(resolve, 5000));
+    const success = await modelsStore.imoprtObjStlWithNodeNames(
+      files,
+      parsedObjGroupFromValidators
+    );
+
     if (success) {
-      toast.success(ToastContents.ModelImportedZH, {
+      toast.update(loadingToastId, {
+        render: toastContentsImport.Success,
+        type: "success",
+        isLoading: false,
         autoClose: 1000,
       });
       console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
+    } else {
+      toast.remove(loadingToastId);
     }
   } catch (error) {
-    toast.remove(loadingToastId);
-    toast.error("加载模型失败");
+    toast.update(loadingToastId, {
+      render: toastContentsImport.Error,
+      type: "error",
+      isLoading: false,
+      autoClose: 2000,
+    });
     console.error(error);
   }
 

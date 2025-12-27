@@ -9,20 +9,17 @@ import {
   UltraHDRLoader,
 } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { color, materialColor, mix, pass, uniform, vec2 } from "three/tsl";
+import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
   CameraProps,
-  CutHeadEyesNodeCombinedGroupName,
-  HDRPath,
+  HDRPath
 } from "../../three/constants";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
-import { dotScreen } from "three/examples/jsm/tsl/display/DotScreenNode.js";
-import { bloom } from "three/examples/jsm/tsl/display/BloomNode.js";
 
 /**
  * Canvas Element
@@ -524,10 +521,7 @@ const onWindowDragOver = (e: DragEvent) => {
   // We need to use clientX and clientY from the DragEvent
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
   raycaster.setFromCamera(mouse, camera);
-
-  // Intersect with splicingGroupGlobal
   const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
 
   if (intersects.length > 0) {
@@ -535,6 +529,9 @@ const onWindowDragOver = (e: DragEvent) => {
     if (firstIntersection.object instanceof THREE.Mesh) {
       // Highlight logic or just state update
       if (modelsStore.dragHoveredObject !== firstIntersection.object) {
+        console.log(
+          "\n -- onWindowDragOver -- modelsStore.dragHoveredObject !== firstIntersection.object"
+        );
         // Reset previous if needed, though simple state update handles it
         modelsStore.setDragHoveredObject(firstIntersection.object);
         // console.log(

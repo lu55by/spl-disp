@@ -6,6 +6,8 @@ import {
   OBJLoaderInstance,
   ValidNodeNames,
 } from "../three/constants";
+import { disposeGroupObject } from "../three/meshOps";
+import type { FilesValidatorReturnType } from "../types";
 
 /**
  * Validates the imported files for the splicing model.
@@ -106,10 +108,10 @@ export const validateImportFiles = async (
  */
 export const validateImportFilesWithNodeNames = async (
   files: FileList | null
-): Promise<boolean> => {
+): Promise<FilesValidatorReturnType> => {
   console.log("\n -- validateImportFilesWithNodeNames -- files ->", files);
   const isValid = await validateImportFiles(files);
-  if (!isValid) return false;
+  if (!isValid) return { isValid: false, parsedObjGroupFromValidators: null };
 
   /*
     Node Name Validation
@@ -134,14 +136,14 @@ export const validateImportFilesWithNodeNames = async (
       autoClose: 1000,
       type: "warning",
     });
-    return false;
+    return { isValid: false, parsedObjGroupFromValidators: null };
   }
 
   /*
     STL File Validation
    */
   if (stlFile) {
-    // ! The stl file name must match one of the valid node names, or we don't know what kind of model is imported (hair or body)
+    // ! The stl file name must match one of the valid node names, or we don't know what kind of model is imported (hair, body or cutter)
     if (
       !stlFile.name
         .toLocaleLowerCase()
@@ -157,10 +159,10 @@ export const validateImportFilesWithNodeNames = async (
         autoClose: 1000,
         type: "warning",
       });
-      return false;
+      return { isValid: false, parsedObjGroupFromValidators: null };
     }
     // STL file validation passed, return true
-    return true;
+    return { isValid: true, parsedObjGroupFromValidators: null };
   }
 
   /*
@@ -168,20 +170,16 @@ export const validateImportFilesWithNodeNames = async (
    */
   // Parse the obj file
   const text = await objFile.text();
-  const importedParsedObject: Group<Object3DEventMap> =
-    OBJLoaderInstance.parse(text);
-  console.log(
-    "\n -- validateImportFiles -- importedParsedObject ->",
-    importedParsedObject
-  );
+  const parsedObjGroup: Group<Object3DEventMap> = OBJLoaderInstance.parse(text);
+  console.log("\n -- validateImportFiles -- parsedObjGroup ->", parsedObjGroup);
 
   /*
     ! Check if the imported object has the correct node names (Currently, supporting one single cutter node only)
    */
-  const nodeName = importedParsedObject.children[0].name.toLocaleLowerCase();
+  const firstNodeName = parsedObjGroup.children[0].name.toLocaleLowerCase();
   let isValidNodeName = false;
   for (const validNodeName of ValidNodeNames) {
-    if (nodeName.length > 0 && nodeName.includes(validNodeName)) {
+    if (firstNodeName.length > 0 && firstNodeName.includes(validNodeName)) {
       isValidNodeName = true;
       break;
     }
@@ -191,9 +189,15 @@ export const validateImportFilesWithNodeNames = async (
     Logs
    */
   isValidNodeName &&
-    console.log("\n -- validateImportFiles -- nodeName ->", nodeName);
+    console.log(
+      "\n -- validateImportFiles -- First NodeName ->",
+      firstNodeName
+    );
   !isValidNodeName &&
-    console.warn("\n -- validateImportFiles -- nodeName ->", nodeName);
+    console.warn(
+      "\n -- validateImportFiles -- First NodeName ->",
+      firstNodeName
+    );
 
   /*
     Toast Warning
@@ -203,11 +207,29 @@ export const validateImportFilesWithNodeNames = async (
       autoClose: 1000,
       type: "warning",
     });
-    return false;
+    disposeGroupObject(parsedObjGroup);
+    return { isValid: false, parsedObjGroupFromValidators: null };
   }
 
   /*
     OBJ file validation passed, return true
    */
-  return true;
+  return { isValid: true, parsedObjGroupFromValidators: parsedObjGroup };
+};
+
+/**
+ * Checks if the imported object has the correct node names (Currently, supporting one single cutter node only)
+ * @param objGroup The parsed obj group to check
+ * @returns true if the obj group is a cutter node, false otherwise
+ */
+export const isObjGroupCutterNode = (
+  objGroup: Group<Object3DEventMap> | null
+): boolean => {
+  if (!objGroup) return false;
+  return (
+    objGroup.children.length === 1 &&
+    objGroup.children[0].name
+      .toLocaleLowerCase()
+      .includes(NodeNames.CuttersNames.Single.toLocaleLowerCase())
+  );
 };

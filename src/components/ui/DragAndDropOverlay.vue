@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-import { UIContents, ToastContents } from "../../constants";
-import { useModelsStore } from "../../stores/useModelsStore";
-import { validateImportFilesWithNodeNames } from "../../utils/fileValidators";
 import { toast } from "vue3-toastify";
+import {
+  ToastContents,
+  ToastContentsImportCutter,
+  ToastContentsImportDefault,
+  UIContents,
+} from "../../constants";
+import { useModelsStore } from "../../stores/useModelsStore";
+import {
+  isObjGroupCutterNode,
+  validateImportFilesWithNodeNames,
+} from "../../utils/fileValidators";
 
 const isDragging = ref(false);
 const isImageDragging = ref(false);
@@ -62,18 +70,23 @@ const onDrop = async (e: DragEvent) => {
       files[0].type.startsWith("image/")
     ) {
       const loadingToastId = toast.loading(ToastContents.TextureApplyingZH);
-
       try {
         // Simulate large texture loading delay
         // await new Promise((resolve) => setTimeout(resolve, 5000));
         await modelsStore.applyTextureToHoveredObject(files[0]);
-        toast.remove(loadingToastId);
-        toast.success(ToastContents.TextureAppliedZH, {
+        toast.update(loadingToastId, {
+          render: ToastContents.TextureAppliedZH,
+          type: "success",
+          isLoading: false,
           autoClose: 1000,
         });
       } catch (error) {
-        toast.remove(loadingToastId);
-        toast.error(ToastContents.TextureApplyingFailedZH);
+        toast.update(loadingToastId, {
+          render: ToastContents.TextureApplyingFailedZH,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
         console.error(error);
       }
       // Reset hovered object
@@ -85,27 +98,46 @@ const onDrop = async (e: DragEvent) => {
     // but lets ensure we clear it just in case if not dropped on object or if we fall through
     modelsStore.setDragHoveredObject(null);
 
-    // const isValid = await validateImportFiles(e.dataTransfer.files);
-    const isValid = await validateImportFilesWithNodeNames(files);
+    /*
+      Validate Files
+    */
+    const { isValid, parsedObjGroupFromValidators } =
+      await validateImportFilesWithNodeNames(files);
     console.log("\n -- onDrop -- files -- after validation ->", files);
+    if (!isValid) return;
 
-    if (isValid) {
-      const loadingToastId = toast.loading(ToastContents.ModelLoadingZH);
-      try {
-        // Simulate large model loading delay
-        // await new Promise((resolve) => setTimeout(resolve, 5000));
-        const success = await modelsStore.imoprtObjStlWithNodeNames(files);
+    /*
+      Import Files
+    */
+    let toastContentsImport = ToastContentsImportDefault;
+    if (isObjGroupCutterNode(parsedObjGroupFromValidators))
+      toastContentsImport = ToastContentsImportCutter;
+    const loadingToastId = toast.loading(toastContentsImport.Loading);
+    try {
+      // Simulate large texture loading delay
+      // await new Promise((resolve) => setTimeout(resolve, 5000));
+      const success = await modelsStore.imoprtObjStlWithNodeNames(
+        files,
+        parsedObjGroupFromValidators
+      );
+      if (success) {
+        toast.update(loadingToastId, {
+          render: toastContentsImport.Success,
+          type: "success",
+          isLoading: false,
+          autoClose: 1000,
+        });
+      } else {
         toast.remove(loadingToastId);
-        if (success) {
-          toast.success(ToastContents.ModelImportedZH, {
-            autoClose: 1000,
-          });
-        }
-      } catch (error) {
-        toast.remove(loadingToastId);
-        toast.error(ToastContents.ModelLoadingFailedZH);
-        console.error(error);
       }
+    } catch (error) {
+      toast.update(loadingToastId, {
+        render: toastContentsImport.Error,
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      console.error(error);
     }
   }
 };

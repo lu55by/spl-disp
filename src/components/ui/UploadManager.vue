@@ -64,13 +64,13 @@
                 @click="handleUpload('Normal Outfit')"
                 :disabled="isUploading"
               >
-                  {{ UIContents.NormalOutfitZH }}
+                {{ UIContents.NormalOutfitZH }}
               </Button>
               <Button
                 @click="handleUpload('IP Outfit')"
                 :disabled="isUploading"
               >
-                  {{ UIContents.IPOutfitZH }}
+                {{ UIContents.IPOutfitZH }}
               </Button>
             </div>
 
@@ -101,9 +101,9 @@
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { toast } from "vue3-toastify";
+import { UIContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import Button from "./Button.vue";
-import { UIContents } from "../../constants";
 
 const modelsStore = useModelsStore();
 const { selectedObject, isUploadModalVisible } = storeToRefs(modelsStore);
@@ -129,20 +129,27 @@ const handleUpload = async (
 
   try {
     const success = await modelsStore.uploadSelectedObject(type);
-    toast.remove(loadingToastId);
 
     if (success) {
-      toast.success("模型成功同步至数据库", {
+      toast.update(loadingToastId, {
+        render: "模型成功同步至数据库",
+        type: "success",
+        isLoading: false,
         autoClose: 2000,
       });
     } else {
-      toast.error("上传失败，请稍后重试", {
+      toast.update(loadingToastId, {
+        render: "上传失败，请稍后重试",
+        type: "error",
+        isLoading: false,
         autoClose: 2000,
       });
     }
   } catch (error) {
-    toast.remove(loadingToastId);
-    toast.error("发生未知错误", {
+    toast.update(loadingToastId, {
+      render: "发生未知错误",
+      type: "error",
+      isLoading: false,
       autoClose: 2000,
     });
     console.error(error);
