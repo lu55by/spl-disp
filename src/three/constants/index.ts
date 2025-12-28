@@ -16,7 +16,11 @@ import {
   NearestFilter,
   SRGBColorSpace,
 } from "three";
-import { OBJLoader, STLLoader } from "three/examples/jsm/Addons.js";
+import {
+  OBJExporter,
+  OBJLoader,
+  STLLoader,
+} from "three/examples/jsm/Addons.js";
 import { GlobalLoadingManager } from "../managers/GlobalLoadingManager";
 
 /*
@@ -28,6 +32,13 @@ import { GlobalLoadingManager } from "../managers/GlobalLoadingManager";
 export const OBJLoaderInstance = new OBJLoader(GlobalLoadingManager);
 export const TextureLoaderInstance = new TextureLoader(GlobalLoadingManager);
 export const STLLoaderInstance = new STLLoader(GlobalLoadingManager);
+
+/*
+ * -----------------------------------------------------------------------------
+ * Exporters
+ * -----------------------------------------------------------------------------
+ */
+export const OBJExporterInstance = new OBJExporter();
 
 /*
  * -----------------------------------------------------------------------------

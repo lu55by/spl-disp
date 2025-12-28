@@ -1,11 +1,8 @@
-import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js";
 import type { Material, Mesh, Object3D } from "three";
 import * as THREE from "three";
 import { flattenMesh } from "../meshOps";
 
 export function exportMeshToOBJ(mesh: Mesh, baseName = "cutHead-exported") {
-  const exporter = new OBJExporter();
-
   // console.log('Geometry Attributes -> ', mesh.geometry.attributes)
   const mesh2Flatten = mesh.clone();
   const clonedGeo = mesh.geometry.clone();
@@ -20,7 +17,7 @@ export function exportMeshToOBJ(mesh: Mesh, baseName = "cutHead-exported") {
 
   // console.log('After scale -> ', mesh2Simplify.geometry.attributes.position)
 
-  const objData = exporter.parse(mesh2Flatten);
+  const objData = OBJExporterInstance.parse(mesh2Flatten);
 
   // Generate a random 7-character string
   const randomId = Math.random().toString(36).substring(2, 9);
@@ -50,10 +47,8 @@ export function exportObjectToOBJ(
   object: Object3D,
   baseName: string = "cutHead-exported"
 ) {
-  const exporter = new OBJExporter();
-
   // Convert object to OBJ text
-  const objText = exporter.parse(object);
+  const objText = OBJExporterInstance.parse(object);
 
   // Generate a random 7-character string
   const randomId = Math.random().toString(36).substring(2, 9);
@@ -72,6 +67,16 @@ export function exportObjectToOBJ(
 
   // Cleanup
   URL.revokeObjectURL(link.href);
+}
+
+/**
+ * Exports a THREE.Object3D as a Blob (OBJ format).
+ * @param object The THREE.Object3D to export.
+ * @returns A Blob containing the OBJ text.
+ */
+export function exportObjectToBlob(object: Object3D): Blob {
+  const objText = OBJExporterInstance.parse(object);
+  return new Blob([objText], { type: "text/plain" });
 }
 
 /**
@@ -104,6 +109,7 @@ async function textureToBlob(texture: THREE.Texture): Promise<Blob | null> {
 }
 
 import JSZip from "jszip";
+import { OBJExporterInstance } from "../constants";
 
 /**
  * Connects to the File System Access API to save the files.
@@ -115,7 +121,6 @@ import JSZip from "jszip";
  */
 export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
   const zip = new JSZip();
-  const exporter = new OBJExporter();
 
   // We will collect materials to generate MTL
   const materials = new Map<string, THREE.Material>();
@@ -166,7 +171,7 @@ export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
   await Promise.all(texturePromises);
 
   // 3. Generate OBJ
-  let objContent = exporter.parse(group);
+  let objContent = OBJExporterInstance.parse(group);
 
   // Prepend reference to MTL file
   const mtlFileName = `${baseName}.mtl`;

@@ -6,7 +6,11 @@
     <!-- Upload Button (Bottom of viewport) -->
     <Transition name="slide-up">
       <div
-        v-if="selectedObject && !isUploadModalVisible"
+        v-if="
+          selectedObject &&
+          selectedObject.name !== CutHeadEyesNodeCombinedGroupName &&
+          !isUploadModalVisible
+        "
         class="mb-4 pointer-events-auto"
       >
         <Button @click="showModal">
@@ -22,6 +26,7 @@
         <div
           v-if="isUploadModalVisible"
           class="fixed inset-0 flex items-center justify-center z-100 pointer-events-auto"
+          @click.stop
         >
           <!-- Backdrop -->
           <div
@@ -104,6 +109,7 @@ import { toast } from "vue3-toastify";
 import { UIContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import Button from "./Button.vue";
+import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 
 const modelsStore = useModelsStore();
 const { selectedObject, isUploadModalVisible } = storeToRefs(modelsStore);

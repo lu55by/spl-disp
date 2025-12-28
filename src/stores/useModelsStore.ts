@@ -22,6 +22,7 @@ import {
   removeAndAddModelWithNodeNames,
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
+import axios from "axios";
 
 /*
   Loaded Cutters Model
@@ -544,31 +545,98 @@ export const useModelsStore = defineStore("models", {
      */
     async uploadSelectedObject(
       outfitType: "Default" | "Normal Outfit" | "IP Outfit"
-    ) {
+    ): Promise<boolean> {
       if (!this.selectedObject) {
         console.warn("No object selected for upload.");
-        return;
+        return false;
       }
 
       console.log(`\n-- uploadSelectedObject -- type: ${outfitType}`);
       console.log("Selected Object ->", this.selectedObject);
 
-      // In a real scenario, we would:
       // 1. Export the selectedObject to a Blob (e.g. using OBJExporter or GLTFExporter)
-      // 2. Prepare Form Data with the Blob and the outfitType
-      // 3. Send a POST request to the backend API
+      const { exportObjectToBlob } = await import("../three/exporters");
+      const blob = exportObjectToBlob(this.selectedObject);
+      console.log("\n3D Object Blob ->", blob);
 
-      // TODO: Complete the upload process assuming there is a backend API ready.
-      // For now, we simulate the process
-      return new Promise<boolean>((resolve) => {
-        setTimeout(() => {
+      // 2. Prepare Form Data with the Blob and the outfitType
+      const formData = new FormData();
+      formData.append(
+        "file",
+        blob,
+        `${this.selectedObject.name || "model"}.obj`
+      );
+      formData.append("outfitType", outfitType);
+      formData.append("timestamp", new Date().toISOString());
+      // TODO: Try to figure out why the heck the obj file size is larger than the original.
+      console.log("\nForm Data file ->", formData.get("file"));
+      console.log("\nForm Data outfitType ->", formData.get("outfitType"));
+      console.log("\nForm Data timestamp ->", formData.get("timestamp"));
+      return true;
+
+      // 3. Send a POST request to the backend API
+      /* SIMULATION
+      try {
+        console.log("Uploading model to backend...");
+        // Simulation of a fetch call
+        const response = await new Promise<{ success: boolean; data: any }>(
+          (resolve) => {
+            setTimeout(() => {
+              resolve({
+                success: true,
+                data: {
+                  id: "upload_" + Math.random().toString(36).slice(2, 9),
+                },
+              });
+            }, 2000);
+          }
+        );
+
+        if (response.success) {
           console.log(
-            `Upload successful for ${this.selectedObject?.name} with type ${outfitType}`
+            `Upload successful! ID: ${response.data.id} for ${this.selectedObject?.name} with type ${outfitType}`
           );
+          // Hide modal on success
           this.setUploadModalVisible(false);
-          resolve(true);
-        }, 1500);
-      });
+          return true;
+        } else {
+          console.error("Upload failed on the server.");
+          return false;
+        }
+      } catch (error) {
+        console.error("Error during upload process:", error);
+        return false;
+      }
+      */
+
+      /*
+        TODO: Request to the backend API with axios
+      */
+      try {
+        console.log("Uploading model to backend...");
+        const response = await axios.post("/api/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const progress = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              console.log(`\nUpload progress -> ${progress}%`);
+            }
+          },
+        });
+
+        if (response.status === 200) {
+          console.log("\nUpload successful! Response data ->", response.data);
+          this.setUploadModalVisible(false);
+          return true;
+        }
+      } catch (error) {
+        console.error("\nError during upload process ->", error);
+        return false;
+      }
     },
   },
 });
