@@ -9,14 +9,12 @@ import {
   UltraHDRLoader,
 } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
 import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import {
-  CameraProps,
-  HDRPath
-} from "../../three/constants";
+import { CameraProps, HDRPath } from "../../three/constants";
 import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
@@ -210,6 +208,7 @@ const init = async () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
+  renderer.inspector = new Inspector();
 
   /**
    * Controls
@@ -314,27 +313,6 @@ const init = async () => {
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
     if (!splicingGroupGlobal || splicingGroupGlobal.children.length === 0)
       return;
-    // splicingGroupGlobal.traverse((child) => {
-    //   if (
-    //     child instanceof THREE.Mesh &&
-    //     child.material instanceof THREE.MeshStandardNodeMaterial
-    //   ) {
-    //     // Individual UniformNode for each mesh
-    //     const uLocalToggleOutline = uniform(0);
-    //     child.userData.uLocalToggleOutline = uLocalToggleOutline;
-
-    //     /*
-    //       Mix the `mixed uBaseColor and materialColor` with outlineColor based on the outlinePat
-    //     */
-    //     child.material.colorNode = mix(
-    //       mix(uBaseColor, materialColor, uIsShowMap),
-    //       uOutlineColor,
-    //       getOutlinePattern(uOutlinePatternFactor).mul(
-    //         child.userData.uLocalToggleOutline
-    //       )
-    //     );
-    //   }
-    // });
     splicingGroupGlobal.children.forEach((groupChild) => {
       if (groupChild instanceof THREE.Group) {
         const uLocalToggleOutline = uniform(0);
@@ -371,6 +349,32 @@ const init = async () => {
   };
   applyMixedColorNode(splicingGroupGlobal);
 
+  /**
+   * Post-Processing
+   */
+  // const postProcessing = new THREE.PostProcessing(renderer);
+  // const scenePass = pass(scene, camera);
+  // const scenePassColor = scenePass.getTextureNode("output");
+
+  // // const dotScreenPass = dotScreen(scenePassColor);
+  // // dotScreenPass.scale.value = 1;
+
+  // const bloomPass = bloom(scenePassColor);
+
+  // postProcessing.outputNode = scenePassColor.add(bloomPass);
+
+  /**
+   * Inspector
+   */
+  // const guiInspector = (renderer.inspector as Inspector).createParameters("Settings");
+
+  // Add the global group
+  // splicingGroupGlobal.add(new THREE.AxesHelper(10));
+  scene.add(splicingGroupGlobal);
+
+  /**
+   * Watchers from vue
+   */
   // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
   watch(splicingGroupLen, (newLength, oldLength) => {
     console.log(
@@ -389,24 +393,6 @@ const init = async () => {
     console.log("\n -- init -- isShowMap changed to ->", newVal);
     uIsShowMap.value = newVal ? 1 : 0;
   });
-
-  /**
-   * Post-Processing
-   */
-  // const postProcessing = new THREE.PostProcessing(renderer);
-  // const scenePass = pass(scene, camera);
-  // const scenePassColor = scenePass.getTextureNode("output");
-
-  // // const dotScreenPass = dotScreen(scenePassColor);
-  // // dotScreenPass.scale.value = 1;
-
-  // const bloomPass = bloom(scenePassColor);
-
-  // postProcessing.outputNode = scenePassColor.add(bloomPass);
-
-  // Add the global group
-  // splicingGroupGlobal.add(new THREE.AxesHelper(10));
-  scene.add(splicingGroupGlobal);
 };
 
 /**
@@ -512,9 +498,9 @@ const onPointerMove = (event: PointerEvent) => {
 const onWindowDragOver = (e: DragEvent) => {
   e.preventDefault();
 
-  // Fix the issue of colorNode not being set back to the original colorNode based on uIsShowMap
   if (modelsStore.dragHoveredObject) {
     setOutlineVisibility(modelsStore.dragHoveredObject, false);
+    modelsStore.setDragHoveredObject(null);
   }
 
   // Calculate mouse position for raycasting

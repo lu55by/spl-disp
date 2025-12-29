@@ -518,7 +518,7 @@ export const useModelsStore = defineStore("models", {
      * Export the splicing group to a .obj, .mtl and texture png files.
      * @returns Promise<boolean> - true if the export was successful, false otherwise
      */
-    async exportModel(): Promise<boolean> {
+    async exportSplicingModels(): Promise<boolean> {
       // Lazy import to avoid circular dependency issues if any
       const { exportSplicingGroup } = await import("../three/exporters");
       return await exportSplicingGroup(this.splicingGroupGlobal);
