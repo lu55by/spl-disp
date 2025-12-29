@@ -205,7 +205,7 @@ const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 // --- Head Male Prefix ---
 export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
-export const HeadMaleSubPath = `/cutHead-uv-issue-01-isspd01`;
+export const HeadMaleSubPath = `/isspd-01`;
 
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;

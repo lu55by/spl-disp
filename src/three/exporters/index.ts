@@ -273,19 +273,18 @@ function parseObjectToOptimizedOBJ(object: Object3D): string {
       const mesh = child as Mesh;
       // mergeVertices can significantly reduce vertex count by sharing identical vertices
       mesh.geometry = BufferGeometryUtils.mergeVertices(mesh.geometry);
+      // Delete the normal attribute to reduce file size
+      mesh.geometry.deleteAttribute("normal");
     }
   });
 
-  console.log(
-    "\n -- parseObjectToOptimizedOBJ -- Optimized OBJ ->",
-    cloned.name
-  );
+  console.log("\n -- parseObjectToOptimizedOBJ -- Optimized OBJ ->", cloned);
 
   let objText = OBJExporterInstance.parse(cloned);
 
   // Truncate floating point precision to 6 decimal places.
   // This drastically reduces file size for text-based formats like OBJ.
-  objText = objText.replace(/(\d+\.\d{6})\d+/g, "$1");
+  objText = objText.replace(/(\d+\.\d{4})\d+/g, "$1");
 
   return objText;
 }
