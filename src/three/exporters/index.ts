@@ -1,5 +1,6 @@
 import type { Material, Mesh, Object3D } from "three";
 import * as THREE from "three";
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { flattenMesh } from "../meshOps";
 
 export function exportMeshToOBJ(mesh: Mesh, baseName = "cutHead-exported") {
@@ -17,7 +18,8 @@ export function exportMeshToOBJ(mesh: Mesh, baseName = "cutHead-exported") {
 
   // console.log('After scale -> ', mesh2Simplify.geometry.attributes.position)
 
-  const objData = OBJExporterInstance.parse(mesh2Flatten);
+  // const objData = OBJExporterInstance.parse(mesh2Flatten);
+  const objData = parseObjectToOptimizedOBJ(mesh2Flatten);
 
   // Generate a random 7-character string
   const randomId = Math.random().toString(36).substring(2, 9);
@@ -48,7 +50,7 @@ export function exportObjectToOBJ(
   baseName: string = "cutHead-exported"
 ) {
   // Convert object to OBJ text
-  const objText = OBJExporterInstance.parse(object);
+  const objText = parseObjectToOptimizedOBJ(object);
 
   // Generate a random 7-character string
   const randomId = Math.random().toString(36).substring(2, 9);
@@ -75,7 +77,7 @@ export function exportObjectToOBJ(
  * @returns A Blob containing the OBJ text.
  */
 export function exportObjectToBlob(object: Object3D): Blob {
-  const objText = OBJExporterInstance.parse(object);
+  const objText = parseObjectToOptimizedOBJ(object);
   return new Blob([objText], { type: "text/plain" });
 }
 
@@ -171,7 +173,7 @@ export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
   await Promise.all(texturePromises);
 
   // 3. Generate OBJ
-  let objContent = OBJExporterInstance.parse(group);
+  let objContent = parseObjectToOptimizedOBJ(group);
 
   // Prepend reference to MTL file
   const mtlFileName = `${baseName}.mtl`;
@@ -255,4 +257,35 @@ export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
     console.log("Save cancelled");
     return false;
   }
+}
+
+/**
+ * Internal helper to parse an object to OBJ with optimizations:
+ * 1. Merges vertices to re-index geometry (reduces size if de-indexed).
+ * 2. Truncates floating point precision in the resulting string.
+ */
+function parseObjectToOptimizedOBJ(object: Object3D): string {
+  // Clone to avoid side effects on the original scene objects
+  const cloned = object.clone();
+
+  cloned.traverse((child) => {
+    if ((child as Mesh).isMesh) {
+      const mesh = child as Mesh;
+      // mergeVertices can significantly reduce vertex count by sharing identical vertices
+      mesh.geometry = BufferGeometryUtils.mergeVertices(mesh.geometry);
+    }
+  });
+
+  console.log(
+    "\n -- parseObjectToOptimizedOBJ -- Optimized OBJ ->",
+    cloned.name
+  );
+
+  let objText = OBJExporterInstance.parse(cloned);
+
+  // Truncate floating point precision to 6 decimal places.
+  // This drastically reduces file size for text-based formats like OBJ.
+  objText = objText.replace(/(\d+\.\d{6})\d+/g, "$1");
+
+  return objText;
 }

@@ -568,7 +568,8 @@ export const useModelsStore = defineStore("models", {
       );
       formData.append("outfitType", outfitType);
       formData.append("timestamp", new Date().toISOString());
-      // TODO: Try to figure out why the heck the obj file size is larger than the original.
+      // Fixed: The OBJ file size was large due to de-indexed geometry and high floating-point precision.
+      // Optimized during export in three/exporters/index.ts.
       console.log("\nForm Data file ->", formData.get("file"));
       console.log("\nForm Data outfitType ->", formData.get("outfitType"));
       console.log("\nForm Data timestamp ->", formData.get("timestamp"));
