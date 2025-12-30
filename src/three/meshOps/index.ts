@@ -536,6 +536,10 @@ export function removeAndAddModelWithNodeNames(
   splicingGroupGlobal.add(importedGroup);
 }
 
+/**
+ * Dispose each geometry and material of meshes in the group object.
+ * @param obj2Dispose The group object to dispose.
+ */
 export function disposeGroupObject(obj2Dispose: Group<Object3DEventMap>) {
   obj2Dispose.traverse((child) => {
     if (child instanceof Mesh) {

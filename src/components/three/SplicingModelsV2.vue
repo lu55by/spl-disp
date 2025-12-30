@@ -4,18 +4,14 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import {
-  TransformControls,
-  UltraHDRLoader,
-} from "three/examples/jsm/Addons.js";
+import { TransformControls } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
 import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps, HDRPath } from "../../three/constants";
-import { GlobalLoadingManager } from "../../three/managers/GlobalLoadingManager";
+import { CameraProps } from "../../three/constants";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
 
@@ -40,8 +36,8 @@ const { splicingGroupLen, isShowMap, isDefaultHeadFemale } =
  * @param group THREE.Group
  */
 const adjustPivots = (group: THREE.Group) => {
-  console.log("\nadjustPivots called...");
-  console.log("\n -- adjustPivots -- group ->", group);
+  // console.log("\nadjustPivots called...");
+  // console.log("\n -- adjustPivots -- group ->", group);
   group.updateMatrixWorld();
   group.children.forEach((child) => {
     if (child instanceof THREE.Mesh) {
@@ -122,7 +118,7 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
       "addChild",
       "imoprtObjStlModelWithHeight",
       "imoprtObjStlWithNodeNames",
-      "setDefaultOriginalHead",
+      // "setDefaultOriginalHead",
       "clear",
     ];
     if (relevantActions.includes(name)) {
@@ -153,6 +149,8 @@ let camera: THREE.PerspectiveCamera,
   // uToggleOutline: THREE.UniformNode<number>,
   // raycaster intersection object
   raycasterIntersectionObject: THREE.Object3D | null;
+
+let postProcessing: THREE.PostProcessing;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -245,20 +243,20 @@ const init = async () => {
   /**
    * Load HDR(IBL(Image-Based Lighting))
    */
-  const ultraHDRLoader = new UltraHDRLoader(GlobalLoadingManager);
-  ultraHDRLoader.setDataType(THREE.FloatType);
+  // const ultraHDRLoader = new UltraHDRLoader(GlobalLoadingManager);
+  // ultraHDRLoader.setDataType(THREE.FloatType);
 
-  const loadEnvironment = () => {
-    ultraHDRLoader.setDataType(THREE.HalfFloatType);
+  // const loadEnvironment = () => {
+  //   ultraHDRLoader.setDataType(THREE.HalfFloatType);
 
-    ultraHDRLoader.load(HDRPath, (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      texture.needsUpdate = true;
+  //   ultraHDRLoader.load(HDRPath, (texture) => {
+  //     texture.mapping = THREE.EquirectangularReflectionMapping;
+  //     texture.needsUpdate = true;
 
-      // scene.background = texture;
-      scene.environment = texture;
-    });
-  };
+  //     // scene.background = texture;
+  //     scene.environment = texture;
+  //   });
+  // };
   // loadEnvironment();
 
   /**
@@ -270,29 +268,35 @@ const init = async () => {
     rotatingLight = new THREE.DirectionalLight(0xffffff, 1.2);
     rotatingLight.position.set(5, 10, 7);
     rotatingLight.castShadow = true;
+    rotatingLight.name = "rotatingLight";
     scene.add(rotatingLight);
 
     // 补光 - 软化阴影
     const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
     fillLight.position.set(-5, 3, 5);
+    fillLight.name = "fillLight";
     scene.add(fillLight);
 
     // 背光 - 增强轮廓
     const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
     rimLight.position.set(0, 3, -10);
+    rimLight.name = "rimLight";
     scene.add(rimLight);
 
     // 顶部环境光 - 确保头顶有足够的光线
     const topLight = new THREE.DirectionalLight(0xffffff, 0.5);
     topLight.position.set(0, 10, 0);
+    topLight.name = "topLight";
     scene.add(topLight);
 
     // 环境光 - 提供基础照明
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    ambientLight.name = "ambientLight";
     scene.add(ambientLight);
 
     // 半球光 - 提供更自然的环境照明
     const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.4);
+    hemisphereLight.name = "hemisphereLight";
     scene.add(hemisphereLight);
   };
   applyLightsAiBus();
@@ -304,10 +308,8 @@ const init = async () => {
   // Uniforms used for TSL
   uBaseColor = uniform(color("#fff"));
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
-  // uOutlineColor = uniform(color("#ffdbac"));
   uOutlineColor = uniform(color("#0ff"));
   uOutlinePatternFactor = uniform(vec2(0.8, 0.82));
-  // uToggleOutline = uniform(0);
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
@@ -323,10 +325,10 @@ const init = async () => {
         }
         // Set the uLocalToggleOutline to the group's userData, not a mesh
         groupChild.userData.uLocalToggleOutline = uLocalToggleOutline;
-        console.log(
-          `\n-- applyMixedColorNode -- userData uLocalToggleOutline set for ${groupChild.name} ->`,
-          groupChild
-        );
+        // console.log(
+        //   `\n-- applyMixedColorNode -- userData uLocalToggleOutline set for ${groupChild.name} ->`,
+        //   groupChild
+        // );
         // Apply the mixed colorNode
         groupChild.children.forEach((child) => {
           if (
@@ -340,6 +342,7 @@ const init = async () => {
                 child.parent.userData.uLocalToggleOutline
               )
             );
+
             // Works if we indicates the engine the material needs to be recompiled
             child.material.needsUpdate = true;
           }
@@ -352,16 +355,193 @@ const init = async () => {
   /**
    * Post-Processing
    */
-  // const postProcessing = new THREE.PostProcessing(renderer);
+  // postProcessing = new THREE.PostProcessing(renderer);
   // const scenePass = pass(scene, camera);
   // const scenePassColor = scenePass.getTextureNode("output");
 
-  // // const dotScreenPass = dotScreen(scenePassColor);
-  // // dotScreenPass.scale.value = 1;
+  // /*
+  //   after image effect
+  //  */
+  // const afterImagePass = afterImage(scenePassColor, 0.96);
 
+  // /*
+  //   anamophic flare effect
+  //  */
+  // const anamorphicFlarePass = anamorphic(
+  //   scenePassColor,
+  //   float(0.9),
+  //   float(3),
+  //   32
+  // );
+
+  // /*
+  //   bloom effect
+  //  */
   // const bloomPass = bloom(scenePassColor);
 
-  // postProcessing.outputNode = scenePassColor.add(bloomPass);
+  // /*
+  //   boxBlur effect
+  //  */
+  // const boxBlurPass = boxBlur(scenePassColor, {
+  //   size: float(2),
+  //   separation: float(5),
+  //   mask: float(3),
+  //   premultipliedAlpha: true,
+  // });
+
+  // /*
+  //   chromatic aberration effect
+  //  */
+  // const chromaticAberrationPass = chromaticAberration(
+  //   scenePassColor,
+  //   float(1),
+  //   vec2(0),
+  //   float(1)
+  // );
+
+  // /*
+  //   denoise effect (not working currently)
+  //  */
+  // const denoisePass = denoise(scenePassColor, depth, normalWorld, camera);
+
+  // /*
+  //   dof effect (figure out what params to pass later)
+  //  */
+  // // const dofPass = dof(scenePassColor, )
+
+  // /*
+  //   dot-screen effect
+  //  */
+  // const dotScreenPass = dotScreen(scenePassColor, vec2(0).value, 1.57, 1);
+
+  // /*
+  //   film grain effect
+  //  */
+  // const filmGrainPasss = film(scenePassColor, float(2), screenUV);
+
+  // /*
+  //   FXAA anti-aliasing effect
+  //  */
+  // const fxaaPass = fxaa(scenePassColor);
+
+  // /*
+  //   gaussian blur effect
+  //  */
+  // const gaussianBlurPass = gaussianBlur(scenePassColor, 10, 2, {
+  //   premultipliedAlpha: false,
+  //   resolution: vec2(1).value,
+  // });
+
+  // /*
+  //   grayscale effect
+  //  */
+  // const grayscalePass = grayscale(scenePassColor);
+
+  // /*
+  //   hash blur effect
+  //  */
+  // const hashBlurPass = hashBlur(scenePassColor, 0.8, {
+  //   size: float(2),
+  //   mask: float(1),
+  //   premultipliedAlpha: false,
+  // });
+
+  // /*
+  //   LUT color grading effect (figure out what params to pass later)
+  //  */
+  // const lut3DPass = lut3D(
+  //   scenePassColor,
+  //   texture3D(scenePassColor.value),
+  //   2,
+  //   float(1)
+  // );
+
+  // /*
+  //   motion blur effect
+  //  */
+  // const motionBlurPass = motionBlur(
+  //   scenePassColor,
+  //   sin(time.mul(1)).add(1).mul(0.5).pow(6),
+  //   int(4)
+  // );
+
+  // /*
+  //   outline effect
+  //  */
+  // const outlinePass = outline(scene, camera, {
+  //   selectedObjects: [splicingGroupGlobal.children[0].children[0]],
+  //   edgeThickness: float(2),
+  //   edgeGlow: float(0.2),
+  //   downSampleRatio: 5,
+  // });
+
+  // /*
+  //   RGB shift effect
+  //  */
+  // const rgbShiftPass = rgbShift(scenePassColor, 0.005, 1.57);
+
+  // /*
+  //   sepia effect
+  //  */
+  // const sepiaPass = sepia(scenePassColor);
+
+  // /*
+  //   SMAA anti-aliasing effect
+  //  */
+  // const smaaPass = smaa(scenePassColor);
+
+  // /*
+  //   sobel edge detection effect
+  //  */
+  // const sobelPass = sobel(scenePassColor);
+
+  // /*
+  //   screen space reflections effect
+  //  */
+  // const headModelNodeMat = (
+  //   splicingGroupGlobal.children[0].children[0] as THREE.Mesh
+  // ).material as THREE.MeshStandardNodeMaterial;
+  // console.log("\nheadModelNodeMat ->", headModelNodeMat);
+  // const ssrPass = ssr(
+  //   scenePassColor,
+  //   headModelNodeMat.depthNode,
+  //   headModelNodeMat.normalNode,
+  //   headModelNodeMat.metalnessNode,
+  //   headModelNodeMat.roughnessNode,
+  //   camera
+  // );
+
+  // /*
+  //   SSGI effect
+  //  */
+  // const ssgiPass = ssgi(
+  //   scenePassColor,
+  //   headModelNodeMat.depthNode,
+  //   headModelNodeMat.normalNode,
+  //   camera
+  // );
+
+  // /*
+  //   Ground Truth Ambient Occlusion (GTAO) effect
+  //  */
+  // const aoPass = ao(
+  //   headModelNodeMat.depthNode,
+  //   headModelNodeMat.normalNode,
+  //   camera
+  // );
+
+  // /*
+  //   transition effect between two scenes (figure out what params to pass later)
+  //  */
+  // // const transitionPass = transition(scenePassColor, )
+
+  /*
+    TRAA temporal anti-aliasing effect (figure out what params to pass later)
+   */
+  // const traaPass = traa(scenePassColor, scenePassColor, scenePassColor, camera);
+
+  // postProcessing.outputNode = scenePassColor.add(traaPass);
+  // postProcessing.outputNode = grayscale(gaussianBlur(scenePassColor, 4));
 
   /**
    * Inspector
@@ -423,11 +603,11 @@ const onWindowResize = () => {
 const mouse = new THREE.Vector2();
 
 /**
- * Set the outline visibility for the object
+ * Toggle the outline visibility for the object by setting the userData.uLocalToggleOutline uniform in the parent group or mesh.
  * @param object THREE.Object3D
  * @param isVisible boolean
  */
-const setOutlineVisibility = (
+const setOutlineEffectVisibility = (
   object: THREE.Object3D | null,
   isVisible: boolean
 ) => {
@@ -456,7 +636,7 @@ const onPointerMove = (event: PointerEvent) => {
     //     child.material.color.set("#fff");
     //   }
     // });
-    setOutlineVisibility(raycasterIntersectionObject, false);
+    setOutlineEffectVisibility(raycasterIntersectionObject, false);
     raycasterIntersectionObject = null;
     // if (uOutlinePatternFactor) uOutlinePatternFactor.value.set(0.99, 0.999);
   }
@@ -486,177 +666,142 @@ const onPointerMove = (event: PointerEvent) => {
       );
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
-      setOutlineVisibility(raycasterIntersectionObject, true);
+      setOutlineEffectVisibility(raycasterIntersectionObject, true);
     }
   }
 };
 
 /**
- * On Window Drag Over of Drag and Drop Logic with Raycaster
+ * On Window Drag Over fn, handle the event of object been intersected by the raycaster.
+ * Including:
+ * 1. Set the global dragHoveredObject to the firstIntersection casted by ray.
+ * 2. Set the global selectedObejct to the firstIntersection casted by ray.
+ * 3. Toggle the visibility of the outline effect.
  * @param e DragEvent
  */
 const onWindowDragOver = (e: DragEvent) => {
   e.preventDefault();
 
+  // Check if there's a previous dragHoveredObject in the modelsStore
   if (modelsStore.dragHoveredObject) {
-    setOutlineVisibility(modelsStore.dragHoveredObject, false);
+    /*
+      Set the outline effect to be invisible
+     */
+    setOutlineEffectVisibility(modelsStore.dragHoveredObject, false);
+    /*
+      Set the global dragHoveredObject in modelsStore to null
+     */
     modelsStore.setDragHoveredObject(null);
   }
 
   // Calculate mouse position for raycasting
-  // We need to use clientX and clientY from the DragEvent
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  // Updates the ray with the camera origin and direction based on the mouse
   raycaster.setFromCamera(mouse, camera);
+  // Get the intersected objects that are casted by the ray (closest first)
   const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
 
+  // Check if the intersected objects are the length greater than 0
   if (intersects.length > 0) {
-    const firstIntersection = intersects[0];
-    if (firstIntersection.object instanceof THREE.Mesh) {
-      // Highlight logic or just state update
-      if (modelsStore.dragHoveredObject !== firstIntersection.object) {
-        console.log(
-          "\n -- onWindowDragOver -- modelsStore.dragHoveredObject !== firstIntersection.object"
-        );
-        // Reset previous if needed, though simple state update handles it
-        modelsStore.setDragHoveredObject(firstIntersection.object);
-        // console.log(
-        //   "\n-- onWindowDragOver -- Hovered Object ->",
-        //   firstIntersection.object
-        // );
+    // Get the first intersection
+    const firstIntersection = intersects.filter((intersect) => {
+      return intersect && intersect.object;
+    })[0];
 
-        // Set the raycasterIntersectionObject to the hovered object so that we can change the colorNode back to the original colorNode controlled by uIsShowMap of the hovered object after clicking outside of the hovered object
+    // Check if the firstIntersection is valid and is a mesh.
+    if (firstIntersection && firstIntersection.object instanceof THREE.Mesh) {
+      if (modelsStore.dragHoveredObject !== firstIntersection.object) {
+        /*
+          Set the global dragHoveredObject to the firstIntersection
+         */
+        modelsStore.setDragHoveredObject(firstIntersection.object);
+
+        /*
+          Set the raycasterIntersectionObject to the firstIntersection so we
+          can set the outline effect to be invisible by clicking 
+          outside of the 3D Objects
+         */
         raycasterIntersectionObject = firstIntersection.object;
 
-        // Visual Feedback (e.g., outline or color tint)
-        if (
-          modelsStore.dragHoveredObject.material instanceof
-          THREE.MeshStandardNodeMaterial
-        ) {
-          // modelsStore.dragHoveredObject is a Mesh
-          setOutlineVisibility(modelsStore.dragHoveredObject, true);
-        }
+        /*
+          Set the outline effect to be visible
+        */
+        setOutlineEffectVisibility(modelsStore.dragHoveredObject, true);
       }
-    }
-  } else {
-    if (modelsStore.dragHoveredObject) {
-      modelsStore.setDragHoveredObject(null);
     }
   }
 };
 
 /**
- * On mouse click fn
- * @param event MouseEvent
+ * On mouse click fn, handle the event of object been intersected by the raycaster.
+ * Including:
+ * 1. Attatch the transform control to the parent group of the casted mesh by the ray.
+ * 2. Set the global selected object in modelsStore to the parent group.
+ * 3. Toggle the visibility of the outline effect.
+ * @param e MouseEvent
  */
-const onMouseClick = (event: MouseEvent) => {
-  // console.log("\n -- onMouseClick -- event ->", event);
-
-  // Check if there is a previous intersection
+const onMouseClick = (e: MouseEvent) => {
+  // Check if there's a previous selected raycasterIntersectionObject
   if (raycasterIntersectionObject) {
-    // Check if the previous raycasterIntersectionObject is a mesh
-    if (
-      raycasterIntersectionObject instanceof THREE.Mesh &&
-      raycasterIntersectionObject.geometry instanceof THREE.BufferGeometry &&
-      raycasterIntersectionObject.material instanceof
-        THREE.MeshStandardNodeMaterial
-    ) {
-      console.log(
-        "\nPrevious raycasterIntersectionObject is a mesh ->",
-        raycasterIntersectionObject
-      );
-      console.log("\nReady to reset the colorNode controlled by uIsShowMap...");
-      setOutlineVisibility(raycasterIntersectionObject, false);
-    }
-
-    // Change the colorNode back to the original colorNode controlled by uIsShowMap of each material of each mesh in the raycasterIntersectionObject group
-    if (raycasterIntersectionObject instanceof THREE.Group) {
-      raycasterIntersectionObject.traverse((child) => {
-        if (
-          child instanceof THREE.Mesh &&
-          child.geometry instanceof THREE.BufferGeometry &&
-          child.material instanceof THREE.MeshStandardNodeMaterial
-        ) {
-          setOutlineVisibility(child, false);
-        }
-      });
-    }
-    // Set raycasterIntersectionObject to null
+    /*
+      Set the outline effect to be invisible
+     */
+    setOutlineEffectVisibility(raycasterIntersectionObject, false);
+    /*
+      Set the raycasterIntersectionObject to null
+     */
     raycasterIntersectionObject = null;
-    // Detach the transform
-    transform.detach();
   }
 
   // Check if there is a previous selected object in modelsStore
   if (modelsStore.selectedObject) {
-    console.log(
-      "\nPrevious selected object in modesStore ->",
-      modelsStore.selectedObject
-    );
+    /*
+      Set the outline effect to be invisible
+     */
+    setOutlineEffectVisibility(modelsStore.selectedObject, false);
+    /*
+      Set the global selected object in modelsStore to null
+     */
     modelsStore.setSelectedObject(null);
   }
 
-  // Update the mouse position
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  // Set raycaster from the mouse and the camera
+  // Calculate mouse position for raycasting
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  // Updates the ray with camera origin and direction based on the mouse
   raycaster.setFromCamera(mouse, camera);
-
-  // Intersect objects
+  // Get the intersected objects that are casted by the ray (closest first)
   const intersects = raycaster.intersectObject(splicingGroupGlobal);
 
-  // Check if there is an intersection
+  // Check if the intersected objects are the length greater than 0
   if (intersects.length > 0) {
-    // Get the first intersected object
-    const firstIntersectedObject = intersects.filter((intersect) => {
+    // Get the first intersection
+    const firstIntersection = intersects.filter((intersect) => {
       return intersect && intersect.object;
     })[0];
-    console.log("\nfirstIntersectedObject ->", firstIntersectedObject);
 
     // Check if the first intersected object is valid
-    if (firstIntersectedObject && firstIntersectedObject.object) {
+    if (firstIntersection && firstIntersection.object) {
       // Get the Parent Group of the first intersected object
-      const parentGroup = firstIntersectedObject.object.parent;
-      console.log(
-        "\nparentGroup of the first intersected object ->",
-        parentGroup
-      );
-      // Set raycasterIntersectionObject
-      raycasterIntersectionObject = parentGroup;
-      // Attach the transform to the raycasterIntersectionObject
-      // if (raycasterIntersectionObject.name !== CutHeadEyesNodeCombinedGroupName)
-      //   transform.attach(raycasterIntersectionObject);
-      // Set the global selected object in modelsStore
-      modelsStore.setSelectedObject(parentGroup);
-      console.log(
-        "\nCurrent selected object in modelsStore ->",
-        modelsStore.selectedObject
-      );
-      // Check if the raycasterIntersectionObject is a mesh
-      if (
-        raycasterIntersectionObject instanceof THREE.Mesh &&
-        raycasterIntersectionObject.geometry instanceof THREE.BufferGeometry &&
-        raycasterIntersectionObject.material instanceof
-          THREE.MeshStandardNodeMaterial
-      ) {
-        console.log(
-          "\nraycasterIntersectionObject is mesh ->",
-          raycasterIntersectionObject
-        );
-        setOutlineVisibility(raycasterIntersectionObject, true);
-        return;
-      }
-      // raycasterIntersectionObject is a group
-      raycasterIntersectionObject.traverse((child) => {
-        if (
-          child instanceof THREE.Mesh &&
-          child.geometry instanceof THREE.BufferGeometry &&
-          child.material instanceof THREE.MeshStandardNodeMaterial
-        ) {
-          setOutlineVisibility(child, true);
-        }
-      });
+      const intersectionParent = firstIntersection.object
+        .parent as THREE.Group<THREE.Object3DEventMap>;
+
+      /*
+        Attach the transform to the intersectedParentGroup
+       */
+      // if (intersectionParent.name !== CutHeadEyesNodeCombinedGroupName)
+      //   transform.attach(intersectionParent);
+
+      /*
+        Set the global selected object in modelsStore to the intersectedParentGroup
+       */
+      modelsStore.setSelectedObject(intersectionParent);
+
+      /*
+        Set the outline effect to be visible
+       */
+      setOutlineEffectVisibility(intersectionParent, true);
     }
   }
 };
@@ -734,11 +879,11 @@ const onKeyUp = (event: KeyboardEvent) => {
 /**
  * Animation fn used for renderer
  */
-let time: number;
+let t: number;
 const animate = async () => {
   // Elapsed Time
   timer.update();
-  time = timer.getElapsed();
+  t = timer.getElapsed();
   // console.log("\ntime ->", time);
 
   /*
@@ -752,8 +897,8 @@ const animate = async () => {
    */
   // 主光旋转
   if (rotatingLight) {
-    rotatingLight.position.x = Math.cos(time) * 15;
-    rotatingLight.position.z = Math.sin(time) * 15;
+    rotatingLight.position.x = Math.cos(t) * 15;
+    rotatingLight.position.z = Math.sin(t) * 15;
   }
 
   /*
@@ -761,6 +906,12 @@ const animate = async () => {
    */
   await renderer.init();
   renderer.render(scene, camera);
+
+  /*
+    Post-Processing
+   */
+  // await postProcessing.renderer.init();
+  // postProcessing.render();
 };
 
 /**

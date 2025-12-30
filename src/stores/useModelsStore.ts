@@ -70,13 +70,13 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   Default Original Head Female
  */
 const DefaultOriginalHeadFemale = await loadDefaultCutHeadAsync(true);
-console.log("\n DefaultOriginalHeadFemale ->", DefaultOriginalHeadFemale);
+// console.log("\n DefaultOriginalHeadFemale ->", DefaultOriginalHeadFemale);
 
 /*
   Default Original Head Male
  */
 const DefaultOriginalHeadMale = await loadDefaultCutHeadAsync(false);
-console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
+// console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
 
 /*
   Splicing Group
