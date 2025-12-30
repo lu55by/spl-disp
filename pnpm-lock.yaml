@@ -29,6 +29,9 @@ importers:
       three-mesh-bvh:
         specifier: ^0.9.2
         version: 0.9.2(three@0.181.2)
+      tsl-textures:
+        specifier: ^2.5.1
+        version: 2.5.1
       tweakpane:
         specifier: ^4.0.5
         version: 4.0.5
@@ -918,6 +921,9 @@ packages:
     resolution: {integrity: sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==}
     engines: {node: '>=12.0.0'}
 
+  tsl-textures@2.5.1:
+    resolution: {integrity: sha512-SfooWvxYArvSxzOKvil26gCZycUC94fn0elAh5grH62XY89Fut/NWCjfbPea2jSN1+hSeR6NfQVdtBQWXnZlaQ==}
+
   tweakpane@4.0.5:
     resolution: {integrity: sha512-rxEXdSI+ArlG1RyO6FghC4ZUX8JkEfz8F3v1JuteXSV0pEtHJzyo07fcDG+NsJfN5L39kSbCYbB9cBGHyuI/tQ==}
 
@@ -1724,6 +1730,8 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
+
+  tsl-textures@2.5.1: {}
 
   tweakpane@4.0.5: {}
 

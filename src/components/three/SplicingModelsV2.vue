@@ -7,13 +7,14 @@ import { storeToRefs } from "pinia";
 import { TransformControls } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
-import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
+import { color, materialColor, mix, time, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps } from "../../three/constants";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
+import { simplexNoise, polkaDots } from "tsl-textures";
 
 /**
  * Canvas Element
@@ -56,10 +57,10 @@ const adjustPivots = (group: THREE.Group) => {
       const vec = center.clone();
       vec.applyQuaternion(child.quaternion);
       vec.multiply(child.scale);
-      console.log(
-        `\n -- adjustPivots -- vec to be add to ${childName} position ->`,
-        vec
-      );
+      // console.log(
+      //   `\n -- adjustPivots -- vec to be add to ${childName} position ->`,
+      //   vec
+      // );
       child.position.add(vec);
     } else if (child instanceof THREE.Group) {
       // child -> HeadGrp, HairGrp or BodyGrp
@@ -92,10 +93,6 @@ const adjustPivots = (group: THREE.Group) => {
 const orbitControlsTargetCenter = new THREE.Vector3();
 const updateOrbitControlsTargetCenter = () => {
   console.log("\nupdateOrbitControlsTargetCenter called...");
-  console.log(
-    "\n-- updateOrbitControlsTargetCenter -- splicingGroupGlobal ->",
-    splicingGroupGlobal
-  );
 
   // Adjust the pivot point of each object in the group to its bounding box center
   adjustPivots(splicingGroupGlobal);
@@ -326,10 +323,6 @@ const init = async () => {
         }
         // Set the uLocalToggleOutline to the group's userData, not a mesh
         groupChild.userData.uLocalToggleOutline = uLocalToggleOutline;
-        // console.log(
-        //   `\n-- applyMixedColorNode -- userData uLocalToggleOutline set for ${groupChild.name} ->`,
-        //   groupChild
-        // );
         // Apply the mixed colorNode
         groupChild.children.forEach((child) => {
           if (
@@ -345,6 +338,23 @@ const init = async () => {
             );
 
             // child.material.colorNode = adjustAndManipulateColorNode();
+
+            // child.material.colorNode = simplexNoise({
+            //   scale: 2,
+            //   balance: 0,
+            //   contrast: 0,
+            //   color: new THREE.Color(16777215),
+            //   background: new THREE.Color(0),
+            //   seed: 0,
+            // });
+
+            // child.material.colorNode = polkaDots({
+            //   count: 2,
+            //   size: 0.6,
+            //   blur: 0.22,
+            //   color: new THREE.Color(0),
+            //   background: new THREE.Color(16777215),
+            // });
 
             // Works if we indicates the engine the material needs to be recompiled
             child.material.needsUpdate = true;
@@ -380,9 +390,6 @@ const init = async () => {
    */
   // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
   watch(splicingGroupLen, (newLength, oldLength) => {
-    console.log(
-      `\n -- SplicingModels -- splicingGroupLen changed from ${oldLength} to ${newLength}`
-    );
     applyMixedColorNode(splicingGroupGlobal);
   });
 
@@ -393,7 +400,6 @@ const init = async () => {
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
   watch(isShowMap, (newVal) => {
-    console.log("\n -- init -- isShowMap changed to ->", newVal);
     uIsShowMap.value = newVal ? 1 : 0;
   });
 };
@@ -450,10 +456,6 @@ const setOutlineEffectVisibility = (
  */
 const onPointerMove = (event: PointerEvent) => {
   if (raycasterIntersectionObject) {
-    console.log(
-      "\n -- onPointerMove -- raycasterIntersectionObject ->",
-      raycasterIntersectionObject
-    );
     // raycasterIntersectionObject.children.forEach((child) => {
     //   if (child instanceof THREE.Mesh) {
     //     child.material.color.set("#fff");
