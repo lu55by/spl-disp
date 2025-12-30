@@ -181,6 +181,7 @@ const init = async () => {
    * Scene
    */
   scene = new THREE.Scene();
+  // scene.fogNode = getFogNode();
 
   /**
    * Raycaster
@@ -343,6 +344,8 @@ const init = async () => {
               )
             );
 
+            // child.material.colorNode = adjustAndManipulateColorNode();
+
             // Works if we indicates the engine the material needs to be recompiled
             child.material.needsUpdate = true;
           }
@@ -359,189 +362,9 @@ const init = async () => {
   // const scenePass = pass(scene, camera);
   // const scenePassColor = scenePass.getTextureNode("output");
 
-  // /*
-  //   after image effect
-  //  */
-  // const afterImagePass = afterImage(scenePassColor, 0.96);
-
-  // /*
-  //   anamophic flare effect
-  //  */
-  // const anamorphicFlarePass = anamorphic(
-  //   scenePassColor,
-  //   float(0.9),
-  //   float(3),
-  //   32
+  // postProcessing.outputNode = scenePassColor.add(
+  //   getPostProcessingNode(scenePassColor)
   // );
-
-  // /*
-  //   bloom effect
-  //  */
-  // const bloomPass = bloom(scenePassColor);
-
-  // /*
-  //   boxBlur effect
-  //  */
-  // const boxBlurPass = boxBlur(scenePassColor, {
-  //   size: float(2),
-  //   separation: float(5),
-  //   mask: float(3),
-  //   premultipliedAlpha: true,
-  // });
-
-  // /*
-  //   chromatic aberration effect
-  //  */
-  // const chromaticAberrationPass = chromaticAberration(
-  //   scenePassColor,
-  //   float(1),
-  //   vec2(0),
-  //   float(1)
-  // );
-
-  // /*
-  //   denoise effect (not working currently)
-  //  */
-  // const denoisePass = denoise(scenePassColor, depth, normalWorld, camera);
-
-  // /*
-  //   dof effect (figure out what params to pass later)
-  //  */
-  // // const dofPass = dof(scenePassColor, )
-
-  // /*
-  //   dot-screen effect
-  //  */
-  // const dotScreenPass = dotScreen(scenePassColor, vec2(0).value, 1.57, 1);
-
-  // /*
-  //   film grain effect
-  //  */
-  // const filmGrainPasss = film(scenePassColor, float(2), screenUV);
-
-  // /*
-  //   FXAA anti-aliasing effect
-  //  */
-  // const fxaaPass = fxaa(scenePassColor);
-
-  // /*
-  //   gaussian blur effect
-  //  */
-  // const gaussianBlurPass = gaussianBlur(scenePassColor, 10, 2, {
-  //   premultipliedAlpha: false,
-  //   resolution: vec2(1).value,
-  // });
-
-  // /*
-  //   grayscale effect
-  //  */
-  // const grayscalePass = grayscale(scenePassColor);
-
-  // /*
-  //   hash blur effect
-  //  */
-  // const hashBlurPass = hashBlur(scenePassColor, 0.8, {
-  //   size: float(2),
-  //   mask: float(1),
-  //   premultipliedAlpha: false,
-  // });
-
-  // /*
-  //   LUT color grading effect (figure out what params to pass later)
-  //  */
-  // const lut3DPass = lut3D(
-  //   scenePassColor,
-  //   texture3D(scenePassColor.value),
-  //   2,
-  //   float(1)
-  // );
-
-  // /*
-  //   motion blur effect
-  //  */
-  // const motionBlurPass = motionBlur(
-  //   scenePassColor,
-  //   sin(time.mul(1)).add(1).mul(0.5).pow(6),
-  //   int(4)
-  // );
-
-  // /*
-  //   outline effect
-  //  */
-  // const outlinePass = outline(scene, camera, {
-  //   selectedObjects: [splicingGroupGlobal.children[0].children[0]],
-  //   edgeThickness: float(2),
-  //   edgeGlow: float(0.2),
-  //   downSampleRatio: 5,
-  // });
-
-  // /*
-  //   RGB shift effect
-  //  */
-  // const rgbShiftPass = rgbShift(scenePassColor, 0.005, 1.57);
-
-  // /*
-  //   sepia effect
-  //  */
-  // const sepiaPass = sepia(scenePassColor);
-
-  // /*
-  //   SMAA anti-aliasing effect
-  //  */
-  // const smaaPass = smaa(scenePassColor);
-
-  // /*
-  //   sobel edge detection effect
-  //  */
-  // const sobelPass = sobel(scenePassColor);
-
-  // /*
-  //   screen space reflections effect
-  //  */
-  // const headModelNodeMat = (
-  //   splicingGroupGlobal.children[0].children[0] as THREE.Mesh
-  // ).material as THREE.MeshStandardNodeMaterial;
-  // console.log("\nheadModelNodeMat ->", headModelNodeMat);
-  // const ssrPass = ssr(
-  //   scenePassColor,
-  //   headModelNodeMat.depthNode,
-  //   headModelNodeMat.normalNode,
-  //   headModelNodeMat.metalnessNode,
-  //   headModelNodeMat.roughnessNode,
-  //   camera
-  // );
-
-  // /*
-  //   SSGI effect
-  //  */
-  // const ssgiPass = ssgi(
-  //   scenePassColor,
-  //   headModelNodeMat.depthNode,
-  //   headModelNodeMat.normalNode,
-  //   camera
-  // );
-
-  // /*
-  //   Ground Truth Ambient Occlusion (GTAO) effect
-  //  */
-  // const aoPass = ao(
-  //   headModelNodeMat.depthNode,
-  //   headModelNodeMat.normalNode,
-  //   camera
-  // );
-
-  // /*
-  //   transition effect between two scenes (figure out what params to pass later)
-  //  */
-  // // const transitionPass = transition(scenePassColor, )
-
-  /*
-    TRAA temporal anti-aliasing effect (figure out what params to pass later)
-   */
-  // const traaPass = traa(scenePassColor, scenePassColor, scenePassColor, camera);
-
-  // postProcessing.outputNode = scenePassColor.add(traaPass);
-  // postProcessing.outputNode = grayscale(gaussianBlur(scenePassColor, 4));
 
   /**
    * Inspector

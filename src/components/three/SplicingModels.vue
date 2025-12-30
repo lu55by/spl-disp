@@ -336,7 +336,7 @@ const init = async () => {
         // const position = cameraProjectionMatrix
         //   .mul(modelWorldMatrix)
         //   .mul(cameraViewMatrix)
-        //   .mul(vec4(positionLocal, 1));
+        //   .mul(vec4(positionGeometry, 1));
         // child.material.positionNode = position;
 
         /*
