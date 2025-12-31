@@ -5,7 +5,7 @@ import axios from "axios";
  */
 const apiClient = axios.create({
   // The baseURL can be adjusted based on the production/development environment
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

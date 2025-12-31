@@ -67,13 +67,13 @@
               </Button>
               <Button
                 @click="handleUpload('Normal Outfit')"
-                :disabled="isUploading"
+                :disabled="true"
               >
                 {{ UIContents.NormalOutfitZH }}
               </Button>
               <Button
                 @click="handleUpload('IP Outfit')"
-                :disabled="isUploading"
+                :disabled="true"
               >
                 {{ UIContents.IPOutfitZH }}
               </Button>

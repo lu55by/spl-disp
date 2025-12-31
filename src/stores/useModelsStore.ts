@@ -578,6 +578,13 @@ export const useModelsStore = defineStore("models", {
       // 3. Send a POST request to the backend API
 
       /*
+        Distinguish the model type (hair or body) by the name of the first node of the selectedObject and send the proper boolean param of the second argument to the uploadModel function.
+       */
+      const isHairSelected = this.selectedObject.children[0].name
+        .toLocaleLowerCase()
+        .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
+
+      /*
         Refactored: Request to the backend API with the new modelService
       */
       try {
@@ -586,6 +593,7 @@ export const useModelsStore = defineStore("models", {
         );
         const response = await modelService.uploadModel(
           formData,
+          isHairSelected,
           (progress) => {
             console.log(
               `\nModel ${this.selectedObject.name} Upload progress -> ${progress}%`
