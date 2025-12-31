@@ -164,46 +164,48 @@ export const useModelsStore = defineStore("models", {
     /**
      * Apply texture to the currently hovered object.
      * @param texImgFile The image file to apply
+     * @returns Promise<void>
      */
-    async applyTextureToHoveredObject(texImgFile: File) {
-      if (!this.dragHoveredObject) return;
+    async applyTextureToHoveredObject(texImgFile: File): Promise<void> {
+      if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
       const texUrl = URL.createObjectURL(texImgFile);
       const texture = await loadTexture(texUrl);
       texture.colorSpace = THREE.SRGBColorSpace;
 
+      if (
+        !this.dragHoveredObject.material ||
+        !("map" in this.dragHoveredObject.material)
+      )
+        throw new Error("Hovered object does not have a material!");
+
       // Ensure the object has a material that supports maps
-      if (this.dragHoveredObject.material) {
-        // Check if material has a map property
-        if ("map" in this.dragHoveredObject.material) {
-          let previousMap = (this.dragHoveredObject.material as any)
-            .map as THREE.Texture;
-          (this.dragHoveredObject.material as any).map = texture;
-          (this.dragHoveredObject.material as any).needsUpdate = true;
-          // Dispose the previous map
-          previousMap?.dispose();
-          previousMap = null;
-        }
-      }
+      // Check if material has a map property
+      let previousMap = (this.dragHoveredObject.material as any)
+        .map as THREE.Texture;
+      (this.dragHoveredObject.material as any).map = texture;
+      (this.dragHoveredObject.material as any).needsUpdate = true;
+      // Dispose the previous map
+      previousMap?.dispose();
+      previousMap = null;
     },
 
     /**
-     * Bind the thumbnail to the first model node in the userData.
+     * Bind the thumbnail to the hovered object in the userData.
      * @param thumbnailImgFile The thumbnail image file
      * @returns void
      */
-    bindThumbnailToFirstModelNode(thumbnailImgFile: File) {
-      const firstModelNode = this.dragHoveredObject?.children[0];
-      if (!firstModelNode) return;
-      // TODO: Fix the issue of code not being executed here.
+    bindThumbnailToDragHoveredObject(thumbnailImgFile: File): void {
+      if (!this.dragHoveredObject) throw new Error("No hovered object found!");
+
       console.log(
-        "\n-- bindThumbnailToFirstModelNode -- firstModelNode before binding the thumbnail ->",
-        firstModelNode
+        "\n-- bindThumbnailToDragHoveredObject -- dragHoveredObject before binding the thumbnail ->",
+        this.dragHoveredObject
       );
-      firstModelNode.userData.thumbnail = thumbnailImgFile;
+      this.dragHoveredObject.userData.thumbnail = thumbnailImgFile;
       console.log(
-        "\n-- bindThumbnailToFirstModelNode -- firstModelNode after binding the thumbnail ->",
-        firstModelNode
+        "\n-- bindThumbnailToDragHoveredObject -- dragHoveredObject after binding the thumbnail ->",
+        this.dragHoveredObject
       );
     },
 
