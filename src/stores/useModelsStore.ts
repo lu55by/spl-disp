@@ -22,7 +22,7 @@ import {
   removeAndAddModelWithNodeNames,
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
-import axios from "axios";
+import { modelService } from "../api/models";
 
 /*
   Loaded Cutters Model
@@ -556,14 +556,14 @@ export const useModelsStore = defineStore("models", {
 
       // 1. Export the selectedObject to a Blob (e.g. using OBJExporter or GLTFExporter)
       const { exportObjectToBlob } = await import("../three/exporters");
-      const blob = exportObjectToBlob(this.selectedObject);
-      console.log("\n3D Object Blob ->", blob);
+      const modelBlob = exportObjectToBlob(this.selectedObject);
+      console.log("\n3D Object Blob ->", modelBlob);
 
       // 2. Prepare Form Data with the Blob and the outfitType
       const formData = new FormData();
       formData.append(
         "file",
-        blob,
+        modelBlob,
         `${this.selectedObject.name || "model"}.obj`
       );
       formData.append("outfitType", outfitType);
@@ -573,69 +573,39 @@ export const useModelsStore = defineStore("models", {
       console.log("\nForm Data file ->", formData.get("file"));
       console.log("\nForm Data outfitType ->", formData.get("outfitType"));
       console.log("\nForm Data timestamp ->", formData.get("timestamp"));
-      return true;
+      // return true;
 
       // 3. Send a POST request to the backend API
-      /* SIMULATION
+
+      /*
+        Refactored: Request to the backend API with the new modelService
+      */
       try {
-        console.log("Uploading model to backend...");
-        // Simulation of a fetch call
-        const response = await new Promise<{ success: boolean; data: any }>(
-          (resolve) => {
-            setTimeout(() => {
-              resolve({
-                success: true,
-                data: {
-                  id: "upload_" + Math.random().toString(36).slice(2, 9),
-                },
-              });
-            }, 2000);
+        console.log(
+          `Uploading model ${this.selectedObject.name} to the backend...`
+        );
+        const response = await modelService.uploadModel(
+          formData,
+          (progress) => {
+            console.log(
+              `\nModel ${this.selectedObject.name} Upload progress -> ${progress}%`
+            );
           }
         );
 
-        if (response.success) {
-          console.log(
-            `Upload successful! ID: ${response.data.id} for ${this.selectedObject?.name} with type ${outfitType}`
-          );
-          // Hide modal on success
-          this.setUploadModalVisible(false);
-          return true;
-        } else {
-          console.error("Upload failed on the server.");
-          return false;
-        }
-      } catch (error) {
-        console.error("Error during upload process:", error);
-        return false;
-      }
-      */
-
-      /*
-        TODO: Request to the backend API with axios
-      */
-      try {
-        console.log("Uploading model to backend...");
-        const response = await axios.post("/api/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const progress = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-              console.log(`\nUpload progress -> ${progress}%`);
-            }
-          },
-        });
-
         if (response.status === 200) {
-          console.log("\nUpload successful! Response data ->", response.data);
+          console.log(
+            `\nModel ${this.selectedObject.name} Upload successful! Response data ->`,
+            response.data
+          );
           this.setUploadModalVisible(false);
           return true;
         }
       } catch (error) {
-        console.error("\nError during upload process ->", error);
+        console.error(
+          `\nError during model ${this.selectedObject.name} upload process ->`,
+          error
+        );
         return false;
       }
     },
