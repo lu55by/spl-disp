@@ -120,8 +120,8 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
     const relevantActions = [
       "addChild",
-      "imoprtObjStlModelWithHeight",
-      "imoprtObjStlWithNodeNames",
+      "importObjStlModelWithHeight",
+      "importObjStlWithNodeNames",
       "clear",
     ];
     if (relevantActions.includes(name)) {
@@ -681,7 +681,7 @@ const onMouseClick = (event: MouseEvent) => {
             getOutlinePattern(uOutlinePatternFactor)
           );
           child.material.colorNode.setName(`${child.name}_colorNode`);
-          // Setting this property to true indicates the engine the material needs to be recompiled.
+          // Setting this property to true indicate to the engine the material needs to be recompiled.
           child.material.needsUpdate = true;
         }
       });

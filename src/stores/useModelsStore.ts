@@ -178,7 +178,7 @@ export const useModelsStore = defineStore("models", {
             .map as THREE.Texture;
           (this.dragHoveredObject.material as any).map = texture;
           (this.dragHoveredObject.material as any).needsUpdate = true;
-          // Dispose the privious map
+          // Dispose the previous map
           previousMap?.dispose();
           previousMap = null;
         }
@@ -216,7 +216,7 @@ export const useModelsStore = defineStore("models", {
      * @param files Files to import
      * @returns void
      */
-    async imoprtObjStlModelWithHeight(files: FileList) {
+    async importObjStlModelWithHeight(files: FileList) {
       console.log("\nfiles to import ->", files);
 
       let objFile: File | null = null;
@@ -243,7 +243,7 @@ export const useModelsStore = defineStore("models", {
 
       // ! STL File Import
       if (stlFile) {
-        // Set the textFile to null as the stlFile is not supporting uv texture mapping
+        // Set the texFile to null as the stlFile is not supporting uv texture mapping
         texFile = null;
 
         // Get the STL Mesh
@@ -252,7 +252,7 @@ export const useModelsStore = defineStore("models", {
           THREE.MeshStandardNodeMaterial
         > = await loadSTLFile(stlFile);
 
-        // !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
+        // !! REMOVE AND ADD THE IMPORTED MODEL TO THE Splicing GROUP !!
 
         // Create a Group
         const stlModelGroup = new THREE.Group().add(stlMesh);
@@ -298,7 +298,7 @@ export const useModelsStore = defineStore("models", {
       applyDoubleSide(importedParsedObj);
 
       /**
-       * !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
+       * !! REMOVE AND ADD THE IMPORTED MODEL TO THE Splicing GROUP !!
        * Check if the imported object is hair or body by using the @see {getObject3DHeight} fn.
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, remove the current body model from the splicing group and add the new body model to the splicing group if the splicing group has the corresponding model in it.
@@ -344,12 +344,12 @@ export const useModelsStore = defineStore("models", {
      * @param files Files to import
      * @returns void
      */
-    async imoprtObjStlWithNodeNames(
+    async importObjStlWithNodeNames(
       files: FileList,
       parsedObjGroupFromValidators?: THREE.Group<THREE.Object3DEventMap>
     ): Promise<boolean> {
       // Log the files to import
-      console.log("\n -- imoprtObjStlWithNodeNames -- files ->", files);
+      console.log("\n -- importObjStlWithNodeNames -- files ->", files);
 
       // Create variables to store the .obj and texture files
       let objFile: File | null = null;
@@ -378,7 +378,7 @@ export const useModelsStore = defineStore("models", {
        * ! STL File Import
        */
       if (stlFile) {
-        // Set the textFile to null as the stlFile is not supporting uv texture mapping
+        // Set the texFile to null as the stlFile is not supporting uv texture mapping
         texFile = null;
 
         // Get the STL Mesh
@@ -424,7 +424,7 @@ export const useModelsStore = defineStore("models", {
       // If the objGroupFromValidators is null, which means the objGroupFromValidators is not passed from the validators, parse the .obj file text content with the OBJLoaderInstance
       if (!parsedObjGroup) {
         console.log(
-          "\n-- imoprtObjStlWithNodeNames -- parsedObjGroupFromValidators is null, ready to parse the objFile's text content..."
+          "\n-- importObjStlWithNodeNames -- parsedObjGroupFromValidators is null, ready to parse the objFile's text content..."
         );
         const text = await objFile.text();
         // Parse the .obj file text content with the OBJLoaderInstance
@@ -432,7 +432,7 @@ export const useModelsStore = defineStore("models", {
       }
 
       console.log(
-        "\n-- imoprtObjStlWithNodeNames -- Using parsedObjGroupFromValidators ->",
+        "\n-- importObjStlWithNodeNames -- Using parsedObjGroupFromValidators ->",
         parsedObjGroup
       );
 
@@ -492,7 +492,7 @@ export const useModelsStore = defineStore("models", {
       applyDoubleSide(parsedObjGroup);
 
       /**
-       * !! REMOVE AND ADD THE IMPORTED MODEL TO THE SPlicing GROUP !!
+       * !! REMOVE AND ADD THE IMPORTED MODEL TO THE Splicing GROUP !!
        * Check if the imported object is hair or body by getting the name of the imported model first node.
        * if it is hair, remove the current hair model from the splicing group and add the new hair model to the splicing group if the splicing group has the corresponding model in it.
        * if it is body, it's the same logic as the hair.

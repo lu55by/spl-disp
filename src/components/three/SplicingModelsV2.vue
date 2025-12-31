@@ -113,8 +113,8 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
     const relevantActions = [
       "addChild",
-      "imoprtObjStlModelWithHeight",
-      "imoprtObjStlWithNodeNames",
+      "importObjStlModelWithHeight",
+      "importObjStlWithNodeNames",
       // "setDefaultOriginalHead",
       "clear",
     ];
@@ -356,7 +356,7 @@ const init = async () => {
             //   background: new THREE.Color(16777215),
             // });
 
-            // Works if we indicates the engine the material needs to be recompiled
+            // Works if we indicate to the engine the material needs to be recompiled
             child.material.needsUpdate = true;
           }
         });
@@ -500,7 +500,7 @@ const onPointerMove = (event: PointerEvent) => {
  * On Window Drag Over fn, handle the event of object been intersected by the raycaster.
  * Including:
  * 1. Set the global dragHoveredObject to the firstIntersection casted by ray.
- * 2. Set the global selectedObejct to the firstIntersection casted by ray.
+ * 2. Set the global selectedObject to the firstIntersection casted by ray.
  * 3. Toggle the visibility of the outline effect.
  * @param e DragEvent
  */
@@ -561,7 +561,7 @@ const onWindowDragOver = (e: DragEvent) => {
 /**
  * On mouse click fn, handle the event of object been intersected by the raycaster.
  * Including:
- * 1. Attatch the transform control to the parent group of the casted mesh by the ray.
+ * 1. Attach the transform control to the parent group of the casted mesh by the ray.
  * 2. Set the global selected object in modelsStore to the parent group.
  * 3. Toggle the visibility of the outline effect.
  * @param e MouseEvent
@@ -752,7 +752,7 @@ onMounted(async () => {
   window.addEventListener("dragover", onWindowDragOver);
   // Key down listener for transform
   window.addEventListener("keydown", onKeyDown);
-  // Key up listender for transform
+  // Key up listener for transform
   window.addEventListener("keyup", onKeyUp);
 });
 

@@ -258,7 +258,7 @@ const handleFileChange = async (e: Event) => {
   try {
     // Simulate large texture loading delay
     // await new Promise((resolve) => setTimeout(resolve, 5000));
-    const success = await modelsStore.imoprtObjStlWithNodeNames(
+    const success = await modelsStore.importObjStlWithNodeNames(
       files,
       parsedObjGroupFromValidators
     );
