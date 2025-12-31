@@ -83,6 +83,7 @@ const onDrop = async (e: DragEvent) => {
         if (isThumbnail) modelsStore.bindThumbnailToDragHoveredObject(files[0]);
         else await modelsStore.applyTextureToHoveredObject(files[0]);
 
+        // TODO: Fix the issue of toast not been updated successfully of the thumbnail binding.
         toast.update(loadingToastId, {
           render: isThumbnail
             ? ToastContents.BindThumbnailSuccessZH
