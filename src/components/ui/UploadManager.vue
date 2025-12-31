@@ -65,16 +65,10 @@
               <Button @click="handleUpload('Default')" :disabled="isUploading">
                 {{ UIContents.DefaultZH }}
               </Button>
-              <Button
-                @click="handleUpload('Normal Outfit')"
-                :disabled="true"
-              >
+              <Button @click="handleUpload('Normal Outfit')" :disabled="true">
                 {{ UIContents.NormalOutfitZH }}
               </Button>
-              <Button
-                @click="handleUpload('IP Outfit')"
-                :disabled="true"
-              >
+              <Button @click="handleUpload('IP Outfit')" :disabled="true">
                 {{ UIContents.IPOutfitZH }}
               </Button>
             </div>
@@ -106,7 +100,7 @@
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { toast } from "vue3-toastify";
-import { UIContents } from "../../constants";
+import { UIContents, ToastContentsUpload } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import Button from "./Button.vue";
 import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
@@ -131,21 +125,26 @@ const handleUpload = async (
   if (isUploading.value) return;
   isUploading.value = true;
 
-  const loadingToastId = toast.loading("正在上传模型数据...");
+  const loadingToastId = toast.loading(ToastContentsUpload.Loading);
 
   try {
-    const success = await modelsStore.uploadSelectedObject(type);
+    const success = await modelsStore.uploadSelectedObject(type, {
+      name: "",
+      description: "",
+      sex: "0",
+      is_default: "0",
+    });
 
     if (success) {
       toast.update(loadingToastId, {
-        render: "模型成功同步至数据库",
+        render: ToastContentsUpload.Success,
         type: "success",
         isLoading: false,
         autoClose: 2000,
       });
     } else {
       toast.update(loadingToastId, {
-        render: "上传失败，请稍后重试",
+        render: ToastContentsUpload.Error,
         type: "error",
         isLoading: false,
         autoClose: 2000,
@@ -153,7 +152,7 @@ const handleUpload = async (
     }
   } catch (error) {
     toast.update(loadingToastId, {
-      render: "发生未知错误",
+      render: error.message || ToastContentsUpload.UnknownError,
       type: "error",
       isLoading: false,
       autoClose: 2000,

@@ -113,7 +113,6 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
   ({ name, after }) => {
     const relevantActions = [
       "addChild",
-      "importObjStlModelWithHeight",
       "importObjStlWithNodeNames",
       // "setDefaultOriginalHead",
       "clear",

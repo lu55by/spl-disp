@@ -82,9 +82,11 @@ export function exportObjectToBlob(object: Object3D): Blob {
 }
 
 /**
- * Converts a Texture to a Blob (PNG)
+ * Converts a map Texture to a Blob (PNG)
  */
-async function textureToBlob(texture: THREE.Texture): Promise<Blob | null> {
+export async function mapTexToBlob(
+  texture: THREE.Texture
+): Promise<Blob | null> {
   if (!texture || !texture.image) return null;
 
   const image = texture.image as HTMLImageElement;
@@ -160,7 +162,7 @@ export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
         // Process texture to blob and add to zip
         texturePromises.push(
           (async () => {
-            const blob = await textureToBlob(map);
+            const blob = await mapTexToBlob(map);
             if (blob) {
               zip.file(texName, blob);
             }

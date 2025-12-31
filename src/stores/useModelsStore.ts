@@ -23,6 +23,8 @@ import {
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
 import { modelService } from "../api/models";
+import type { UploadModelInputFields } from "../types/index.ts";
+import { ToastContents } from "../constants/index.ts";
 
 /*
   Loaded Cutters Model
@@ -540,11 +542,12 @@ export const useModelsStore = defineStore("models", {
     },
 
     /**
-     * Upload the selected object to the database (Placeholder).
+     * Upload the selected object to the database (either a hair or body).
      * @param outfitType The outfit type for the uploaded model
      */
     async uploadSelectedObject(
-      outfitType: "Default" | "Normal Outfit" | "IP Outfit"
+      outfitType: "Default" | "Normal Outfit" | "IP Outfit",
+      uploadModelInputFields: UploadModelInputFields
     ): Promise<boolean> {
       if (!this.selectedObject) {
         console.warn("No object selected for upload.");
@@ -555,25 +558,70 @@ export const useModelsStore = defineStore("models", {
       console.log("Selected Object ->", this.selectedObject);
 
       // 1. Export the selectedObject to a Blob (e.g. using OBJExporter or GLTFExporter)
-      const { exportObjectToBlob } = await import("../three/exporters");
+      const { exportObjectToBlob, mapTexToBlob } = await import(
+        "../three/exporters"
+      );
       const modelBlob = exportObjectToBlob(this.selectedObject);
       console.log("\n3D Object Blob ->", modelBlob);
 
+      // Get the first model node
+      const firstModelNode = this.selectedObject.children[0] as THREE.Mesh<
+        THREE.BufferGeometry,
+        THREE.MeshStandardNodeMaterial
+      >;
+
       // 2. Prepare Form Data with the Blob and the outfitType
       const formData = new FormData();
+
+      /*
+        Request fields
+       */
+      // 1. name
+      formData.append("name", uploadModelInputFields.name);
+
+      // 2. description (user input maybe?)
+      formData.append("description", uploadModelInputFields.description);
+
+      // 3. sex (user input maybe?)
+      formData.append("sex", uploadModelInputFields.sex);
+
+      // 4. is_default (user input maybe?)
+      formData.append("is_default", uploadModelInputFields.is_default);
+
+      // 5. mold (the modelBlob)
       formData.append(
-        "file",
+        "mold",
         modelBlob,
         `${this.selectedObject.name || "model"}.obj`
       );
-      formData.append("outfitType", outfitType);
-      formData.append("timestamp", new Date().toISOString());
+
+      // 6. map (the textureBlob)
+      const firstModelNodeMat = firstModelNode.material;
+      console.log(
+        "\n-- uploadSelectedObject -- firstModelNodeMat ->",
+        firstModelNodeMat
+      );
+      // map property validation
+      if (!firstModelNodeMat.map)
+        throw new Error(ToastContents.UploadModelMapTexNotFoundZH);
+      // Get the map texture blob
+      const mapTexBlob = await mapTexToBlob(firstModelNodeMat.map);
+      formData.append("map", mapTexBlob, `${firstModelNode.name}_texture.png`);
+      console.log(
+        "\nForm Data map attached ->",
+        firstModelNodeMat.map.name || "texture"
+      );
+
+      // 7. thumbnail (the thumbnailBlob)
+
+      // ! Deactivate the outfitType for now
+      // formData.append("outfitType", outfitType);
+
       // Fixed: The OBJ file size was large due to de-indexed geometry and high floating-point precision.
       // Optimized during export in three/exporters/index.ts.
-      console.log("\nForm Data file ->", formData.get("file"));
-      console.log("\nForm Data outfitType ->", formData.get("outfitType"));
-      console.log("\nForm Data timestamp ->", formData.get("timestamp"));
-      // return true;
+      console.log("\nForm Data modl obj ->", formData.get("mold"));
+      console.log("\nForm Data map obj ->", formData.get("map"));
+      return true;
 
       // 3. Send a POST request to the backend API
 

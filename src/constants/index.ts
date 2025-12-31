@@ -47,6 +47,19 @@ export const ToastContents = {
   TextureAppliedZH: "贴图应用成功！",
   TextureApplyingFailed: "Texture applying failed!",
   TextureApplyingFailedZH: "贴图应用失败！",
+
+  // Here gose for Toast Contents of uploading model
+  UploadModelMapTexNotFound: "Material map is not found",
+  UploadModelMapTexNotFoundZH: "贴图未找到",
+
+  ModelUploading: "Uploading model data...",
+  ModelUploadingZH: "正在上传模型数据...",
+  ModelUploadSuccess: "Model synced to database successfully",
+  ModelUploadSuccessZH: "模型成功同步至数据库",
+  ModelUploadFailed: "Upload failed, please try again later",
+  ModelUploadFailedZH: "上传失败，请稍后重试",
+  UnknownError: "Unknown error occurred",
+  UnknownErrorZH: "发生未知错误",
 };
 
 export const ToastContentsImportDefault = {
@@ -58,6 +71,12 @@ export const ToastContentsImportCutter = {
   Loading: ToastContents.ModelCuttingOperationZH,
   Success: ToastContents.ModelCuttingOperationSuccessZH,
   Error: ToastContents.ModelCuttingOperationFailedZH,
+};
+export const ToastContentsUpload = {
+  Loading: ToastContents.ModelUploadingZH,
+  Success: ToastContents.ModelUploadSuccessZH,
+  Error: ToastContents.ModelUploadFailedZH,
+  UnknownError: ToastContents.UnknownErrorZH,
 };
 
 // UI Contents
