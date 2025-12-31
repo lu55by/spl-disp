@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
 import * as THREE from "three/webgpu";
 import { markRaw } from "vue";
+import { modelService } from "../api/models";
+import { ToastContents } from "../constants/index.ts";
 import {
   CutHeadBoundingBoxHeight,
   CutHeadEyesNodeCombinedGroupName,
@@ -22,9 +24,7 @@ import {
   removeAndAddModelWithNodeNames,
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
-import { modelService } from "../api/models";
 import type { UploadModelInputFields } from "../types/index.ts";
-import { ToastContents } from "../constants/index.ts";
 
 /*
   Loaded Cutters Model
@@ -163,12 +163,12 @@ export const useModelsStore = defineStore("models", {
 
     /**
      * Apply texture to the currently hovered object.
-     * @param file The image file to apply
+     * @param texImgFile The image file to apply
      */
-    async applyTextureToHoveredObject(file: File) {
+    async applyTextureToHoveredObject(texImgFile: File) {
       if (!this.dragHoveredObject) return;
 
-      const texUrl = URL.createObjectURL(file);
+      const texUrl = URL.createObjectURL(texImgFile);
       const texture = await loadTexture(texUrl);
       texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -185,6 +185,26 @@ export const useModelsStore = defineStore("models", {
           previousMap = null;
         }
       }
+    },
+
+    /**
+     * Bind the thumbnail to the first model node in the userData.
+     * @param thumbnailImgFile The thumbnail image file
+     * @returns void
+     */
+    bindThumbnailToFirstModelNode(thumbnailImgFile: File) {
+      const firstModelNode = this.dragHoveredObject?.children[0];
+      if (!firstModelNode) return;
+      // TODO: Fix the issue of code not being executed here.
+      console.log(
+        "\n-- bindThumbnailToFirstModelNode -- firstModelNode before binding the thumbnail ->",
+        firstModelNode
+      );
+      firstModelNode.userData.thumbnail = thumbnailImgFile;
+      console.log(
+        "\n-- bindThumbnailToFirstModelNode -- firstModelNode after binding the thumbnail ->",
+        firstModelNode
+      );
     },
 
     /**
@@ -554,8 +574,20 @@ export const useModelsStore = defineStore("models", {
         return false;
       }
 
-      console.log(`\n-- uploadSelectedObject -- type: ${outfitType}`);
-      console.log("Selected Object ->", this.selectedObject);
+      console.log(
+        "\n-- uploadSelectedObject -- uploadModelInputFields ->",
+        uploadModelInputFields
+      );
+
+      // Make sure the name is not empty
+      if (!uploadModelInputFields.name.length)
+        throw new Error(ToastContents.UploadModelNameRequiredZH);
+
+      console.log(`\n-- uploadSelectedObject -- upload type -> ${outfitType}`);
+      console.log(
+        "-- uploadSelectedObject -- selected object to be uploaded ->",
+        this.selectedObject
+      );
 
       // 1. Export the selectedObject to a Blob (e.g. using OBJExporter or GLTFExporter)
       const { exportObjectToBlob, mapTexToBlob } = await import(
@@ -613,6 +645,8 @@ export const useModelsStore = defineStore("models", {
       );
 
       // 7. thumbnail (the thumbnailBlob)
+      // TODO: Get the binded thumbnail blob from the userData of the firstModelNode
+      firstModelNode.userData.thumbnail;
 
       // ! Deactivate the outfitType for now
       // formData.append("outfitType", outfitType);

@@ -48,18 +48,26 @@ export const ToastContents = {
   TextureApplyingFailed: "Texture applying failed!",
   TextureApplyingFailedZH: "贴图应用失败！",
 
-  // Here gose for Toast Contents of uploading model
-  UploadModelMapTexNotFound: "Material map is not found",
-  UploadModelMapTexNotFoundZH: "贴图未找到",
+  BindThumbnail: "Binding thumbnail...",
+  BindThumbnailZH: "正在绑定缩略图...",
+  BindThumbnailSuccess: "Thumbnail bound!",
+  BindThumbnailSuccessZH: "缩略图绑定成功！",
+  BindThumbnailFailed: "Thumbnail binding failed!",
+  BindThumbnailFailedZH: "缩略图绑定失败！",
+
+  UploadModelMapTexNotFound: "Material map is not found!",
+  UploadModelMapTexNotFoundZH: "贴图未找到！",
+  UploadModelNameRequired: "Model name is required!",
+  UploadModelNameRequiredZH: "模型名称不能为空！",
 
   ModelUploading: "Uploading model data...",
   ModelUploadingZH: "正在上传模型数据...",
-  ModelUploadSuccess: "Model synced to database successfully",
-  ModelUploadSuccessZH: "模型成功同步至数据库",
-  ModelUploadFailed: "Upload failed, please try again later",
-  ModelUploadFailedZH: "上传失败，请稍后重试",
-  UnknownError: "Unknown error occurred",
-  UnknownErrorZH: "发生未知错误",
+  ModelUploadSuccess: "Model synced to database successfully!",
+  ModelUploadSuccessZH: "模型成功同步至数据库！",
+  ModelUploadFailed: "Upload failed, please try again later!",
+  ModelUploadFailedZH: "上传失败，请稍后重试！",
+  UnknownError: "Unknown error occurred!",
+  UnknownErrorZH: "发生未知错误！",
 };
 
 export const ToastContentsImportDefault = {
@@ -86,8 +94,8 @@ export const UIContents = {
   DropZoneIndicatorContentZH: "松开以导入",
 
   // Upload Modal Type
-  Default: "Default",
-  DefaultZH: "默认",
+  DefaultOutfit: "Default",
+  DefaultOutfitZH: "默认",
   NormalOutfit: "Normal Outfit",
   NormalOutfitZH: "日常造型",
   IPOutfit: "IP Outfit",

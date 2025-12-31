@@ -36,7 +36,8 @@
 
           <!-- Modal Content -->
           <div
-            class="relative bg-slate-950 border border-cyan-500/50 p-8 flex flex-col gap-6 max-w-sm w-[90vw] shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+            class="relative bg-slate-950 border border-cyan-500/50 p-8 flex flex-col gap-6 w-[90vw] transition-all duration-300 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+            :class="currentStep === 'select' ? 'max-w-sm' : 'max-w-md'"
           >
             <!-- Corner Accents -->
             <div class="absolute top-0 left-0 w-4 h-0.5 bg-cyan-500"></div>
@@ -53,7 +54,9 @@
                 <h3
                   class="text-cyan-400 font-futuristic tracking-[0.2em] text-xl uppercase"
                 >
-                  选择上传类型
+                  {{
+                    currentStep === "select" ? "选择上传类型" : "完善模型信息"
+                  }}
                 </h3>
               </div>
               <div
@@ -61,16 +64,135 @@
               ></div>
             </div>
 
-            <div class="flex flex-col gap-4">
-              <Button @click="handleUpload('Default')" :disabled="isUploading">
-                {{ UIContents.DefaultZH }}
+            <!-- Step 1: Selection -->
+            <div v-if="currentStep === 'select'" class="flex flex-col gap-4">
+              <Button @click="goToForm('Default')">
+                {{ UIContents.DefaultOutfitZH }}
               </Button>
-              <Button @click="handleUpload('Normal Outfit')" :disabled="true">
+              <Button @click="goToForm('Normal Outfit')" :disabled="true">
                 {{ UIContents.NormalOutfitZH }}
               </Button>
-              <Button @click="handleUpload('IP Outfit')" :disabled="true">
+              <Button @click="goToForm('IP Outfit')" :disabled="true">
                 {{ UIContents.IPOutfitZH }}
               </Button>
+            </div>
+
+            <!-- Step 2: Form -->
+            <div v-else class="flex flex-col gap-5" @click.stop>
+              <!-- Name Input -->
+              <div class="flex flex-col gap-1.5">
+                <label
+                  class="text-[10px] text-cyan-500/70 uppercase tracking-widest pl-1"
+                  >模型名称</label
+                >
+                <input
+                  v-model="formFields.name"
+                  type="text"
+                  placeholder="请输入模型名称"
+                  class="bg-slate-900 border border-cyan-500/30 text-cyan-100 p-2.5 text-sm focus:border-cyan-400 focus:outline-none transition-colors"
+                />
+              </div>
+
+              <!-- Description Input -->
+              <div class="flex flex-col gap-1.5">
+                <label
+                  class="text-[10px] text-cyan-500/70 uppercase tracking-widest pl-1"
+                  >模型描述</label
+                >
+                <textarea
+                  v-model="formFields.description"
+                  placeholder="可选：输入模型描述"
+                  rows="2"
+                  class="bg-slate-900 border border-cyan-500/30 text-cyan-100 p-2.5 text-sm focus:border-cyan-400 focus:outline-none transition-colors resize-none"
+                ></textarea>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Sex Selection -->
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    class="text-[10px] text-cyan-500/70 uppercase tracking-widest pl-1"
+                    >性别</label
+                  >
+                  <div
+                    class="flex bg-slate-900 border border-cyan-500/30 p-0.5"
+                  >
+                    <button
+                      @click="formFields.sex = '0'"
+                      :class="
+                        formFields.sex === '0'
+                          ? 'bg-cyan-500 text-slate-950'
+                          : 'text-cyan-500/50 hover:bg-cyan-500/10'
+                      "
+                      class="flex-1 py-1.5 text-xs transition-all uppercase tracking-tighter"
+                    >
+                      男
+                    </button>
+                    <button
+                      @click="formFields.sex = '1'"
+                      :class="
+                        formFields.sex === '1'
+                          ? 'bg-cyan-500 text-slate-950'
+                          : 'text-cyan-500/50 hover:bg-cyan-500/10'
+                      "
+                      class="flex-1 py-1.5 text-xs transition-all uppercase tracking-tighter"
+                    >
+                      女
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Is Default Selection -->
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    class="text-[10px] text-cyan-500/70 uppercase tracking-widest pl-1"
+                    >是否为默认模型</label
+                  >
+                  <div
+                    class="flex bg-slate-900 border border-cyan-500/30 p-0.5"
+                  >
+                    <button
+                      @click="formFields.is_default = '1'"
+                      :class="
+                        formFields.is_default === '1'
+                          ? 'bg-cyan-500 text-slate-950'
+                          : 'text-cyan-500/50 hover:bg-cyan-500/10'
+                      "
+                      class="flex-1 py-1.5 text-xs transition-all uppercase tracking-tighter"
+                    >
+                      是
+                    </button>
+                    <button
+                      @click="formFields.is_default = '0'"
+                      :class="
+                        formFields.is_default === '0'
+                          ? 'bg-cyan-500 text-slate-950'
+                          : 'text-cyan-500/50 hover:bg-cyan-500/10'
+                      "
+                      class="flex-1 py-1.5 text-xs transition-all uppercase tracking-tighter"
+                    >
+                      否
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex gap-4 mt-2">
+                <button
+                  @click="currentStep = 'select'"
+                  class="flex-1 py-2.5 border border-cyan-500/20 text-cyan-500/50 hover:border-cyan-500/50 hover:text-cyan-400 transition-all text-xs uppercase tracking-[0.2em] font-futuristic"
+                >
+                  返回
+                </button>
+                <Button
+                  class="flex-1 h-[42px]"
+                  @click="handleUpload"
+                  :disabled="isUploading || !formFields.name"
+                >
+                  确认上传
+                </Button>
+              </div>
             </div>
 
             <!-- Footer Info -->
@@ -98,20 +220,42 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import { toast } from "vue3-toastify";
-import { UIContents, ToastContentsUpload } from "../../constants";
+import { ToastContentsUpload, UIContents } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
-import Button from "./Button.vue";
 import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
+import type { UploadModelInputFields } from "../../types";
+import Button from "./Button.vue";
 
 const modelsStore = useModelsStore();
-const { selectedObject, isUploadModalVisible } = storeToRefs(modelsStore);
+const { selectedObject, isUploadModalVisible } =
+  storeToRefs(modelsStore);
 
 const isUploading = ref(false);
+const currentStep = ref<"select" | "form">("select");
+const selectedType = ref<"Default" | "Normal Outfit" | "IP Outfit">("Default");
+
+const formFields = reactive<UploadModelInputFields>({
+  name: "",
+  description: "",
+  sex: "0",
+  is_default: "0",
+});
 
 const showModal = () => {
+  currentStep.value = "select";
   modelsStore.setUploadModalVisible(true);
+};
+
+const goToForm = (type: "Default" | "Normal Outfit" | "IP Outfit") => {
+  selectedType.value = type;
+  currentStep.value = "form";
+
+  // Pre-populate defaults
+  if (selectedObject.value && selectedObject.value.children.length > 0) {
+    formFields.name = selectedObject.value.children[0].name || "";
+  }
 };
 
 const closeModal = () => {
@@ -119,20 +263,15 @@ const closeModal = () => {
   modelsStore.setUploadModalVisible(false);
 };
 
-const handleUpload = async (
-  type: "Default" | "Normal Outfit" | "IP Outfit"
-) => {
-  if (isUploading.value) return;
+const handleUpload = async () => {
+  if (isUploading.value || !selectedType.value) return;
   isUploading.value = true;
 
   const loadingToastId = toast.loading(ToastContentsUpload.Loading);
 
   try {
-    const success = await modelsStore.uploadSelectedObject(type, {
-      name: "",
-      description: "",
-      sex: "0",
-      is_default: "0",
+    const success = await modelsStore.uploadSelectedObject(selectedType.value, {
+      ...formFields,
     });
 
     if (success) {
@@ -142,6 +281,7 @@ const handleUpload = async (
         isLoading: false,
         autoClose: 2000,
       });
+      closeModal();
     } else {
       toast.update(loadingToastId, {
         render: ToastContentsUpload.Error,
@@ -152,7 +292,7 @@ const handleUpload = async (
     }
   } catch (error) {
     toast.update(loadingToastId, {
-      render: error.message || ToastContentsUpload.UnknownError,
+      render: (error as any).message || ToastContentsUpload.UnknownError,
       type: "error",
       isLoading: false,
       autoClose: 2000,

@@ -69,20 +69,33 @@ const onDrop = async (e: DragEvent) => {
       files.length === 1 &&
       files[0].type.startsWith("image/")
     ) {
-      const loadingToastId = toast.loading(ToastContents.TextureApplyingZH);
+      // Check if the file is a thumbnail (contains "thumb" or "thumbnail")
+      const isThumbnail = /thumb/i.test(files[0].name);
+      const loadingToastId = toast.loading(
+        isThumbnail
+          ? ToastContents.BindThumbnailZH
+          : ToastContents.TextureApplyingZH
+      );
       try {
         // Simulate large texture loading delay
         // await new Promise((resolve) => setTimeout(resolve, 5000));
-        await modelsStore.applyTextureToHoveredObject(files[0]);
+
+        if (isThumbnail) modelsStore.bindThumbnailToFirstModelNode(files[0]);
+        else await modelsStore.applyTextureToHoveredObject(files[0]);
+
         toast.update(loadingToastId, {
-          render: ToastContents.TextureAppliedZH,
+          render: isThumbnail
+            ? ToastContents.BindThumbnailSuccessZH
+            : ToastContents.TextureAppliedZH,
           type: "success",
           isLoading: false,
           autoClose: 1000,
         });
       } catch (error) {
         toast.update(loadingToastId, {
-          render: ToastContents.TextureApplyingFailedZH,
+          render: isThumbnail
+            ? ToastContents.BindThumbnailFailedZH
+            : ToastContents.TextureApplyingFailedZH,
           type: "error",
           isLoading: false,
           autoClose: 2000,
