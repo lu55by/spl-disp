@@ -173,14 +173,15 @@ export const useModelsStore = defineStore("models", {
       const texture = await loadTexture(texUrl);
       texture.colorSpace = THREE.SRGBColorSpace;
 
+      // Ensure the object has a material that supports maps
+      // Check if material has a map property
       if (
         !this.dragHoveredObject.material ||
         !("map" in this.dragHoveredObject.material)
       )
         throw new Error("Hovered object does not have a material!");
 
-      // Ensure the object has a material that supports maps
-      // Check if material has a map property
+      
       let previousMap = (this.dragHoveredObject.material as any)
         .map as THREE.Texture;
       (this.dragHoveredObject.material as any).map = texture;
@@ -193,9 +194,9 @@ export const useModelsStore = defineStore("models", {
     /**
      * Bind the thumbnail to the hovered object in the userData.
      * @param thumbnailImgFile The thumbnail image file
-     * @returns void
+     * @returns Promise<void>
      */
-    bindThumbnailToDragHoveredObject(thumbnailImgFile: File): void {
+    async bindThumbnailToDragHoveredObject(thumbnailImgFile: File): Promise<void> {
       if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
       console.log(

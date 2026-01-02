@@ -80,10 +80,10 @@ const onDrop = async (e: DragEvent) => {
         // Simulate large texture loading delay
         // await new Promise((resolve) => setTimeout(resolve, 5000));
 
-        if (isThumbnail) modelsStore.bindThumbnailToDragHoveredObject(files[0]);
+        if (isThumbnail)
+          await modelsStore.bindThumbnailToDragHoveredObject(files[0]);
         else await modelsStore.applyTextureToHoveredObject(files[0]);
 
-        // TODO: Fix the issue of toast not been updated successfully of the thumbnail binding.
         toast.update(loadingToastId, {
           render: isThumbnail
             ? ToastContents.BindThumbnailSuccessZH
