@@ -306,7 +306,7 @@ const init = async () => {
   uBaseColor = uniform(color("#fff"));
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
   uOutlineColor = uniform(color("#0ff"));
-  uOutlinePatternFactor = uniform(vec2(0.8, 0.82));
+  uOutlinePatternFactor = uniform(vec2(0.85, 0.86));
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
@@ -621,6 +621,10 @@ const onMouseClick = (e: MouseEvent) => {
         Set the global selected object in modelsStore to the intersectedParentGroup
        */
       modelsStore.setSelectedObject(intersectionParent);
+      console.log(
+        "\n -- onMouseClick -- setSelectedObject ->",
+        modelsStore.selectedObject
+      );
 
       /*
         Set the outline effect to be visible

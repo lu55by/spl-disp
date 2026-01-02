@@ -181,7 +181,6 @@ export const useModelsStore = defineStore("models", {
       )
         throw new Error("Hovered object does not have a material!");
 
-      
       let previousMap = (this.dragHoveredObject.material as any)
         .map as THREE.Texture;
       (this.dragHoveredObject.material as any).map = texture;
@@ -196,13 +195,11 @@ export const useModelsStore = defineStore("models", {
      * @param thumbnailImgFile The thumbnail image file
      * @returns Promise<void>
      */
-    async bindThumbnailToDragHoveredObject(thumbnailImgFile: File): Promise<void> {
+    async bindThumbnailToDragHoveredObject(
+      thumbnailImgFile: File
+    ): Promise<void> {
       if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
-      console.log(
-        "\n-- bindThumbnailToDragHoveredObject -- dragHoveredObject before binding the thumbnail ->",
-        this.dragHoveredObject
-      );
       this.dragHoveredObject.userData.thumbnail = thumbnailImgFile;
       console.log(
         "\n-- bindThumbnailToDragHoveredObject -- dragHoveredObject after binding the thumbnail ->",
@@ -642,22 +639,37 @@ export const useModelsStore = defineStore("models", {
       // Get the map texture blob
       const mapTexBlob = await mapTexToBlob(firstModelNodeMat.map);
       formData.append("map", mapTexBlob, `${firstModelNode.name}_texture.png`);
-      console.log(
-        "\nForm Data map attached ->",
-        firstModelNodeMat.map.name || "texture"
-      );
+      console.log(`\nForm Data of ${firstModelNode.name} map attached!`);
 
       // 7. thumbnail (the thumbnailBlob)
-      // TODO: Get the binded thumbnail blob from the userData of the firstModelNode
-      firstModelNode.userData.thumbnail;
+      // Get the binded thumbnail blob from the userData of the firstModelNode
+      const userDataThumbnail = firstModelNode.userData.thumbnail;
+      // thumbnail validation
+      if (!userDataThumbnail)
+        throw new Error(ToastContents.UploadModelThumbNotBoundZH);
+      console.log(
+        `\n -- userDataThumbnail of ${firstModelNode.name} ->`,
+        userDataThumbnail
+      );
+      // Append the thumbnail from the userData to the formData as it is a file already
+      formData.append(
+        "thumbnail",
+        userDataThumbnail,
+        `${firstModelNode.name}_thumbnail.png`
+      );
+      console.log(`\nForm Data of ${firstModelNode.name} thumbnail attached!`);
 
       // ! Deactivate the outfitType for now
       // formData.append("outfitType", outfitType);
 
       // Fixed: The OBJ file size was large due to de-indexed geometry and high floating-point precision.
       // Optimized during export in three/exporters/index.ts.
-      console.log("\nForm Data modl obj ->", formData.get("mold"));
-      console.log("\nForm Data map obj ->", formData.get("map"));
+      console.log("\nForm Data entry value of mold ->", formData.get("mold"));
+      console.log("\nForm Data entry value of map ->", formData.get("map"));
+      console.log(
+        "\nForm Data entry value of thumbnail ->",
+        formData.get("thumbnail")
+      );
       return true;
 
       // 3. Send a POST request to the backend API

@@ -57,6 +57,8 @@ export const ToastContents = {
 
   UploadModelMapTexNotFound: "Material map is not found!",
   UploadModelMapTexNotFoundZH: "贴图未找到！",
+  UploadModelThumbNotBound: "Thumbnail is not bound!",
+  UploadModelThumbNotBoundZH: "缩略图未绑定！",
   UploadModelNameRequired: "Model name is required!",
   UploadModelNameRequiredZH: "模型名称不能为空！",
 
