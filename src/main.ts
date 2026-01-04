@@ -4,11 +4,19 @@ import Vue3Toastify, { type ToastContainerOptions } from "vue3-toastify";
 import "./style.css";
 import "vue3-toastify/dist/index.css";
 import App from "./App.vue";
+import { useAuthStore } from "./stores/useAuthStore";
 
 const app = createApp(App);
-app.use(createPinia());
+const pinia = createPinia();
+
+app.use(pinia);
 app.use(Vue3Toastify, {
   autoClose: 3000,
   position: "top-center",
 } as ToastContainerOptions);
+
+// Initialize Auth Token on startup
+const authStore = useAuthStore(pinia);
+authStore.fetchToken();
+
 app.mount("#app");

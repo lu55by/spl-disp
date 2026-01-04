@@ -84,7 +84,7 @@ const DefaultOriginalHeadMale = await loadDefaultCutHeadAsync(false);
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(DefaultOriginalHeadMale.clone())
+  new THREE.Group().add(DefaultOriginalHeadFemale.clone())
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -104,9 +104,9 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: DefaultOriginalHeadMale,
+    defaultOriginalHead: DefaultOriginalHeadFemale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    isDefaultHeadFemale: false,
+    isDefaultHeadFemale: true,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model
@@ -626,6 +626,9 @@ export const useModelsStore = defineStore("models", {
         modelBlob,
         `${this.selectedObject.name || "model"}.obj`
       );
+      console.log(
+        `\nForm Data of ${firstModelNode.name} model (mold) attached!`
+      );
 
       // 6. map (the textureBlob)
       const firstModelNodeMat = firstModelNode.material;
@@ -680,6 +683,11 @@ export const useModelsStore = defineStore("models", {
       const isHairSelected = this.selectedObject.children[0].name
         .toLocaleLowerCase()
         .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
+      console.log(
+        "\n-- uploadSelectedObject -- isHairSelected ->",
+        isHairSelected
+      );
+      // return;
 
       /*
         Refactored: Request to the backend API with the new modelService

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "../stores/useAuthStore";
 
 /**
  * Global Axios instance configuration.
@@ -11,12 +12,17 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor (useful for adding auth tokens in the future)
+// Request interceptor to add auth tokens
 apiClient.interceptors.request.use(
   (config) => {
-    // Modify config here
-    // TODO: Add the auth token here.
-    // config.headers["Authorization"] = "Bearer " + localStorage.getItem("token");
+    // Access the auth store
+    const authStore = useAuthStore();
+
+    // If a token exists in the store, add it to the Authorization header
+    if (authStore.token) {
+      config.headers["Authorization"] = `Bearer ${authStore.token}`;
+    }
+
     return config;
   },
   (error) => {

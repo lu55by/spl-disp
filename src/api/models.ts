@@ -21,6 +21,17 @@ export const modelService = {
     onProgress?: (progress: number) => void
   ) {
     const endpoint = isHair ? ENDPOINTS.UPLOAD_HAIR : ENDPOINTS.UPLOAD_BODY;
+    // Iterate through the formData to log all keys and their values
+    formData.forEach((value, key) => {
+      console.log(
+        `\n-- uploadModel -- formData key -> ${key}, value ->`,
+        value
+      );
+    });
+    console.log("\n-- uploadModel -- isHair ->", isHair);
+    console.log("\n-- uploadModel -- endpoint ->", endpoint);
+    // return;
+
     return apiClient.post(endpoint, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
