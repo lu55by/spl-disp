@@ -208,6 +208,23 @@ export const useModelsStore = defineStore("models", {
     },
 
     /**
+     * Bind the cutting model to the hovered object in the userData.
+     * @param cuttingModelBlob The cutting model blob
+     * @returns Promise<void>
+     */
+    async bindCuttingModelToDragHoveredObject(
+      cuttingModelBlob: Blob
+    ): Promise<void> {
+      if (!this.dragHoveredObject) throw new Error("No hovered object found!");
+
+      this.dragHoveredObject.userData.cuttingModel = cuttingModelBlob;
+      console.log(
+        "\n-- bindCuttingModelToDragHoveredObject -- dragHoveredObject after binding the cutting model ->",
+        this.dragHoveredObject
+      );
+    },
+
+    /**
      * Sync the splicing group length.
      * @param length The length of the splicing group (optional)
      */
@@ -685,6 +702,20 @@ export const useModelsStore = defineStore("models", {
       );
       console.log(`\nForm Data of ${firstModelNode.name} thumbnail attached!`);
 
+      // 8. cutting_model (the cuttingModelBlob)
+      const cutterSingleBlob = this.selectedObject.userData.cuttingModel;
+      // cutting_model validation
+
+      // Append the cutting_model from the userData to the formData as it is a file already
+      formData.append(
+        "cutting_model",
+        cutterSingleBlob,
+        `${firstModelNode.name}_cutter_single_model.obj`
+      );
+      console.log(
+        `\nForm Data of ${firstModelNode.name} cutting_model attached!`
+      );
+
       // ! Deactivate the outfitType for now
       // formData.append("outfitType", outfitType);
 
@@ -695,6 +726,10 @@ export const useModelsStore = defineStore("models", {
       console.log(
         "\nForm Data entry value of thumbnail ->",
         formData.get("thumbnail")
+      );
+      console.log(
+        "\nForm Data entry value of cutting_model ->",
+        formData.get("cutting_model")
       );
       // return true;
 

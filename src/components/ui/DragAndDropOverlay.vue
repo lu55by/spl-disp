@@ -64,6 +64,7 @@ const onDrop = async (e: DragEvent) => {
     console.log("\n -- onDrop -- files -- before validation ->", files);
 
     // Check if we are hovering over an object and have an image file
+    // TODO: Implement the feature of binding a cutting model to the drag hovered object parent group.
     if (
       modelsStore.dragHoveredObject &&
       files.length === 1 &&
@@ -71,6 +72,8 @@ const onDrop = async (e: DragEvent) => {
     ) {
       // Check if the file is a thumbnail (contains "thumb" or "thumbnail")
       const isThumbnail = /thumb/i.test(files[0].name);
+      // Check if the file is a cutting model (contains "cutting_model")
+      const isCuttingModel = /cutting/i.test(files[0].name);
       const loadingToastId = toast.loading(
         isThumbnail
           ? ToastContents.BindThumbnailZH
@@ -82,6 +85,8 @@ const onDrop = async (e: DragEvent) => {
 
         if (isThumbnail)
           await modelsStore.bindThumbnailToDragHoveredObject(files[0]);
+        else if (isCuttingModel)
+          await modelsStore.bindCuttingModelToDragHoveredObject(files[0]);
         else await modelsStore.applyTextureToHoveredObject(files[0]);
 
         toast.update(loadingToastId, {

@@ -29,9 +29,9 @@ export const useAuthStore = defineStore("auth", {
         const username = import.meta.env.VITE_API_TOKEN_USERNAME;
         const password = import.meta.env.VITE_API_TOKEN_PASSWORD;
         console.log("\n-- fetchToken -- Base URL ->", baseUrl);
-        console.log("\n-- fetchToken -- Token Path ->", tokenPath);
-        console.log("\n-- fetchToken -- Username ->", username);
-        console.log("\n-- fetchToken -- Password ->", password);
+        // console.log("\n-- fetchToken -- Token Path ->", tokenPath);
+        // console.log("\n-- fetchToken -- Username ->", username);
+        // console.log("\n-- fetchToken -- Password ->", password);
 
         // Construct the full URL for the GET request
         const url = `${baseUrl}${tokenPath}`;
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore("auth", {
         });
 
         const resData = response.data;
-        console.log("\n-- fetchToken -- Response Data ->", resData);
+        // console.log("\n-- fetchToken -- Response Data ->", resData);
         // return;
 
         // Standard OAuth2 response usually contains 'access_token'
@@ -61,7 +61,7 @@ export const useAuthStore = defineStore("auth", {
 
         if (receivedToken && typeof receivedToken === "string") {
           this.token = receivedToken;
-          console.log("Token fetched successfully.");
+          console.log("Token fetched successfully!");
         } else {
           throw new Error("Invalid token received from server.");
         }
