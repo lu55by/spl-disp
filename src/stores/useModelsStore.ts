@@ -413,6 +413,9 @@ export const useModelsStore = defineStore("models", {
 
         // Create a Group
         const stlModelGroup = new THREE.Group().add(stlMesh);
+
+        // Cache the original stl file to userData for later upload reuse
+        stlModelGroup.userData.originalFile = stlFile;
         const isHair = stlFile.name
           .toLocaleLowerCase()
           .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
@@ -443,7 +446,7 @@ export const useModelsStore = defineStore("models", {
       let parsedObjGroup: THREE.Group<THREE.Object3DEventMap> | null =
         parsedObjGroupFromValidators;
 
-      // If the objGroupFromValidators is null, which means the objGroupFromValidators is not passed from the validators, parse the .obj file text content with the OBJLoaderInstance
+      // If the objGroupFromValidators is null, which means the objGroupFromValidators is not passed from the validators, so we parse the .obj file text content with the OBJLoaderInstance
       if (!parsedObjGroup) {
         console.log(
           "\n-- importObjStlWithNodeNames -- parsedObjGroupFromValidators is null, ready to parse the objFile's text content..."
@@ -452,6 +455,13 @@ export const useModelsStore = defineStore("models", {
         // Parse the .obj file text content with the OBJLoaderInstance
         parsedObjGroup = OBJLoaderInstance.parse(text);
       }
+
+      // Cache the original obj file to userData for later upload reuse
+      parsedObjGroup.userData.originalFile = objFile;
+      console.log(
+        "\n-- importObjStlWithNodeNames -- parsedObjGroup originalFile set ->",
+        parsedObjGroup.userData.originalFile
+      );
 
       console.log(
         "\n-- importObjStlWithNodeNames -- Using parsedObjGroupFromValidators ->",
@@ -589,12 +599,25 @@ export const useModelsStore = defineStore("models", {
         this.selectedObject
       );
 
-      // 1. Export the selectedObject to a Blob (e.g. using OBJExporter or GLTFExporter)
-      const { exportObjectToBlob, mapTexToBlob } = await import(
-        "../three/exporters"
-      );
-      const modelBlob = exportObjectToBlob(this.selectedObject);
-      console.log("\n3D Object Blob ->", modelBlob);
+      // 1. Get the model blob. Reuse the original file if it exists to preserve optimization and reduce size.
+      const { mapTexToBlob } = await import("../three/exporters");
+      let modelBlob: Blob | File | null =
+        this.selectedObject.userData.originalFile;
+
+      if (!modelBlob) {
+        console.warn(
+          "\n-- uploadSelectedObject -- Original file not found in userData, falling back to OBJExporter..."
+        );
+        const { exportObjectToBlob } = await import("../three/exporters");
+        modelBlob = exportObjectToBlob(this.selectedObject);
+      } else {
+        console.log(
+          "\n-- uploadSelectedObject -- Reusing original file from userData ->",
+          (modelBlob as File).name || "original_file"
+        );
+      }
+
+      console.log("\n3D Object Blob (mold) ->", modelBlob);
 
       // Get the first model node
       const firstModelNode = this.selectedObject.children[0] as THREE.Mesh<
@@ -673,7 +696,7 @@ export const useModelsStore = defineStore("models", {
         "\nForm Data entry value of thumbnail ->",
         formData.get("thumbnail")
       );
-      return true;
+      // return true;
 
       // 3. Send a POST request to the backend API
 
