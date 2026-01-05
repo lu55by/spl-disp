@@ -2,9 +2,11 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { toast } from "vue3-toastify";
 import {
-  ToastContents,
+  ToastContentsBindingCuttingModel,
+  ToastContentsBindingThumbnail,
   ToastContentsImportCutter,
   ToastContentsImportDefault,
+  ToastContentsTextureApplying,
   UIContents,
 } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
@@ -64,21 +66,19 @@ const onDrop = async (e: DragEvent) => {
     console.log("\n -- onDrop -- files -- before validation ->", files);
 
     // Check if we are hovering over an object and have an image file
-    // TODO: Implement the feature of binding a cutting model to the drag hovered object parent group.
     if (
       modelsStore.dragHoveredObject &&
       files.length === 1 &&
-      files[0].type.startsWith("image/")
+      (files[0].type.startsWith("image/") || /cutting/i.test(files[0].name))
     ) {
       // Check if the file is a thumbnail (contains "thumb" or "thumbnail")
       const isThumbnail = /thumb/i.test(files[0].name);
-      // Check if the file is a cutting model (contains "cutting_model")
+      // Check if the file is a cutting model (contains "cutting")
       const isCuttingModel = /cutting/i.test(files[0].name);
-      const loadingToastId = toast.loading(
-        isThumbnail
-          ? ToastContents.BindThumbnailZH
-          : ToastContents.TextureApplyingZH
-      );
+      let toastContents = ToastContentsTextureApplying;
+      if (isThumbnail) toastContents = ToastContentsBindingThumbnail;
+      if (isCuttingModel) toastContents = ToastContentsBindingCuttingModel;
+      const loadingToastId = toast.loading(toastContents.Loading);
       try {
         // Simulate large texture loading delay
         // await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -90,18 +90,14 @@ const onDrop = async (e: DragEvent) => {
         else await modelsStore.applyTextureToHoveredObject(files[0]);
 
         toast.update(loadingToastId, {
-          render: isThumbnail
-            ? ToastContents.BindThumbnailSuccessZH
-            : ToastContents.TextureAppliedZH,
+          render: toastContents.Success,
           type: "success",
           isLoading: false,
           autoClose: 1000,
         });
       } catch (error) {
         toast.update(loadingToastId, {
-          render: isThumbnail
-            ? ToastContents.BindThumbnailFailedZH
-            : ToastContents.TextureApplyingFailedZH,
+          render: toastContents.Error,
           type: "error",
           isLoading: false,
           autoClose: 2000,
@@ -110,7 +106,7 @@ const onDrop = async (e: DragEvent) => {
       }
       // Reset hovered object
       modelsStore.setDragHoveredObject(null);
-      return;
+      if (!isCuttingModel) return;
     }
 
     // Reset hovered object logic is handled in SplicingModels or here if needed,
@@ -179,7 +175,7 @@ onUnmounted(() => {
 <template>
   <Transition name="fade">
     <div
-      v-if="isDragging && !isImageDragging"
+      v-if="isDragging && !isImageDragging && !modelsStore.dragHoveredObject"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
     >
       <!-- Futuristic UI Overlay -->

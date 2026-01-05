@@ -55,8 +55,17 @@ export const ToastContents = {
   BindThumbnailFailed: "Thumbnail binding failed!",
   BindThumbnailFailedZH: "缩略图绑定失败！",
 
+  BindCuttingModel: "Binding cutting model...",
+  BindCuttingModelZH: "正在绑定切割模型...",
+  BindCuttingModelSuccess: "Cutting model bound!",
+  BindCuttingModelSuccessZH: "切割模型绑定成功！",
+  BindCuttingModelFailed: "Cutting model binding failed!",
+  BindCuttingModelFailedZH: "切割模型绑定失败！",
+
   UploadModelMapTexNotFound: "Material map is not found!",
   UploadModelMapTexNotFoundZH: "贴图未找到！",
+  UploadModelCuttingModelNotBound: "Cutting model is not bound!",
+  UploadModelCuttingModelNotBoundZH: "切割模型未绑定！",
   UploadModelThumbNotBound: "Thumbnail is not bound!",
   UploadModelThumbNotBoundZH: "缩略图未绑定！",
   UploadModelNameRequired: "Model name is required!",
@@ -87,6 +96,21 @@ export const ToastContentsUpload = {
   Success: ToastContents.ModelUploadSuccessZH,
   Error: ToastContents.ModelUploadFailedZH,
   UnknownError: ToastContents.UnknownErrorZH,
+};
+export const ToastContentsTextureApplying = {
+  Loading: ToastContents.TextureApplyingZH,
+  Success: ToastContents.TextureAppliedZH,
+  Error: ToastContents.TextureApplyingFailedZH,
+};
+export const ToastContentsBindingThumbnail = {
+  Loading: ToastContents.BindThumbnailZH,
+  Success: ToastContents.BindThumbnailSuccessZH,
+  Error: ToastContents.BindThumbnailFailedZH,
+};
+export const ToastContentsBindingCuttingModel = {
+  Loading: ToastContents.BindCuttingModelZH,
+  Success: ToastContents.BindCuttingModelSuccessZH,
+  Error: ToastContents.BindCuttingModelFailedZH,
 };
 
 // UI Contents

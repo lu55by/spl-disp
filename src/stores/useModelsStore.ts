@@ -132,16 +132,11 @@ export const useModelsStore = defineStore("models", {
      */
     // TODO: Optimize the setDefaultOriginalHead fn that will cause the frame dropping.
     setDefaultOriginalHead(isFemale: boolean) {
-      console.log("\n-- setDefaultOriginalHead -- isFemale ->", isFemale);
       this.defaultOriginalHead = isFemale
         ? DefaultOriginalHeadFemale
         : DefaultOriginalHeadMale;
       disposeAndRemoveCurrentCutHead(this.splicingGroupGlobal);
       this.splicingGroupGlobal.add(this.defaultOriginalHead.clone());
-      console.log(
-        "\n -- setDefaultOriginalHead -- defaultOriginalHead changed to ->",
-        this.defaultOriginalHead
-      );
       this.isDefaultHeadFemale = isFemale;
     },
 
@@ -201,10 +196,6 @@ export const useModelsStore = defineStore("models", {
       if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
       this.dragHoveredObject.userData.thumbnail = thumbnailImgFile;
-      console.log(
-        "\n-- bindThumbnailToDragHoveredObject -- dragHoveredObject after binding the thumbnail ->",
-        this.dragHoveredObject
-      );
     },
 
     /**
@@ -218,10 +209,6 @@ export const useModelsStore = defineStore("models", {
       if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
       this.dragHoveredObject.userData.cuttingModel = cuttingModelBlob;
-      console.log(
-        "\n-- bindCuttingModelToDragHoveredObject -- dragHoveredObject after binding the cutting model ->",
-        this.dragHoveredObject
-      );
     },
 
     /**
@@ -388,7 +375,6 @@ export const useModelsStore = defineStore("models", {
       parsedObjGroupFromValidators?: THREE.Group<THREE.Object3DEventMap>
     ): Promise<boolean> {
       // Log the files to import
-      console.log("\n -- importObjStlWithNodeNames -- files ->", files);
 
       // Create variables to store the .obj and texture files
       let objFile: File | null = null;
@@ -465,9 +451,6 @@ export const useModelsStore = defineStore("models", {
 
       // If the objGroupFromValidators is null, which means the objGroupFromValidators is not passed from the validators, so we parse the .obj file text content with the OBJLoaderInstance
       if (!parsedObjGroup) {
-        console.log(
-          "\n-- importObjStlWithNodeNames -- parsedObjGroupFromValidators is null, ready to parse the objFile's text content..."
-        );
         const text = await objFile.text();
         // Parse the .obj file text content with the OBJLoaderInstance
         parsedObjGroup = OBJLoaderInstance.parse(text);
@@ -475,15 +458,6 @@ export const useModelsStore = defineStore("models", {
 
       // Cache the original obj file to userData for later upload reuse
       parsedObjGroup.userData.originalFile = objFile;
-      console.log(
-        "\n-- importObjStlWithNodeNames -- parsedObjGroup originalFile set ->",
-        parsedObjGroup.userData.originalFile
-      );
-
-      console.log(
-        "\n-- importObjStlWithNodeNames -- Using parsedObjGroupFromValidators ->",
-        parsedObjGroup
-      );
 
       /**
        * Cutter Import
@@ -601,16 +575,10 @@ export const useModelsStore = defineStore("models", {
         return false;
       }
 
-      console.log(
-        "\n-- uploadSelectedObject -- uploadModelInputFields ->",
-        uploadModelInputFields
-      );
-
       // Make sure the name is not empty
       if (!uploadModelInputFields.name.length)
         throw new Error(ToastContents.UploadModelNameRequiredZH);
 
-      console.log(`\n-- uploadSelectedObject -- upload type -> ${outfitType}`);
       console.log(
         "-- uploadSelectedObject -- selected object to be uploaded ->",
         this.selectedObject
@@ -622,16 +590,9 @@ export const useModelsStore = defineStore("models", {
         this.selectedObject.userData.originalFile;
 
       if (!modelBlob) {
-        console.warn(
-          "\n-- uploadSelectedObject -- Original file not found in userData, falling back to OBJExporter..."
-        );
         const { exportObjectToBlob } = await import("../three/exporters");
         modelBlob = exportObjectToBlob(this.selectedObject);
       } else {
-        console.log(
-          "\n-- uploadSelectedObject -- Reusing original file from userData ->",
-          (modelBlob as File).name || "original_file"
-        );
       }
 
       console.log("\n3D Object Blob (mold) ->", modelBlob);
@@ -641,6 +602,14 @@ export const useModelsStore = defineStore("models", {
         THREE.BufferGeometry,
         THREE.MeshStandardNodeMaterial
       >;
+
+      /*
+        Distinguish the model type (hair or body) by the name of the first node of the selectedObject and send the proper boolean param of the second argument to the uploadModel function.
+       */
+      const isHairSelected = this.selectedObject.children[0].name
+        .toLocaleLowerCase()
+        .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
+      // return;
 
       // 2. Prepare Form Data with the Blob and the outfitType
       const formData = new FormData();
@@ -672,10 +641,6 @@ export const useModelsStore = defineStore("models", {
 
       // 6. map (the textureBlob)
       const firstModelNodeMat = firstModelNode.material;
-      console.log(
-        "\n-- uploadSelectedObject -- firstModelNodeMat ->",
-        firstModelNodeMat
-      );
       // map property validation
       if (!firstModelNodeMat.map)
         throw new Error(ToastContents.UploadModelMapTexNotFoundZH);
@@ -690,10 +655,6 @@ export const useModelsStore = defineStore("models", {
       // thumbnail validation
       if (!userDataThumbnail)
         throw new Error(ToastContents.UploadModelThumbNotBoundZH);
-      console.log(
-        `\n -- userDataThumbnail of ${firstModelNode.name} ->`,
-        userDataThumbnail
-      );
       // Append the thumbnail from the userData to the formData as it is a file already
       formData.append(
         "thumbnail",
@@ -703,18 +664,22 @@ export const useModelsStore = defineStore("models", {
       console.log(`\nForm Data of ${firstModelNode.name} thumbnail attached!`);
 
       // 8. cutting_model (the cuttingModelBlob)
-      const cutterSingleBlob = this.selectedObject.userData.cuttingModel;
-      // cutting_model validation
+      if (!isHairSelected) {
+        const cutterSingleBlob = firstModelNode.userData.cuttingModel;
+        // cutting_model validation
+        if (!cutterSingleBlob)
+          throw new Error(ToastContents.UploadModelCuttingModelNotBoundZH);
 
-      // Append the cutting_model from the userData to the formData as it is a file already
-      formData.append(
-        "cutting_model",
-        cutterSingleBlob,
-        `${firstModelNode.name}_cutter_single_model.obj`
-      );
-      console.log(
-        `\nForm Data of ${firstModelNode.name} cutting_model attached!`
-      );
+        // Append the cutting_model from the userData to the formData as it is a file already
+        formData.append(
+          "cutting_model",
+          cutterSingleBlob,
+          `${firstModelNode.name}_cutter_single_model.obj`
+        );
+        console.log(
+          `\nForm Data of ${firstModelNode.name} cutting_model attached!`
+        );
+      }
 
       // ! Deactivate the outfitType for now
       // formData.append("outfitType", outfitType);
@@ -736,18 +701,6 @@ export const useModelsStore = defineStore("models", {
       // 3. Send a POST request to the backend API
 
       /*
-        Distinguish the model type (hair or body) by the name of the first node of the selectedObject and send the proper boolean param of the second argument to the uploadModel function.
-       */
-      const isHairSelected = this.selectedObject.children[0].name
-        .toLocaleLowerCase()
-        .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
-      console.log(
-        "\n-- uploadSelectedObject -- isHairSelected ->",
-        isHairSelected
-      );
-      // return;
-
-      /*
         Refactored: Request to the backend API with the new modelService
       */
       try {
@@ -764,6 +717,10 @@ export const useModelsStore = defineStore("models", {
           }
         );
 
+        console.log(
+          "\n-- uploadSelectedObject -- response.status ->",
+          response.status
+        );
         if (response.status === 200) {
           console.log(
             `\nModel ${this.selectedObject.name} Upload successful! Response data ->`,
