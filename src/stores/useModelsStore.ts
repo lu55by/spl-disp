@@ -84,7 +84,7 @@ const DefaultOriginalHeadMale = await loadDefaultCutHeadAsync(false);
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(DefaultOriginalHeadFemale.clone())
+  new THREE.Group().add(DefaultOriginalHeadMale.clone())
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -104,9 +104,9 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: DefaultOriginalHeadFemale,
+    defaultOriginalHead: DefaultOriginalHeadMale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    isDefaultHeadFemale: true,
+    isDefaultHeadFemale: false,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model
@@ -667,15 +667,16 @@ export const useModelsStore = defineStore("models", {
       if (!isHairSelected) {
         const cutterSingleBlob = firstModelNode.userData.cuttingModel;
         // cutting_model validation
-        if (!cutterSingleBlob)
-          throw new Error(ToastContents.UploadModelCuttingModelNotBoundZH);
-
-        // Append the cutting_model from the userData to the formData as it is a file already
-        formData.append(
-          "cutting_model",
-          cutterSingleBlob,
-          `${firstModelNode.name}_cutter_single_model.obj`
-        );
+        // if (!cutterSingleBlob)
+        //   throw new Error(ToastContents.UploadModelCuttingModelNotBoundZH);
+        if (cutterSingleBlob) {
+          // Append the cutting_model from the userData to the formData as it is a file already
+          formData.append(
+            "cutting_model",
+            cutterSingleBlob,
+            `${firstModelNode.name}_cutter_single_model.obj`
+          );
+        }
         console.log(
           `\nForm Data of ${firstModelNode.name} cutting_model attached!`
         );
@@ -717,17 +718,21 @@ export const useModelsStore = defineStore("models", {
           }
         );
 
-        console.log(
-          "\n-- uploadSelectedObject -- response.status ->",
-          response.status
-        );
-        if (response.status === 200) {
+        const resCode: number = response.data.code;
+
+        if (resCode === 200) {
           console.log(
             `\nModel ${this.selectedObject.name} Upload successful! Response data ->`,
             response.data
           );
           this.setUploadModalVisible(false);
           return true;
+        } else {
+          console.error(
+            `\nError during model ${this.selectedObject.name} upload process ->`,
+            response.data
+          );
+          return false;
         }
       } catch (error) {
         console.error(
