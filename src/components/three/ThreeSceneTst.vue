@@ -20,6 +20,7 @@ import {
   HeadMaleSubPath,
   ModelPaths,
   NodeNames,
+  OBJLoaderInstance,
   STLLoaderInstance,
   type CutHeadInspectorDebugProps,
   type PhongMesh,
@@ -36,8 +37,11 @@ import {
   applyDebugTransformation,
   applyDoubleSide,
   applyPBRMaterialAndSRGBColorSpace,
+  applyTextures2LoadedHeadModelAsync,
   combineMeshesToGroup,
   modifyNewVerticesUv,
+  repairMesh,
+  repairMeshV2,
   scaleGroupToHeight,
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
@@ -771,9 +775,9 @@ const init = async () => {
 
     const headMale2CutPaths = [
       // Male Heads
-      "/bigHead-01",
-      // "/cutHead-uv-issue-01-isspd01",
-      // "/cutHead-uv-issue-02-sasha01",
+      // "/bigHead-01",
+      "/isspd-01",
+      // "/sasha-01",
       // "/ukn-01",
       // Female Heads
       // "/default",
@@ -880,6 +884,42 @@ const init = async () => {
     scene.add(stlMesh);
   };
 
+  const manifoldTst = async () => {
+    const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
+      await OBJLoaderInstance.loadAsync(ModelPaths.HeadMale.Model);
+    // Apply textures
+    await applyTextures2LoadedHeadModelAsync(loadedHeadModel, false);
+    // Get Cut Head
+    // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
+
+    const cutHeadDefault = await getCutHead(
+      loadedHeadModel,
+      cuttersModelGlobal
+    );
+    cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
+    // Apply PBR Material and SRGB Color Space
+    applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
+    // Apply Double Side
+    applyDoubleSide(cutHeadDefault);
+
+    applyDebugTransformation(cutHeadDefault, new THREE.Vector3(0, 0, 0));
+
+    console.log("\n -- manifoldTst -- cutHeadDefault ->", cutHeadDefault);
+
+    const cutHeadNode = cutHeadDefault.getObjectByName("CutHeadNode") as Brush;
+    console.log("\n -- manifoldTst -- cutHeadNode ->", cutHeadNode);
+    
+    const manifoldCutHeadNode = await repairMeshV2(cutHeadNode);
+    console.log(
+      "\n -- manifoldTst -- manifoldCutHeadNode ->",
+      manifoldCutHeadNode
+    );
+
+    manifoldCutHeadNode.position.x += 2;
+
+    scene.add(cutHeadDefault, manifoldCutHeadNode);
+  };
+
   // loadHairTst();
 
   // loadHeadTst();
@@ -892,7 +932,9 @@ const init = async () => {
 
   // loadExportedFullModelsTst();
 
-  loadStlFileTst();
+  // loadStlFileTst();
+
+  manifoldTst();
 };
 
 // Resize fn

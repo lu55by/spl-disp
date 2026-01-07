@@ -1,25 +1,6 @@
-import {
-  Box3,
-  BufferGeometry,
-  Color,
-  DoubleSide,
-  Group,
-  Mesh,
-  MeshPhongMaterial,
-  type NormalBufferAttributes,
-  Object3D,
-  type Object3DEventMap,
-  SRGBColorSpace,
-  Texture,
-  Vector3,
-} from "three";
+import * as THREE from "three/webgpu";
 import { Brush } from "three-bvh-csg";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import {
-  MeshPhysicalNodeMaterial,
-  MeshStandardNodeMaterial,
-  type MeshStandardNodeMaterialParameters,
-} from "three/webgpu";
 import {
   Colors,
   CutHeadBoundingBoxHeight,
@@ -34,7 +15,165 @@ import { exportObjectToOBJ } from "../exporters";
 import { loadTexture } from "../loaders/TextureLoader";
 import { getCutHead } from "../utils/csgCutHeadV3";
 
-export function combineMeshes(meshes: Mesh[]) {
+import initManifold, { type Mesh as IManifoldMesh } from "manifold-3d";
+import manifoldWasm from "manifold-3d/manifold.wasm?url";
+
+let cachedManifoldModule: any = null;
+
+/**
+ * Optimized and more robust version of repairMesh.
+ * 1. Caches the Manifold WASM module to avoid re-loading.
+ * 2. Enforces strict typed arrays for Wasm compatibility.
+ * 3. Handles memory cleanup more reliably.
+ */
+export async function repairMeshV2(mesh: THREE.Mesh): Promise<THREE.Mesh> {
+  // 1. Initialize or get cached Manifold WASM module
+  if (!cachedManifoldModule) {
+    cachedManifoldModule = await initManifold({
+      locateFile: () => manifoldWasm,
+    });
+    if (cachedManifoldModule.setup) cachedManifoldModule.setup();
+  }
+
+  const { Manifold, Mesh: ManifoldMeshRaw } = cachedManifoldModule;
+
+  // 2. Prepare Geometry
+  let geo = mesh.geometry.clone();
+  // Merge vertices to handle floating point precision issues that cause non-manifold edges
+  geo = BufferGeometryUtils.mergeVertices(geo, 1e-4);
+
+  const posAttr = geo.getAttribute("position");
+  const indexAttr = geo.index;
+
+  if (!posAttr || !indexAttr) {
+    throw new Error("Geometry must have position and index attributes");
+  }
+
+  // Ensure strict Float32Array for positions
+  const vertices =
+    posAttr.array instanceof Float32Array
+      ? posAttr.array
+      : new Float32Array(posAttr.array);
+
+  // CRITICAL: Manifold WASM requires Uint32Array for triangle indices
+  const indices =
+    indexAttr.array instanceof Uint32Array
+      ? indexAttr.array
+      : new Uint32Array(indexAttr.array);
+
+  console.log("\n -- repairMeshV2 -- input ->", {
+    verts: vertices.length / 3,
+    tris: indices.length / 3,
+  });
+
+  // 3. Create Manifold objects
+  // Use the Mesh constructor from the module to ensure proper internal prototype linkage
+  const inputMesh = new ManifoldMeshRaw({
+    numProp: 3,
+    vertProperties: vertices,
+    triVerts: indices,
+  });
+
+  const manifold = new Manifold(inputMesh);
+
+  // Check if construction was successful
+  if (manifold.isEmpty()) {
+    console.warn("\n -- repairMeshV2 -- Warning -> Created manifold is empty");
+  }
+
+  // 4. Extract Repaired Geometry
+  // Use getMesh() (standard) or getMeshGL() (fallback for specific builds)
+  const resultMesh = manifold.getMesh
+    ? manifold.getMesh()
+    : (manifold as any).getMeshGL();
+
+  console.log("\n -- repairMeshV2 -- output ->", {
+    verts: resultMesh.vertProperties.length / 3,
+    tris: resultMesh.triVerts.length / 3,
+  });
+
+  // 5. Convert back to Three.js
+  const newGeo = new THREE.BufferGeometry();
+  newGeo.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(resultMesh.vertProperties, 3)
+  );
+  newGeo.setIndex(new THREE.BufferAttribute(resultMesh.triVerts, 1));
+  newGeo.computeVertexNormals();
+
+  // 6. Cleanup WASM memory (Crucial to avoid leaks)
+  manifold.delete();
+  inputMesh.delete();
+
+  // Return a new mesh with the same material
+  const outMesh = new THREE.Mesh(newGeo, mesh.material);
+  outMesh.name = `${mesh.name}_repaired`;
+
+  return outMesh;
+}
+
+export async function repairMesh(mesh: THREE.Mesh): Promise<THREE.Mesh> {
+  // 1. Initialize the Manifold WASM module
+  // Provide the WASM file location to avoid 404/HTML fallback issues in Vite
+  const manifoldModule = await initManifold({
+    locateFile: () => manifoldWasm,
+  });
+  const { Manifold, setup } = manifoldModule as any;
+  if (setup) setup();
+
+  // 2. Pre-process -> Merge vertices to close tiny gaps
+  let geo = mesh.geometry.clone();
+  geo = BufferGeometryUtils.mergeVertices(geo, 0.001);
+
+  // 3. Convert THREE.js geometry to Manifold format
+  // Extract the flat arrays for position and index
+  const vertices = geo.getAttribute("position").array as Float32Array;
+  const indices = geo.index?.array as Uint32Array;
+  // console.log(
+  //   "\n -- repairMesh -- vertices from original geometry ->",
+  //   vertices
+  // );
+  // console.log("\n -- repairMesh -- indices from original geometry ->", indices);
+  // return;
+
+  if (!indices) throw new Error("Geometry must be indexed");
+
+  // Create a proper Manifold Mesh instance
+  // Use the Mesh constructor from the initialized module
+  const { Mesh } = manifoldModule as any;
+  const manifoldMesh = new Mesh({
+    numProp: 3,
+    vertProperties: vertices,
+    triVerts: indices,
+  });
+
+  // 4. Run the repair
+  const manifold = new Manifold(manifoldMesh);
+
+  // Use `getMesh` or fallback to `getMeshGL` to get the cleaned geometry back
+  const repairedMesh = manifold.getMesh
+    ? manifold.getMesh()
+    : (manifold as any).getMeshGL();
+
+  console.log("\n -- repairMesh -- repairedMesh ->", repairedMesh);
+
+  // 5. Convert back to Three.js BufferGeometry
+  const newGeo = new THREE.BufferGeometry();
+  newGeo.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(repairedMesh.vertProperties, 3)
+  );
+  newGeo.setIndex(new THREE.BufferAttribute(repairedMesh.triVerts, 1));
+  newGeo.computeVertexNormals();
+
+  // Clean up WASM memory
+  manifold.delete();
+  if ((manifoldMesh as any).delete) (manifoldMesh as any).delete();
+
+  return new THREE.Mesh(newGeo, mesh.material);
+}
+
+export function combineMeshes(meshes: THREE.Mesh[]) {
   const geometries = meshes.map((mesh) => {
     const g = mesh.geometry.clone();
     // console.log(`Geometry of [${g.name}] -> `, g)
@@ -42,11 +181,11 @@ export function combineMeshes(meshes: Mesh[]) {
     return g;
   });
   const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries);
-  const mesh0 = meshes[0] as Mesh;
-  return new Mesh(mergedGeometry, mesh0.material);
+  const mesh0 = meshes[0] as THREE.Mesh;
+  return new THREE.Mesh(mergedGeometry, mesh0.material);
 }
 
-export function flattenMesh(mesh2Simplify: Mesh) {
+export function flattenMesh(mesh2Simplify: THREE.Mesh) {
   mesh2Simplify.updateMatrixWorld(true);
   mesh2Simplify.geometry.applyMatrix4(mesh2Simplify.matrixWorld);
   // mesh2Simplify.geometry.deleteAttribute('normal'); // optional
@@ -56,12 +195,12 @@ export function flattenMesh(mesh2Simplify: Mesh) {
   mesh2Simplify.scale.set(1, 1, 1);
 }
 
-export function getAttributes(mesh: Mesh): NormalBufferAttributes {
+export function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
   return mesh.geometry.attributes;
 }
 
 export async function applyTextures2LoadedHeadModelAsync(
-  loadedHeadModel: Group<Object3DEventMap>,
+  loadedHeadModel: THREE.Group<THREE.Object3DEventMap>,
   isModelFeMale: boolean
 ) {
   const headNode = loadedHeadModel.getObjectByName(
@@ -101,7 +240,7 @@ export async function applyTextures2LoadedHeadModelAsync(
     /*
       Teeth Color Texture
     */
-    let teethColTex: Texture | null = null;
+    let teethColTex: THREE.Texture | null = null;
     try {
       teethColTex = await loadTexture(teethColTexPath);
     } catch (err: any) {
@@ -124,31 +263,37 @@ export async function applyTextures2LoadedHeadModelAsync(
   await applyTexture();
 }
 
-export function applyGeometryScaling(mesh: Mesh | Brush, scale: number): void {
+export function applyGeometryScaling(
+  mesh: THREE.Mesh | Brush,
+  scale: number
+): void {
   mesh.geometry.scale(scale, scale, scale);
   mesh.geometry.computeBoundingBox();
   mesh.geometry.computeBoundingSphere();
 }
 
-export function applyMaterialWireframe(obj: Object3D, color?: Color) {
-  if (obj instanceof Group)
+export function applyMaterialWireframe(
+  obj: THREE.Object3D,
+  color?: THREE.Color
+) {
+  if (obj instanceof THREE.Group)
     obj.traverse((m) => {
-      if (m instanceof Mesh) {
-        const mat = m.material as MeshPhongMaterial;
+      if (m instanceof THREE.Mesh) {
+        const mat = m.material as THREE.MeshPhongMaterial;
         mat.color = color || Colors.White;
         mat.wireframe = true;
       }
     });
-  if (obj instanceof Mesh) {
-    const mat = obj.material as MeshPhongMaterial;
+  if (obj instanceof THREE.Mesh) {
+    const mat = obj.material as THREE.MeshPhongMaterial;
     mat.color = color || Colors.White;
     mat.wireframe = true;
   }
 }
 
 export function applyDebugTransformation(
-  obj: Object3D,
-  posOffset: Vector3 = new Vector3()
+  obj: THREE.Object3D,
+  posOffset: THREE.Vector3 = new THREE.Vector3()
 ): void {
   const { x, y, z } = posOffset;
   obj?.position.set(
@@ -160,37 +305,40 @@ export function applyDebugTransformation(
 }
 
 export function applyPBRMaterialAndSRGBColorSpace(
-  obj: Object3D,
+  obj: THREE.Object3D,
   isStandard: boolean,
-  params?: MeshStandardNodeMaterialParameters
+  params?: THREE.MeshStandardNodeMaterialParameters
 ): void {
   obj.traverse((m) => {
-    if (m instanceof Mesh && m.material instanceof MeshPhongMaterial) {
+    if (
+      m instanceof THREE.Mesh &&
+      m.material instanceof THREE.MeshPhongMaterial
+    ) {
       const orgMat = m.material;
       m.material = isStandard
-        ? new MeshStandardNodeMaterial({
+        ? new THREE.MeshStandardNodeMaterial({
             ...params,
             map: orgMat.map,
             name: orgMat.name,
           })
-        : new MeshPhysicalNodeMaterial({
+        : new THREE.MeshPhysicalNodeMaterial({
             ...params,
             map: orgMat.map,
             name: orgMat.name,
           });
-      if (m.material.map) m.material.map.colorSpace = SRGBColorSpace;
+      if (m.material.map) m.material.map.colorSpace = THREE.SRGBColorSpace;
       orgMat.dispose();
     }
   });
 }
 
-export function applyDoubleSide(obj: Object3D) {
+export function applyDoubleSide(obj: THREE.Object3D) {
   // console.log("\n -- applyDoubleSide -- obj ->", obj);
-  if (!(obj instanceof Group)) return;
-  obj.traverse((m: Object3D) => {
-    if (m instanceof Mesh) {
+  if (!(obj instanceof THREE.Group)) return;
+  obj.traverse((m: THREE.Object3D) => {
+    if (m instanceof THREE.Mesh) {
       const mesh = m as any;
-      mesh.material.side = DoubleSide;
+      mesh.material.side = THREE.DoubleSide;
     }
   });
 }
@@ -203,13 +351,13 @@ export function applyDoubleSide(obj: Object3D) {
  * @param offsetNegativePercentage 0 ~ 1 value of the negative offset of the uv start idx based on the original node vertices count.
  */
 export function modifyNewVerticesUv(
-  originalNode: Brush | Mesh,
-  cutObj: Brush | Mesh,
+  originalNode: Brush | THREE.Mesh,
+  cutObj: Brush | THREE.Mesh,
   offsetPositivePercentage: number,
   offsetNegativePercentage: number
 ): void {
-  const originalNodeAttr = getAttributes(originalNode);
-  const finalCutObjAttr = getAttributes(cutObj);
+  const originalNodeAttr = getAttributes(originalNode as THREE.Mesh);
+  const finalCutObjAttr = getAttributes(cutObj as THREE.Mesh);
 
   // Get the vertices count
 
@@ -246,8 +394,11 @@ export function modifyNewVerticesUv(
  * @param meshes List of meshes to combine.
  * @returns THREE.Group containing all meshes.
  */
-export function combineMeshesToGroup(name: string, ...meshes: Mesh[]): Group {
-  const group = new Group();
+export function combineMeshesToGroup(
+  name: string,
+  ...meshes: THREE.Mesh[]
+): THREE.Group {
+  const group = new THREE.Group();
   group.name = name;
 
   for (const mesh of meshes) {
@@ -267,15 +418,15 @@ export function combineMeshesToGroup(name: string, ...meshes: Mesh[]): Group {
  * @param targetHeight number (millimeters)
  */
 export function scaleGroupToHeight(
-  group: Group,
+  group: THREE.Group,
   targetHeight: number = 37
-): Group {
+): THREE.Group {
   // -------------------------------
   // 1. Compute the current height
   // -------------------------------
   const groupCloned = group.clone();
   const grp2Scale = groupCloned;
-  const groupBox = new Box3().setFromObject(grp2Scale);
+  const groupBox = new THREE.Box3().setFromObject(grp2Scale);
   const currentHeight = groupBox.max.y - groupBox.min.y;
   console.log("Grp height -> ", currentHeight);
 
@@ -291,7 +442,7 @@ export function scaleGroupToHeight(
   // 2. Apply scaling to each mesh geometry
   // -------------------------------
   grp2Scale.traverse((m) => {
-    if (m instanceof Mesh && m.geometry instanceof BufferGeometry) {
+    if (m instanceof THREE.Mesh && m.geometry instanceof THREE.BufferGeometry) {
       const geom = m.geometry;
       const pos = geom.attributes.position;
 
@@ -326,12 +477,12 @@ export function scaleGroupToHeight(
 
 export const exportCutHead = (
   exporterBtn: Element,
-  cutHead2Export: Object3D
+  cutHead2Export: THREE.Object3D
 ): void => {
   exporterBtn.addEventListener("click", (e) => {
     e.preventDefault();
     // if (cutHead.isBrush) {
-    if (cutHead2Export instanceof Group) {
+    if (cutHead2Export instanceof THREE.Group) {
       const scaledCutHeadGrp = scaleGroupToHeight(cutHead2Export);
       exportObjectToOBJ(scaledCutHeadGrp);
     }
@@ -339,20 +490,20 @@ export const exportCutHead = (
 };
 
 export function disposeHairBodyGroup(
-  splicingGroupGlobal: Group<Object3DEventMap>,
-  hairOrBodyGroup: Group<Object3DEventMap>
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
+  hairOrBodyGroup: THREE.Group<THREE.Object3DEventMap>
 ) {
   console.log("\nhairOrBodyGroup to be disposed ->", hairOrBodyGroup);
   hairOrBodyGroup.children.forEach((m) => {
     if (
-      m instanceof Mesh &&
-      m.geometry instanceof BufferGeometry &&
-      m.material instanceof MeshPhongMaterial
+      m instanceof THREE.Mesh &&
+      m.geometry instanceof THREE.BufferGeometry &&
+      m.material instanceof THREE.MeshPhongMaterial
     ) {
       m.geometry.dispose();
       m.material.dispose();
-      m.geometry = undefined;
-      m.material = undefined;
+      (m as any).geometry = undefined;
+      (m as any).material = undefined;
       hairOrBodyGroup.remove(m);
     }
   });
@@ -360,8 +511,8 @@ export function disposeHairBodyGroup(
 }
 
 export function disposeHairBodyFromSplicingGroupGlobal(
-  splicingGroupGlobal: Group<Object3DEventMap>,
-  filteredSubGroups: Group<Object3DEventMap>[]
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
+  filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[]
 ) {
   /*
     ! The Hair or Body Group or both are definitely the children of the splicingGroupGlobal as we checked in `clearModels` fn from `ButtonContainer.vue` if this fn is called.
@@ -371,28 +522,30 @@ export function disposeHairBodyFromSplicingGroupGlobal(
   });
 }
 
-export function getObject3DHeight(obj3D: Object3D): number {
-  const box = new Box3().setFromObject(obj3D);
+export function getObject3DHeight(obj3D: THREE.Object3D): number {
+  const box = new THREE.Box3().setFromObject(obj3D);
   const height = box.max.y - box.min.y;
   return height;
 }
 
-export function getObject3DBoundingBoxCenter(obj3D: Object3D): Vector3 {
-  return new Box3().setFromObject(obj3D).getCenter(new Vector3());
+export function getObject3DBoundingBoxCenter(
+  obj3D: THREE.Object3D
+): THREE.Vector3 {
+  return new THREE.Box3().setFromObject(obj3D).getCenter(new THREE.Vector3());
 }
 
 export function getFilteredSubGroups(
-  splicingGroupGlobal: Group<Object3DEventMap>
-): Group<Object3DEventMap>[] {
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>
+): THREE.Group<THREE.Object3DEventMap>[] {
   // Filter out the cut head group
   return splicingGroupGlobal.children.filter(
     (c) => c.name !== CutHeadEyesNodeCombinedGroupName
-  ) as Group<Object3DEventMap>[];
+  ) as THREE.Group<THREE.Object3DEventMap>[];
 }
 
 export function removeAndAddModelWithModelHeight(
-  splicingGroupGlobal: Group<Object3DEventMap>,
-  importedGroup: Group<Object3DEventMap>,
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
+  importedGroup: THREE.Group<THREE.Object3DEventMap>,
   isHairImported: boolean
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
@@ -452,7 +605,7 @@ export function removeAndAddModelWithModelHeight(
   );
 
   // Create a variable to store the group to remove
-  let group2Dispose: Group<Object3DEventMap> | null = null;
+  let group2Dispose: THREE.Group<THREE.Object3DEventMap> | null = null;
   // Check if the new group is hair or body
   if (isHairImported) group2Dispose = hairGroup;
   else group2Dispose = bodyGroup;
@@ -466,8 +619,8 @@ export function removeAndAddModelWithModelHeight(
 }
 
 export function removeAndAddModelWithNodeNames(
-  splicingGroupGlobal: Group<Object3DEventMap>,
-  importedGroup: Group<Object3DEventMap>,
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
+  importedGroup: THREE.Group<THREE.Object3DEventMap>,
   isHairImported: boolean
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
@@ -523,7 +676,7 @@ export function removeAndAddModelWithNodeNames(
   console.log("\nBody Group Name after reverse checking ->", bodyGroup.name);
 
   // Create a variable to store the group to remove
-  let group2Dispose: Group<Object3DEventMap> | null = null;
+  let group2Dispose: THREE.Group<THREE.Object3DEventMap> | null = null;
   // Check if the new group is hair or body
   if (isHairImported) group2Dispose = hairGroup;
   else group2Dispose = bodyGroup;
@@ -540,9 +693,11 @@ export function removeAndAddModelWithNodeNames(
  * Dispose each geometry and material of meshes in the group object.
  * @param obj2Dispose The group object to dispose.
  */
-export function disposeGroupObject(obj2Dispose: Group<Object3DEventMap>) {
+export function disposeGroupObject(
+  obj2Dispose: THREE.Group<THREE.Object3DEventMap>
+) {
   obj2Dispose.traverse((child) => {
-    if (child instanceof Mesh) {
+    if (child instanceof THREE.Mesh) {
       child.geometry?.dispose();
       if (child.material) {
         const materials = Array.isArray(child.material)
@@ -552,7 +707,7 @@ export function disposeGroupObject(obj2Dispose: Group<Object3DEventMap>) {
           // Dispose textures in material properties
           for (const key in mat) {
             const value = (mat as any)[key];
-            if (value && value instanceof Texture) {
+            if (value && value instanceof THREE.Texture) {
               value.dispose();
             }
           }
@@ -568,16 +723,16 @@ export function disposeGroupObject(obj2Dispose: Group<Object3DEventMap>) {
  * @param splicingGroupGlobal The splicing group global.
  */
 export function disposeAndRemoveCurrentCutHead(
-  splicingGroupGlobal: Group<Object3DEventMap>
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>
 ) {
-  let currentCutHead: Group<Object3DEventMap> | null = null;
+  let currentCutHead: THREE.Group<THREE.Object3DEventMap> | null = null;
   // Find the current cut head
   currentCutHead = splicingGroupGlobal.children.find((child) => {
     return (
       child.name.toLocaleLowerCase() ===
       CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()
     );
-  }) as Group<Object3DEventMap>;
+  }) as THREE.Group<THREE.Object3DEventMap>;
   console.log(
     "\n -- disposeCurrentCutHead -- currentCutHead to be disposed ->",
     currentCutHead
@@ -602,9 +757,9 @@ export function disposeAndRemoveCurrentCutHead(
  * @param importedCutter The imported cutter.
  */
 export async function replaceCurrentHeadWithCutHead(
-  splicingGroupGlobal: Group<Object3DEventMap>,
-  defaultOriginalHead: Group<Object3DEventMap>,
-  importedCutter: Group<Object3DEventMap>
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
+  defaultOriginalHead: THREE.Group<THREE.Object3DEventMap>,
+  importedCutter: THREE.Group<THREE.Object3DEventMap>
 ) {
   // Remove the current default original head in the splicing group global
   disposeAndRemoveCurrentCutHead(splicingGroupGlobal);
