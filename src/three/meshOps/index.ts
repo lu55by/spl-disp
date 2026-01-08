@@ -18,6 +18,89 @@ import { getCutHead } from "../utils/csgCutHeadV3";
 import initManifold, { type Mesh as IManifoldMesh } from "manifold-3d";
 import manifoldWasm from "manifold-3d/manifold.wasm?url";
 
+/**
+ * Generates facial morphs for a given mesh.
+ * @param mesh The mesh to generate facial morphs for.
+ */
+export function generateFacialMorphs(mesh: THREE.Mesh) {
+  const geo = mesh.geometry;
+  const positions = geo.getAttribute("position");
+  const vertex = new THREE.Vector3();
+
+  // 1. AUTO-DETECT NOSE TIP
+  // Look for the vertex with the max Z value within a narrow vertical strip in the center
+  let noseTip = new THREE.Vector3(0, 0, -Infinity);
+
+  // Traverse through the vertex count to get the nose tip
+  for (let i = 0; i < positions.count; i++) {
+    // Update the vertex based on the current index
+    vertex.fromBufferAttribute(positions, i);
+
+    // TODO: Filter for center of the face (x between -0.1 and 0.1)
+    // if (Math.abs(vertex.x) < 0.2 && vertex.y > -0.2 && vertex.y < 0.5) {
+    if (vertex.z > noseTip.z) {
+      noseTip.copy(vertex);
+    }
+    // }
+  }
+
+  console.log("\n -- generateFacialMorphs -- noseTip calculated ->", noseTip);
+
+  // 2. CREATE BUFFERS FOR MORPHS
+  // Define the distinct arrays for each "shape" we want
+  const noseTarget = new Float32Array(positions.array);
+  const jawTarget = new Float32Array(positions.array);
+
+  // Parameters for the procedural brushes
+  const noseRadius = 0.4;
+  // TODO: Adjust the value to the right one later
+  const jawYThreshold = -0.2;
+
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+
+    // --- A. GENERATE NOSE MORPH (Move Forward) ---
+    const distToNoseTip = vertex.distanceTo(noseTip);
+    if (distToNoseTip < noseRadius) {
+      // Gaussian Falloff: smooth curve 0 -> 1 -> 0
+      const influence = Math.exp(
+        -Math.pow(distToNoseTip / (noseRadius * 0.5), 2)
+      );
+      // Add '1.0' unit of height to the target. The slider will control how much of this is applied.
+      noseTarget[i * 3 + 2] += 1.0 * influence;
+    }
+
+    // --- B. GENERATE JAW MORPH (Widen) ---
+    if (vertex.y < jawYThreshold) {
+      // Linear widening based on the Y
+      const depth = Math.abs(vertex.y - jawYThreshold);
+      const influence = depth * 0.5; // Scale factor
+
+      // Widen X, but keep the sign (left goes left, right goes right)
+      jawTarget[i * 3] += Math.sign(vertex.x) * influence;
+    }
+  }
+
+  // 3. ATTACH THE MORPH TARGETS TO THE `morphAttributes.position` OF THE GEOMETRY
+  const noseAttr = new THREE.BufferAttribute(noseTarget, 3);
+  const jawAttr = new THREE.BufferAttribute(jawTarget, 3);
+  noseAttr.name = "nose-morph-target-attr";
+  jawAttr.name = "jaw-morph-target-attr";
+  console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
+  console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
+
+  geo.morphAttributes.position = [noseAttr, jawAttr];
+
+  // Required for lighting to update correctly when morphed
+  geo.computeVertexNormals();
+
+  // Update Morph Targets on the mesh
+  mesh.updateMorphTargets();
+
+  // Initialize at 0 of the morph targets on the mesh
+  mesh.morphTargetInfluences = [0, 0];
+}
+
 let cachedManifoldModule: any = null;
 
 /**

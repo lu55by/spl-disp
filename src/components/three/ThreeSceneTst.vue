@@ -8,6 +8,15 @@ import { type Brush } from "three-bvh-csg";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
+import {
+  color,
+  HALF_PI,
+  mx_rotate2d,
+  positionLocal,
+  sin,
+  time,
+  vec3,
+} from "three/tsl";
 import * as THREE from "three/webgpu";
 import type { Pane } from "tweakpane";
 import { onBeforeUnmount, onMounted, ref } from "vue";
@@ -39,22 +48,12 @@ import {
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
   combineMeshesToGroup,
+  generateFacialMorphs,
   modifyNewVerticesUv,
-  repairMesh,
-  repairMeshV2,
   scaleGroupToHeight,
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
-import {
-  color,
-  HALF_PI,
-  mx_rotate2d,
-  positionLocal,
-  sin,
-  time,
-  vec3,
-} from "three/tsl";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
@@ -906,18 +905,36 @@ const init = async () => {
 
     console.log("\n -- manifoldTst -- cutHeadDefault ->", cutHeadDefault);
 
-    const cutHeadNode = cutHeadDefault.getObjectByName("CutHeadNode") as Brush;
+    const cutHeadNode = (
+      cutHeadDefault.getObjectByName("CutHeadNode") as Brush
+    ).clone();
     console.log("\n -- manifoldTst -- cutHeadNode ->", cutHeadNode);
-    
-    const manifoldCutHeadNode = await repairMeshV2(cutHeadNode);
+
+    /*
+      TODO: Fix the error of `Cannot read properties of undefined (reading 'reduce') at Animation.animate [as _animationLoop]`
+      --- ! Use async and await to fix the error maybe? ---
+     */
+    generateFacialMorphs(cutHeadNode);
+
+    if (cutHeadNode.morphTargetInfluences?.length > 0) {
+      // Set the morphTargetInfluences values
+      cutHeadNode.morphTargetInfluences[0] = 0;
+      cutHeadNode.morphTargetInfluences[1] = 0;
+    }
+
     console.log(
-      "\n -- manifoldTst -- manifoldCutHeadNode ->",
-      manifoldCutHeadNode
+      "\n -- manifoldTst -- cutHeadNode after generating facial morphs ->",
+      cutHeadNode
     );
 
-    manifoldCutHeadNode.position.x += 2;
+    // const manifoldCutHeadNode = await repairMeshV2(cutHeadNode);
+    // console.log(
+    //   "\n -- manifoldTst -- manifoldCutHeadNode ->",
+    //   manifoldCutHeadNode
+    // );
+    // manifoldCutHeadNode.position.x += 2;
 
-    scene.add(cutHeadDefault, manifoldCutHeadNode);
+    scene.add(cutHeadDefault);
   };
 
   // loadHairTst();
