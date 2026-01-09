@@ -912,7 +912,7 @@ const init = async () => {
 
     applyDebugTransformation(cutHeadNode, new THREE.Vector3(0.4, 0, 0));
 
-    generateFacialMorphs(cutHeadNode);
+    generateFacialMorphs(cutHeadNode, { noseRadius: 7 });
 
     if (cutHeadNode.morphTargetInfluences?.length > 0) {
       // Set the morphTargetInfluences values
@@ -929,7 +929,10 @@ const init = async () => {
         .add(morphParams, "nose", -1, 1, 0.01)
         .onChange((v) => {
           cutHeadNode.morphTargetInfluences[0] = v;
-          console.log("\n -- manifoldTst -- cutHeadNode after nose morphing ->", cutHeadNode);
+          console.log(
+            "\n -- manifoldTst -- cutHeadNode after nose morphing ->",
+            cutHeadNode
+          );
         })
         .name("Nose");
       guiFolderMorphs

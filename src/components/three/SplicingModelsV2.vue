@@ -7,14 +7,13 @@ import { storeToRefs } from "pinia";
 import { TransformControls } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
-import { color, materialColor, mix, time, uniform, vec2 } from "three/tsl";
+import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps } from "../../three/constants";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
-import { simplexNoise, polkaDots } from "tsl-textures";
 
 /**
  * Canvas Element
@@ -388,7 +387,7 @@ const init = async () => {
    * Watchers from vue
    */
   // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
-  watch(splicingGroupLen, (newLength, oldLength) => {
+  watch(splicingGroupLen, () => {
     applyMixedColorNode(splicingGroupGlobal);
   });
 

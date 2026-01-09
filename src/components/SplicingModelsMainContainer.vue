@@ -2,12 +2,14 @@
 // import SplicingModels from "./three/SplicingModels.vue";
 import SplicingModelsV2 from "./three/SplicingModelsV2.vue";
 import DragAndDropOverlay from "./ui/DragAndDropOverlay.vue";
+import MorphTargetController from "./ui/MorphTargetController.vue";
 import MainUI from "./ui/MainUI.vue";
 </script>
 
 <template>
   <MainUI />
   <DragAndDropOverlay />
+  <MorphTargetController />
   <!-- <SplicingModels /> -->
   <SplicingModelsV2 />
 </template>
