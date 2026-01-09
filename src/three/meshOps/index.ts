@@ -41,10 +41,14 @@ export function generateFacialMorphs(mesh: THREE.Mesh) {
     // Update the vertex based on the current index
     vertex.fromBufferAttribute(positions, i);
 
-    // TODO: Filter for center of the face (x between -0.1 and 0.1)
+    // Filter for center of the face (x between -0.1 and 0.1) [Dont't Need It For Now]
     // if (Math.abs(vertex.x) < 0.2 && vertex.y > -0.2 && vertex.y < 0.5) {
     if (vertex.z > noseTip.z) {
       noseTip.copy(vertex);
+      // console.log(
+      //   "\n-- generateFacialMorphs -- noseTip updated with index ->",
+      //   i
+      // );
     }
     // }
   }
@@ -60,7 +64,7 @@ export function generateFacialMorphs(mesh: THREE.Mesh) {
   // const noseRadius = 0.4;
   const noseRadius = 7;
   // TODO: Adjust the value to the right one later
-  const jawYThreshold = -0.2;
+  const jawYThreshold = noseTip.y;
 
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);

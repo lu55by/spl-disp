@@ -929,6 +929,7 @@ const init = async () => {
         .add(morphParams, "nose", -1, 1, 0.01)
         .onChange((v) => {
           cutHeadNode.morphTargetInfluences[0] = v;
+          console.log("\n -- manifoldTst -- cutHeadNode after nose morphing ->", cutHeadNode);
         })
         .name("Nose");
       guiFolderMorphs
