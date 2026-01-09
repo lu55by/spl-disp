@@ -138,51 +138,52 @@ export function bakeMorphTargets(mesh: THREE.Mesh): void {
   const vertexCount = positionAttr.count;
   const isRelative = (geometry as any).morphTargetsRelative;
 
-  // Traverse through each vertex based on the count
+  // I. VERTEX PROCESSING LOOP: Calculate final positions based on active morph targets
   for (let i = 0; i < vertexCount; i++) {
-    // Get the current position of the vertex
+    // 1. Get current base coordinate for the vertex
     let x = positionAttr.getX(i);
     let y = positionAttr.getY(i);
     let z = positionAttr.getZ(i);
 
-    // The distances of the vertex from the target position
+    // 2. Clear displacement accumulators for the current vertex
     let dx = 0,
       dy = 0,
       dz = 0;
 
-    // Traverse through each morph target position attribute
+    // 3. MORPH ACCUMULATION: Loop through each available morph target
     for (let j = 0; j < morphAttr.length; j++) {
-      // Get the influence value based on the current morph target position attribute
       const influence = influences[j];
-      // No influence, skip
+
+      // Skip influence calculation if the target has no effect (influence is 0)
       if (influence === 0) continue;
 
-      // The morph target vertex position attribute
       const target = morphAttr[j];
 
       if (isRelative) {
+        // RELATIVE MODE: Target positions represent offsets (deltas) from the base position
         dx += target.getX(i) * influence;
         dy += target.getY(i) * influence;
         dz += target.getZ(i) * influence;
       } else {
-        // Calculate the absolute distance of the vertex from the target position
+        // ABSOLUTE MODE: Target positions represent final world-space coordinates
+        // Calculate displacement as: (Final Position - Base Position) * Influence
         dx += (target.getX(i) - x) * influence;
         dy += (target.getY(i) - y) * influence;
         dz += (target.getZ(i) - z) * influence;
       }
     }
 
-    // Update the vertex position
+    // 4. APPLY DISPLACEMENT: Update the vertex position attribute with the final calculated coordinates
     positionAttr.setXYZ(i, x + dx, y + dy, z + dz);
   }
 
-  // Mark as needing update
+  // II. ATTRIBUTE UPDATE: Mark the position attribute as needing an update on the GPU
   positionAttr.needsUpdate = true;
 
-  // Recompute normals to match new shape
+  // III. NORMALS RECOMPUTATION: Re-generate normals to ensure lighting matches the new shape
   geometry.computeVertexNormals();
 
-  // Clear morph targets as they are now baked
+  // IV. CLEANUP: Clear morph data since they are now permanently baked into the base geometry
   geometry.morphAttributes = {};
   mesh.morphTargetDictionary = {};
   mesh.morphTargetInfluences = [];
