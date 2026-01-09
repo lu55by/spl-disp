@@ -11,9 +11,10 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps } from "../../three/constants";
+import { CameraProps, TextureLoaderInstance } from "../../three/constants";
 import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
+import { WaterMesh } from "three/examples/jsm/objects/WaterMesh.js";
 
 /**
  * Canvas Element
@@ -382,6 +383,27 @@ const init = async () => {
   // Add the global group
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));
   scene.add(splicingGroupGlobal);
+
+  /**
+   * Water based on THREE.WaterMesh
+   */
+  const waterGeo = new THREE.PlaneGeometry(10000, 10000);
+  const waterNormals = await TextureLoaderInstance.loadAsync(
+    "textures/official/waternormals.jpg"
+  );
+  waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+
+  const water = new WaterMesh(waterGeo, {
+    waterNormals: waterNormals,
+    sunDirection: new THREE.Vector3(0, 0, 0),
+    sunColor: 0xffffff,
+    waterColor: 0x001e0f,
+    distortionScale: 3.7,
+  });
+
+  water.rotation.x = -Math.PI / 2;
+  water.position.y = 122;
+  scene.add(water);
 
   /**
    * Watchers from vue
