@@ -1,7 +1,7 @@
 import type { Material, Mesh, Object3D } from "three";
 import * as THREE from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { flattenMesh } from "../meshOps";
+import { bakeMorphTargets, flattenMesh } from "../meshOps";
 
 export function exportMeshToOBJ(mesh: Mesh, baseName = "cutHead-exported") {
   // console.log('Geometry Attributes -> ', mesh.geometry.attributes)
@@ -273,6 +273,8 @@ function parseObjectToOptimizedOBJ(object: Object3D): string {
   cloned.traverse((child) => {
     if ((child as Mesh).isMesh) {
       const mesh = child as Mesh;
+      // Bake morph targets before exporting to ensure the current shape is saved
+      bakeMorphTargets(mesh);
       // mergeVertices can significantly reduce vertex count by sharing identical vertices
       mesh.geometry = BufferGeometryUtils.mergeVertices(mesh.geometry);
       // Delete the normal attribute to reduce file size

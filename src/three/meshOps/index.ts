@@ -119,6 +119,75 @@ export function generateFacialMorphs(
   mesh.morphTargetInfluences = [0, 0];
 }
 
+/**
+ * Bakes the current morph target influences into the geometry's position attribute.
+ * This effectively makes the current morph state the "base" shape of the mesh.
+ * @param mesh The mesh to bake morphs for.
+ */
+export function bakeMorphTargets(mesh: THREE.Mesh): void {
+  const geometry = mesh.geometry;
+  const influences = mesh.morphTargetInfluences;
+
+  if (!influences || influences.length === 0) return;
+
+  const positionAttr = geometry.getAttribute("position");
+  const morphAttr = geometry.morphAttributes.position;
+
+  if (!morphAttr || morphAttr.length === 0) return;
+
+  const vertexCount = positionAttr.count;
+  const isRelative = (geometry as any).morphTargetsRelative;
+
+  // Traverse through each vertex based on the count
+  for (let i = 0; i < vertexCount; i++) {
+    // Get the current position of the vertex
+    let x = positionAttr.getX(i);
+    let y = positionAttr.getY(i);
+    let z = positionAttr.getZ(i);
+
+    // The distances of the vertex from the target position
+    let dx = 0,
+      dy = 0,
+      dz = 0;
+
+    // Traverse through each morph target position attribute
+    for (let j = 0; j < morphAttr.length; j++) {
+      // Get the influence value based on the current morph target position attribute
+      const influence = influences[j];
+      // No influence, skip
+      if (influence === 0) continue;
+
+      // The morph target vertex position attribute
+      const target = morphAttr[j];
+
+      if (isRelative) {
+        dx += target.getX(i) * influence;
+        dy += target.getY(i) * influence;
+        dz += target.getZ(i) * influence;
+      } else {
+        // Calculate the absolute distance of the vertex from the target position
+        dx += (target.getX(i) - x) * influence;
+        dy += (target.getY(i) - y) * influence;
+        dz += (target.getZ(i) - z) * influence;
+      }
+    }
+
+    // Update the vertex position
+    positionAttr.setXYZ(i, x + dx, y + dy, z + dz);
+  }
+
+  // Mark as needing update
+  positionAttr.needsUpdate = true;
+
+  // Recompute normals to match new shape
+  geometry.computeVertexNormals();
+
+  // Clear morph targets as they are now baked
+  geometry.morphAttributes = {};
+  mesh.morphTargetDictionary = {};
+  mesh.morphTargetInfluences = [];
+}
+
 let cachedManifoldModule: any = null;
 
 /**
