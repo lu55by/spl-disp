@@ -23,6 +23,11 @@ import manifoldWasm from "manifold-3d/manifold.wasm?url";
  * @param mesh The mesh to generate facial morphs for.
  */
 export function generateFacialMorphs(mesh: THREE.Mesh) {
+  const geoOrg = mesh.geometry;
+  // Clone geometry to ensure we don't affect other meshes sharing the same geometry
+  mesh.geometry = mesh.geometry.clone();
+  // Dispose the original geometry before cloning
+  geoOrg.dispose();
   const geo = mesh.geometry;
   const positions = geo.getAttribute("position");
   const vertex = new THREE.Vector3();
@@ -52,7 +57,8 @@ export function generateFacialMorphs(mesh: THREE.Mesh) {
   const jawTarget = new Float32Array(positions.array);
 
   // Parameters for the procedural brushes
-  const noseRadius = 0.4;
+  // const noseRadius = 0.4;
+  const noseRadius = 7;
   // TODO: Adjust the value to the right one later
   const jawYThreshold = -0.2;
 

@@ -910,16 +910,33 @@ const init = async () => {
     ).clone();
     console.log("\n -- manifoldTst -- cutHeadNode ->", cutHeadNode);
 
-    /*
-      TODO: Fix the error of `Cannot read properties of undefined (reading 'reduce') at Animation.animate [as _animationLoop]`
-      --- ! Use async and await to fix the error maybe? ---
-     */
+    applyDebugTransformation(cutHeadNode, new THREE.Vector3(0.4, 0, 0));
+
     generateFacialMorphs(cutHeadNode);
 
     if (cutHeadNode.morphTargetInfluences?.length > 0) {
       // Set the morphTargetInfluences values
-      cutHeadNode.morphTargetInfluences[0] = 0;
-      cutHeadNode.morphTargetInfluences[1] = 0;
+      // cutHeadNode.morphTargetInfluences[0] = 0;
+      // cutHeadNode.morphTargetInfluences[1] = 0;
+
+      const morphParams = {
+        nose: 0,
+        jaw: 0,
+      };
+
+      const guiFolderMorphs = guiInspector.addFolder("Morphs");
+      guiFolderMorphs
+        .add(morphParams, "nose", -1, 1, 0.01)
+        .onChange((v) => {
+          cutHeadNode.morphTargetInfluences[0] = v;
+        })
+        .name("Nose");
+      guiFolderMorphs
+        .add(morphParams, "jaw", -1, 1, 0.01)
+        .onChange((v) => {
+          cutHeadNode.morphTargetInfluences[1] = v;
+        })
+        .name("Jaw");
     }
 
     console.log(
@@ -934,7 +951,7 @@ const init = async () => {
     // );
     // manifoldCutHeadNode.position.x += 2;
 
-    scene.add(cutHeadDefault);
+    scene.add(cutHeadDefault, cutHeadNode);
   };
 
   // loadHairTst();
