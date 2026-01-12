@@ -79,7 +79,10 @@ export function generateFacialMorphs(
         -Math.pow(distToNoseTip / (noseRadius * 0.5), 2)
       );
       // Add '1.0' unit of height to the target. The slider will control how much of this is applied.
-      noseTarget[i * 3 + 2] += 1.0 * influence;
+      const i3Y = i * 3 + 1;
+      const i3Z = i * 3 + 2;
+      noseTarget[i3Y] += 1.0 * influence;
+      noseTarget[i3Z] += 1.0 * influence;
     }
 
     // --- B. GENERATE JAW MORPH (Widen) ---

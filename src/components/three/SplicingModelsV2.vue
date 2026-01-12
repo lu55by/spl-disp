@@ -387,23 +387,24 @@ const init = async () => {
   /**
    * Water based on THREE.WaterMesh
    */
-  const waterGeo = new THREE.PlaneGeometry(10000, 10000);
-  const waterNormals = await TextureLoaderInstance.loadAsync(
-    "textures/official/waternormals.jpg"
-  );
-  waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+  // const waterGeo = new THREE.PlaneGeometry(10000, 10000);
+  // const waterNormals = await TextureLoaderInstance.loadAsync(
+  //   "textures/official/waternormals.jpg"
+  // );
+  // waterNormals.colorSpace = THREE.SRGBColorSpace;
+  // waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 
-  const water = new WaterMesh(waterGeo, {
-    waterNormals: waterNormals,
-    sunDirection: new THREE.Vector3(0, 0, 0),
-    sunColor: 0xffffff,
-    waterColor: 0x001e0f,
-    distortionScale: 3.7,
-  });
+  // const water = new WaterMesh(waterGeo, {
+  //   waterNormals: waterNormals,
+  //   sunDirection: new THREE.Vector3(0, 0, 0),
+  //   sunColor: 0xffffff,
+  //   waterColor: 0x001e0f,
+  //   distortionScale: 3.7,
+  // });
 
-  water.rotation.x = -Math.PI / 2;
-  water.position.y = 122;
-  scene.add(water);
+  // water.rotation.x = -Math.PI / 2;
+  // water.position.y = 122;
+  // scene.add(water);
 
   /**
    * Watchers from vue
