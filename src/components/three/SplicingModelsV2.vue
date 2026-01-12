@@ -162,7 +162,8 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far
   );
-  camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
+  // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
+  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
   // camera.position.set(
   //   CameraProps.PosNormal.x,
   //   CameraProps.PosNormal.y,

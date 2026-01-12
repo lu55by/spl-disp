@@ -44,6 +44,10 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
       // Male
       isFemale ? ModelPaths.HeadFemale.Model : ModelPaths.HeadMale.Model
     );
+  console.log(
+    "\n -- loadDefaultCutHeadAsync -- loadedHeadModel ->",
+    loadedHeadModel
+  );
 
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(loadedHeadModel, isFemale);

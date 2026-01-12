@@ -38,22 +38,34 @@ export function generateFacialMorphs(
   // 1. AUTO-DETECT NOSE TIP
   // Look for the vertex with the max Z value within a narrow vertical strip in the center
   let noseTip = new THREE.Vector3(0, 0, -Infinity);
+  let boundingBox = geo.boundingBox;
+  if (!boundingBox) {
+    geo.computeBoundingBox();
+    boundingBox = geo.boundingBox;
+  }
+  console.log(
+    `\n -- generateFacialMorphs -- geometry of [${mesh.name}] boundingBox ->`,
+    boundingBox
+  );
+
+  /*
+    Variables for excluding the vertices that the y coordinate is outside the
+    offset boundingBox on the Y axis
+   */
+  const maxVertYPerc = 0.3;
+  const minVertYPerc = 0.25;
+  const dYBoundingBox = boundingBox.max.y - boundingBox.min.y;
+  const maxVertYNose = boundingBox.max.y - maxVertYPerc * dYBoundingBox;
+  const minVertYNose = boundingBox.min.y + minVertYPerc * dYBoundingBox;
 
   // Traverse through the vertex count to get the nose tip
   for (let i = 0; i < positions.count; i++) {
     // Update the vertex based on the current index
     vertex.fromBufferAttribute(positions, i);
-
-    // Filter for center of the face (x between -0.1 and 0.1) [Dont't Need It For Now]
-    // if (Math.abs(vertex.x) < 0.2 && vertex.y > -0.2 && vertex.y < 0.5) {
-    if (vertex.z > noseTip.z) {
-      noseTip.copy(vertex);
-      // console.log(
-      //   "\n-- generateFacialMorphs -- noseTip updated with index ->",
-      //   i
-      // );
-    }
-    // }
+    // Exclude the vertices that the y coordinate is outside the offset boundingBox on the Y axis
+    if (vertex.y > maxVertYNose || vertex.y < minVertYNose) continue;
+    // Find the vertex with maximal Z
+    if (vertex.z > noseTip.z) noseTip.copy(vertex);
   }
 
   console.log("\n -- generateFacialMorphs -- noseTip calculated ->", noseTip);
@@ -73,15 +85,15 @@ export function generateFacialMorphs(
     const distToNoseTip = vertex.distanceTo(noseTip);
     if (distToNoseTip < noseRadius) {
       // Gaussian Falloff: smooth curve 0 -> 1 -> 0
-      const influence = Math.exp(
-        -Math.pow(distToNoseTip / (noseRadius * 0.5), 2)
-      );
+      const influence = Math.pow(1 - distToNoseTip / noseRadius, 4);
       // Add '1.0' unit of height to the target. The slider will control how much of this is applied.
       const i3Y = i * 3 + 1;
       const i3Z = i * 3 + 2;
-      const infFactor = 0.3;
-      noseTarget[i3Y] += infFactor * influence;
-      noseTarget[i3Z] += infFactor * influence;
+      // const factorInf = vertex.y > noseTip.y + 1 ? 1.5 : 0.2;
+      const factorInf = 0.2;
+      const finalInf = factorInf * influence;
+      noseTarget[i3Y] += finalInf;
+      noseTarget[i3Z] += finalInf;
     }
 
     // --- B. GENERATE JAW MORPH (Widen) ---
@@ -91,7 +103,11 @@ export function generateFacialMorphs(
     const dyJaw = Math.abs(vertex.y - jawYCenter);
 
     // Only affect vertices within the jaw's vertical range and in the front half of the head
-    if (dyJaw < jawYRange && vertex.z > noseTip.z - 7.5) {
+    if (
+      dyJaw < jawYRange &&
+      vertex.z > noseTip.z - 7.5 &&
+      vertex.y > noseTip.y - 24
+    ) {
       // Gaussian Falloff for Y (vertical)
       const influenceY = Math.exp(-Math.pow(dyJaw / (jawYRange * 0.6), 2));
 
@@ -113,8 +129,8 @@ export function generateFacialMorphs(
   const jawAttr = new THREE.BufferAttribute(jawTarget, 3);
   noseAttr.name = "nose-morph-target-attr";
   jawAttr.name = "jaw-morph-target-attr";
-  console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
-  console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
+  // console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
+  // console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
 
   geo.morphAttributes.position = [noseAttr, jawAttr];
 
