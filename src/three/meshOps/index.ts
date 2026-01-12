@@ -65,8 +65,6 @@ export function generateFacialMorphs(
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
-  // TODO: Adjust the value to the right one later
-  const jawYThreshold = noseTip.y;
 
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
@@ -81,18 +79,32 @@ export function generateFacialMorphs(
       // Add '1.0' unit of height to the target. The slider will control how much of this is applied.
       const i3Y = i * 3 + 1;
       const i3Z = i * 3 + 2;
-      noseTarget[i3Y] += 1.0 * influence;
-      noseTarget[i3Z] += 1.0 * influence;
+      const infFactor = 0.3;
+      noseTarget[i3Y] += infFactor * influence;
+      noseTarget[i3Z] += infFactor * influence;
     }
 
     // --- B. GENERATE JAW MORPH (Widen) ---
-    if (vertex.y < jawYThreshold) {
-      // Linear widening based on the Y
-      const depth = Math.abs(vertex.y - jawYThreshold);
-      const influence = depth * 0.5; // Scale factor
+    // Target the lower jaw area specifically
+    const jawYCenter = noseTip.y - 12.0; // Rough distance from nose tip to jaw
+    const jawYRange = 10.0;
+    const dyJaw = Math.abs(vertex.y - jawYCenter);
 
-      // Widen X, but keep the sign (left goes left, right goes right)
-      jawTarget[i * 3] += Math.sign(vertex.x) * influence;
+    // Only affect vertices within the jaw's vertical range and in the front half of the head
+    if (dyJaw < jawYRange && vertex.z > noseTip.z - 7.5) {
+      // Gaussian Falloff for Y (vertical)
+      const influenceY = Math.exp(-Math.pow(dyJaw / (jawYRange * 0.6), 2));
+
+      // Gaussian Falloff for Z (depth) - focus on the front of the jaw
+      const dzJaw = Math.abs(vertex.z - (noseTip.z - 5.0));
+      const influenceZ = Math.exp(-Math.pow(dzJaw / 10.0, 2));
+
+      // Combine influences and scale down to a reasonable max (e.g., 3.0 units)
+      const totalInfluence = influenceY * influenceZ * 3.0;
+
+      // Widen X: Use a factor that smoothly increases from the center to avoid tearing
+      const centerXFalloff = Math.min(Math.abs(vertex.x) / 2.0, 1.0);
+      jawTarget[i * 3] += Math.sign(vertex.x) * totalInfluence * centerXFalloff;
     }
   }
 

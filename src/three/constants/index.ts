@@ -210,7 +210,7 @@ export const HeadMaleSubPath = `/isspd-01`;
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
 // Head Female sub path
-export const HeadFeMaleSubPath = `/default/new`;
+export const HeadFeMaleSubPath = `/ellie01`;
 
 // --- Body Prefix ---
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
