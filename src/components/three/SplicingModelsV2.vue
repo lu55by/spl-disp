@@ -387,52 +387,86 @@ const init = async () => {
   const headNode = splicingGroupGlobal.getObjectByName(
     NodeNames.HeadNames.Head
   ) as THREE.Mesh;
-  const { noseTip, jawTipL, jawTipR, noseVertices, jawVertices } =
-    generateFacialMorphs(headNode, {
-      noseRadius: 7,
-    });
-  console.log("\n -- init -- noseVertices generated ->", noseVertices);
-  console.log("\n -- init -- jawVertices generated ->", jawVertices);
+  const {
+    noseTip,
+    jawTipL,
+    jawTipR,
+    filteredVerticesJawTips,
+    filteredVerticesNoseMorph,
+    filteredVerticesJawMorph,
+  } = generateFacialMorphs(headNode, {
+    noseRadius: 7,
+  });
+  console.log(
+    "\n -- init -- filteredVerticesJawTips ->",
+    filteredVerticesJawTips
+  );
+  console.log(
+    "\n -- init -- filteredVerticesNoseMorph generated ->",
+    filteredVerticesNoseMorph
+  );
+  console.log(
+    "\n -- init -- filteredVerticesJawMorph generated ->",
+    filteredVerticesJawMorph
+  );
 
   /*
     Visualize the morphing vertices as particles
    */
-  const noseGeo = new THREE.BufferGeometry().setFromPoints(noseVertices);
-  const jawGeo = new THREE.BufferGeometry().setFromPoints(jawVertices);
+  const filteredVerticesJawTipsGeo = new THREE.BufferGeometry().setFromPoints(
+    filteredVerticesJawTips
+  );
+
+  const filteredVerticesNoseMorphGeo = new THREE.BufferGeometry().setFromPoints(
+    filteredVerticesNoseMorph
+  );
+  const filteredVerticesJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
+    filteredVerticesJawMorph
+  );
+  // Filtered Jaw vertices (Cyan)
+  const filteredJawTipsPoints = new THREE.Points(
+    filteredVerticesJawTipsGeo,
+    new THREE.PointsMaterial({ color: "#ff0", size: 0.15 })
+  );
   // Nose vertices (Red)
-  const nosePoints = new THREE.Points(
-    noseGeo,
+  const filteredNoseMorphPoints = new THREE.Points(
+    filteredVerticesNoseMorphGeo,
     new THREE.PointsMaterial({ color: 0xff0000, size: 5 })
   );
   // Jaw vertices (Cyan)
-  const jawPoints = new THREE.Points(
-    jawGeo,
+  const filteredJawMorphPoints = new THREE.Points(
+    filteredVerticesJawMorphGeo,
     new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 })
   );
-  // scene.add(nosePoints);
-  scene.add(jawPoints);
+  scene.add(filteredJawTipsPoints);
+  // scene.add(filteredNoseMorphPoints);
+  // scene.add(filteredJawMorphPoints);
 
   /*
     Visualize the nose and jaw tips with some 3D objects
    */
+  const sharedBoxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
   const noseTipVisualizer = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    // new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    sharedBoxGeo,
     new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true })
   );
-  const jawLVisualizer = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+  const jawLTipVisualizer = new THREE.Mesh(
+    // new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    sharedBoxGeo,
     new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
   );
-  const jawRVisualizer = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+  const jawRTipVisualizer = new THREE.Mesh(
+    // new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    sharedBoxGeo,
     new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
   );
   noseTipVisualizer.position.copy(noseTip);
-  jawLVisualizer.position.copy(jawTipL);
-  jawRVisualizer.position.copy(jawTipR);
+  jawLTipVisualizer.position.copy(jawTipL);
+  jawRTipVisualizer.position.copy(jawTipR);
   scene.add(noseTipVisualizer);
-  scene.add(jawLVisualizer);
-  scene.add(jawRVisualizer);
+  scene.add(jawLTipVisualizer);
+  scene.add(jawRTipVisualizer);
 
   // Add the global group
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));
@@ -619,7 +653,7 @@ const onWindowDragOver = (e: DragEvent) => {
 
         /*
           Set the raycasterIntersectionObject to the firstIntersection so we
-          can set the outline effect to be invisible by clicking 
+          can set the outline effect to be invisible by clicking
           outside of the 3D Objects
          */
         raycasterIntersectionObject = firstIntersection.object;

@@ -29,8 +29,9 @@ export function generateFacialMorphs(
   noseTip: THREE.Vector3;
   jawTipL: THREE.Vector3;
   jawTipR: THREE.Vector3;
-  noseVertices: THREE.Vector3[];
-  jawVertices: THREE.Vector3[];
+  filteredVerticesJawTips: THREE.Vector3[];
+  filteredVerticesNoseMorph: THREE.Vector3[];
+  filteredVerticesJawMorph: THREE.Vector3[];
 } {
   const geoOrg = mesh.geometry;
   // Clone geometry to ensure we don't affect other meshes sharing the same geometry
@@ -40,6 +41,11 @@ export function generateFacialMorphs(
   const geo = mesh.geometry;
   const positions = geo.getAttribute("position");
   const vertex = new THREE.Vector3();
+
+  // Vertices for visualization
+  const filteredVerticesJawTips: THREE.Vector3[] = [];
+  const filteredVerticesNoseMorph: THREE.Vector3[] = [];
+  const filteredVerticesJawMorph: THREE.Vector3[] = [];
 
   // 1. AUTO-DETECT NOSE TIP
   // Look for the vertex with the max Z value within a narrow vertical strip in the center
@@ -103,6 +109,8 @@ export function generateFacialMorphs(
       // Find the lateral extremes
       if (vertex.x < jawTipL.x) jawTipL.copy(vertex);
       if (vertex.x > jawTipR.x) jawTipR.copy(vertex);
+      // Add the vertex to the filtered jaw tips array
+      filteredVerticesJawTips.push(vertex.clone());
     }
   }
 
@@ -119,10 +127,6 @@ export function generateFacialMorphs(
   // Define the distinct arrays for each "shape" we want
   const noseTarget = new Float32Array(positions.array);
   const jawTarget = new Float32Array(positions.array);
-
-  // Vertices for visualization
-  const noseVertices: THREE.Vector3[] = [];
-  const jawVertices: THREE.Vector3[] = [];
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
@@ -143,8 +147,8 @@ export function generateFacialMorphs(
       const finalInf = factorInf * influence;
       noseTarget[i3Y] += finalInf;
       noseTarget[i3Z] += finalInf;
-      // Add the vertex to the nose vertices array
-      noseVertices.push(vertex.clone());
+      // Add the vertex to filtered the nose vertices morph array
+      filteredVerticesNoseMorph.push(vertex.clone());
     }
 
     // --- B. GENERATE JAW MORPH (Widen) ---
@@ -178,8 +182,8 @@ export function generateFacialMorphs(
 
         // Apply widening (move lateral extremes further out)
         jawTarget[i * 3] += Math.sign(vertex.x) * totalInfluence;
-        // Add the vertex to the jaw vertices array
-        jawVertices.push(vertex.clone());
+        // Add the vertex to the filtered jaw vertices morph array
+        filteredVerticesJawMorph.push(vertex.clone());
       }
     }
   }
@@ -210,7 +214,14 @@ export function generateFacialMorphs(
   mesh.morphTargetInfluences = [0, 0];
 
   // Return the calculated jaw tips and affected vertices
-  return { noseTip, jawTipL, jawTipR, noseVertices, jawVertices };
+  return {
+    noseTip,
+    jawTipL,
+    jawTipR,
+    filteredVerticesJawTips,
+    filteredVerticesNoseMorph,
+    filteredVerticesJawMorph,
+  };
 }
 
 /**
