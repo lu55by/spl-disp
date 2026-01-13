@@ -19,7 +19,6 @@ import {
   applyTextures2LoadedHeadModelAsync,
   disposeAndRemoveCurrentCutHead,
   disposeHairBodyFromSplicingGroupGlobal,
-  generateFacialMorphs,
   getObject3DHeight,
   removeAndAddModelWithModelHeight,
   removeAndAddModelWithNodeNames,
@@ -60,9 +59,9 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   const cutHeadDefault = loadedHeadModel;
   cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
   // Get the Head Node
-  const headNode = cutHeadDefault.getObjectByName(
-    NodeNames.HeadNames.Head
-  ) as THREE.Mesh;
+  // const headNode = cutHeadDefault.getObjectByName(
+  //   NodeNames.HeadNames.Head
+  // ) as THREE.Mesh;
   // Apply PBR Material and SRGB Color Space
   applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
   // Apply Double Side
@@ -76,7 +75,10 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   // Compute the bounding box of the cut head and get the height and log it
   // getObject3DHeight(cutHeadDefault);
   // Generate Morphs on the Head Node
-  generateFacialMorphs(headNode, { noseRadius: 7 });
+  // const { jawTipL, jawTipR } = generateFacialMorphs(headNode, {
+  //   noseRadius: 7,
+  // });
+
   return cutHeadDefault;
 };
 
@@ -131,6 +133,7 @@ export const useModelsStore = defineStore("models", {
     isShowMap: true,
     // isUploadModalVisible state to toggle the visibility of the upload modal
     isUploadModalVisible: false,
+
   }),
 
   getters: {

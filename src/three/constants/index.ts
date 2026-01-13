@@ -205,6 +205,15 @@ const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 // --- Head Male Prefix ---
 export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
 // Head Male sub path
+/*
+  big-one-01
+  default
+  isspd-01
+  sasha-01
+  seki-01
+  ukn-01
+  ukn-02
+ */
 export const HeadMaleSubPath = `/isspd-01`;
 
 // --- Head Female Prefix ---

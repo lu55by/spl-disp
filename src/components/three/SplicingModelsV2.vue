@@ -11,10 +11,12 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps, TextureLoaderInstance } from "../../three/constants";
-import { getObject3DBoundingBoxCenter } from "../../three/meshOps";
+import { CameraProps, NodeNames } from "../../three/constants";
+import {
+  generateFacialMorphs,
+  getObject3DBoundingBoxCenter,
+} from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
-import { WaterMesh } from "three/examples/jsm/objects/WaterMesh.js";
 
 /**
  * Canvas Element
@@ -380,6 +382,57 @@ const init = async () => {
    * Inspector
    */
   // const guiInspector = (renderer.inspector as Inspector).createParameters("Settings");
+
+  // Generate Facial Morphs
+  const headNode = splicingGroupGlobal.getObjectByName(
+    NodeNames.HeadNames.Head
+  ) as THREE.Mesh;
+  const { noseTip, jawTipL, jawTipR, noseVertices, jawVertices } =
+    generateFacialMorphs(headNode, {
+      noseRadius: 7,
+    });
+  console.log("\n -- init -- noseVertices generated ->", noseVertices);
+  console.log("\n -- init -- jawVertices generated ->", jawVertices);
+
+  /*
+    Visualize the morphing vertices as particles
+   */
+  const noseGeo = new THREE.BufferGeometry().setFromPoints(noseVertices);
+  const jawGeo = new THREE.BufferGeometry().setFromPoints(jawVertices);
+  // Nose vertices (Red)
+  const nosePoints = new THREE.Points(
+    noseGeo,
+    new THREE.PointsMaterial({ color: 0xff0000, size: 5 })
+  );
+  // Jaw vertices (Cyan)
+  const jawPoints = new THREE.Points(
+    jawGeo,
+    new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 })
+  );
+  // scene.add(nosePoints);
+  scene.add(jawPoints);
+
+  /*
+    Visualize the nose and jaw tips with some 3D objects
+   */
+  const noseTipVisualizer = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true })
+  );
+  const jawLVisualizer = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
+  );
+  const jawRVisualizer = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
+  );
+  noseTipVisualizer.position.copy(noseTip);
+  jawLVisualizer.position.copy(jawTipL);
+  jawRVisualizer.position.copy(jawTipR);
+  scene.add(noseTipVisualizer);
+  scene.add(jawLVisualizer);
+  scene.add(jawRVisualizer);
 
   // Add the global group
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));

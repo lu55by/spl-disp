@@ -25,7 +25,13 @@ import manifoldWasm from "manifold-3d/manifold.wasm?url";
 export function generateFacialMorphs(
   mesh: THREE.Mesh,
   brushParams: { noseRadius: number }
-) {
+): {
+  noseTip: THREE.Vector3;
+  jawTipL: THREE.Vector3;
+  jawTipR: THREE.Vector3;
+  noseVertices: THREE.Vector3[];
+  jawVertices: THREE.Vector3[];
+} {
   const geoOrg = mesh.geometry;
   // Clone geometry to ensure we don't affect other meshes sharing the same geometry
   mesh.geometry = mesh.geometry.clone();
@@ -62,18 +68,61 @@ export function generateFacialMorphs(
   for (let i = 0; i < positions.count; i++) {
     // Update the vertex based on the current index
     vertex.fromBufferAttribute(positions, i);
+
     // Exclude the vertices that the y coordinate is outside the offset boundingBox on the Y axis
-    if (vertex.y > maxVertYNose || vertex.y < minVertYNose) continue;
-    // Find the vertex with maximal Z
-    if (vertex.z > noseTip.z) noseTip.copy(vertex);
+    if (vertex.y <= maxVertYNose && vertex.y >= minVertYNose) {
+      // Find the vertex with maximal Z
+      if (vertex.z > noseTip.z) noseTip.copy(vertex);
+    }
   }
 
   console.log("\n -- generateFacialMorphs -- noseTip calculated ->", noseTip);
+
+  // 1.1 AUTO-DETECT JAW TIPS (Mandible Corners)
+  // Look for the most lateral points in the lower face area
+  let jawTipL = new THREE.Vector3(Infinity, 0, 0);
+  let jawTipR = new THREE.Vector3(-Infinity, 0, 0);
+
+  // Define ranges for jaw angle detection relative to the nose tip
+  // These ranges are tuned for Metahuman-style head models
+  const jawYMin = noseTip.y - 7;
+  const jawYMax = noseTip.y - 6;
+  const jawZMin = noseTip.z - 7;
+  const jawZMax = noseTip.z - 5;
+
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+
+    // Filter for lower face region (below nose, mid-depth)
+    if (
+      vertex.y > jawYMin &&
+      vertex.y < jawYMax &&
+      vertex.z > jawZMin &&
+      vertex.z < jawZMax
+    ) {
+      // Find the lateral extremes
+      if (vertex.x < jawTipL.x) jawTipL.copy(vertex);
+      if (vertex.x > jawTipR.x) jawTipR.copy(vertex);
+    }
+  }
+
+  console.log(
+    "\n -- generateFacialMorphs -- jawTipL calculated ->",
+    jawTipL.x === Infinity ? "Not Found" : jawTipL
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- jawTipR calculated ->",
+    jawTipR.x === -Infinity ? "Not Found" : jawTipR
+  );
 
   // 2. CREATE BUFFERS FOR MORPHS
   // Define the distinct arrays for each "shape" we want
   const noseTarget = new Float32Array(positions.array);
   const jawTarget = new Float32Array(positions.array);
+
+  // Vertices for visualization
+  const noseVertices: THREE.Vector3[] = [];
+  const jawVertices: THREE.Vector3[] = [];
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
@@ -84,9 +133,9 @@ export function generateFacialMorphs(
     // --- A. GENERATE NOSE MORPH (Move Forward) ---
     const distToNoseTip = vertex.distanceTo(noseTip);
     if (distToNoseTip < noseRadius) {
-      // Gaussian Falloff: smooth curve 0 -> 1 -> 0
+      // Influence based on the distance to the nose tip, the further the vertex is from the nose tip, the less influence it has
       const influence = Math.pow(1 - distToNoseTip / noseRadius, 4);
-      // Add '1.0' unit of height to the target. The slider will control how much of this is applied.
+      // Indices of the Y and Z coordinates
       const i3Y = i * 3 + 1;
       const i3Z = i * 3 + 2;
       // const factorInf = vertex.y > noseTip.y + 1 ? 1.5 : 0.2;
@@ -94,33 +143,44 @@ export function generateFacialMorphs(
       const finalInf = factorInf * influence;
       noseTarget[i3Y] += finalInf;
       noseTarget[i3Z] += finalInf;
+      // Add the vertex to the nose vertices array
+      noseVertices.push(vertex.clone());
     }
 
     // --- B. GENERATE JAW MORPH (Widen) ---
-    // Target the lower jaw area specifically
-    const jawYCenter = noseTip.y - 12.0; // Rough distance from nose tip to jaw
-    const jawYRange = 10.0;
-    const dyJaw = Math.abs(vertex.y - jawYCenter);
+    // Use the detected jaw tips as anchors for the morph
+    const targetJawTip = vertex.x < 0 ? jawTipL : jawTipR;
 
-    // Only affect vertices within the jaw's vertical range and in the front half of the head
-    if (
-      dyJaw < jawYRange &&
-      vertex.z > noseTip.z - 7.5 &&
-      vertex.y > noseTip.y - 24
-    ) {
-      // Gaussian Falloff for Y (vertical)
-      const influenceY = Math.exp(-Math.pow(dyJaw / (jawYRange * 0.6), 2));
+    // Check if jaw tips were actually found
+    if (targetJawTip.x !== Infinity && targetJawTip.x !== -Infinity) {
+      // Calculate distance to the nearest jaw tip (mandible corner)
+      // Focus on Y and Z proximity for the vertical/depth "strip" of the jaw
+      const dyJaw = Math.abs(vertex.y - targetJawTip.y);
+      const dzJaw = Math.abs(vertex.z - targetJawTip.z);
 
-      // Gaussian Falloff for Z (depth) - focus on the front of the jaw
-      const dzJaw = Math.abs(vertex.z - (noseTip.z - 5.0));
-      const influenceZ = Math.exp(-Math.pow(dzJaw / 10.0, 2));
+      // Define influence ranges
+      const jawYRange = 6.0;
+      const jawZRange = 4.0;
 
-      // Combine influences and scale down to a reasonable max (e.g., 3.0 units)
-      const totalInfluence = influenceY * influenceZ * 3.0;
+      if (dyJaw < jawYRange && dzJaw < jawZRange) {
+        // Vertical Falloff (Y)
+        // const influenceY = Math.pow(1 - dyJaw / jawYRange, 2) * 0.5 + 4;
+        const influenceY = Math.pow(Math.sin(1 - dyJaw / jawYRange), 2);
+        // Depth Falloff (Z)
+        // const influenceZ = Math.pow(1 - dzJaw / jawZRange, 2) * 0.5 + 4;
+        const influenceZ = Math.pow(Math.sin(1 - dzJaw / jawZRange), 2);
 
-      // Widen X: Use a factor that smoothly increases from the center to avoid tearing
-      const centerXFalloff = Math.min(Math.abs(vertex.x) / 2.0, 1.0);
-      jawTarget[i * 3] += Math.sign(vertex.x) * totalInfluence * centerXFalloff;
+        // Lateral Falloff (X) - ensure we affect the sides more than the center
+        // Avoid tearing the center line (X=0)
+        const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
+
+        const totalInfluence = influenceY * influenceZ * influenceX * 1.25;
+
+        // Apply widening (move lateral extremes further out)
+        jawTarget[i * 3] += Math.sign(vertex.x) * totalInfluence;
+        // Add the vertex to the jaw vertices array
+        jawVertices.push(vertex.clone());
+      }
     }
   }
 
@@ -148,6 +208,9 @@ export function generateFacialMorphs(
 
   // Initialize at 0 of the morph targets on the mesh
   mesh.morphTargetInfluences = [0, 0];
+
+  // Return the calculated jaw tips and affected vertices
+  return { noseTip, jawTipL, jawTipR, noseVertices, jawVertices };
 }
 
 /**
