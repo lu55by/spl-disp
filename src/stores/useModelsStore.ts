@@ -25,6 +25,7 @@ import {
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
 import type { UploadModelInputFields } from "../types/index.ts";
+import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 /*
   Loaded Cutters Model
@@ -32,6 +33,7 @@ import type { UploadModelInputFields } from "../types/index.ts";
 const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
     ModelPaths.Cutters.OralSphereCylinderCombined
+    // ModelPaths.Cutters.OralMod01
   );
 
 /*
@@ -50,13 +52,14 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
 
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(loadedHeadModel, isFemale);
-  // Get Cut Head
-  // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
+
   /*
     ! Set the cutHeadDefault to the original loadedHeadModel as we are about to add the 
     ! feature of letting the user import the cutters model and cut the loadedHeadModel dynamically
    */
-  const cutHeadDefault = loadedHeadModel;
+  // const cutHeadDefault = loadedHeadModel;
+  // Get Cut Head
+  const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
   // Get the Head Node
   // const headNode = cutHeadDefault.getObjectByName(
@@ -98,7 +101,7 @@ console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(DefaultOriginalHeadMale.clone())
+  new THREE.Group().add(DefaultOriginalHeadFemale.clone())
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -118,9 +121,9 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: DefaultOriginalHeadMale,
+    defaultOriginalHead: DefaultOriginalHeadFemale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    isDefaultHeadFemale: false,
+    isDefaultHeadFemale: true,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model
@@ -133,7 +136,6 @@ export const useModelsStore = defineStore("models", {
     isShowMap: true,
     // isUploadModalVisible state to toggle the visibility of the upload modal
     isUploadModalVisible: false,
-
   }),
 
   getters: {

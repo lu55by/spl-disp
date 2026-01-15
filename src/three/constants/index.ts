@@ -99,7 +99,7 @@ export const Colors = {
  */
 export const CameraProps = {
   Pos: { x: -39.13, y: 221.74, z: 52.17 },
-  PosNormal: { x: 2, y: 2, z: 2 },
+  PosNormal: { x: 1, y: 1, z: 1 },
   Fov: 45,
   Near: 0.01,
   Far: 500,
@@ -214,12 +214,18 @@ export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
   ukn-01
   ukn-02
  */
-export const HeadMaleSubPath = `/isspd-01`;
+export const HeadMaleSubPath = `/big-one-01`;
 
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
 // Head Female sub path
-export const HeadFeMaleSubPath = `/ellie01`;
+/*
+  ellie01
+  default/prev
+  default/new
+  ukn01-issue01
+*/
+export const HeadFeMaleSubPath = `/ukn01-issue01`;
 
 // --- Body Prefix ---
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
@@ -264,5 +270,6 @@ export const ModelPaths = {
     CylinderStrCloseLineTranslated: `${CutterPathPrefix}/cutters-cly-strc-close-line-translated.obj`,
     ClyinderStrcLinesRmvd: `${CutterPathPrefix}/cutters-cyl-strc-lines-rmvd.obj`,
     OralSphereCylinderCombined: `${CutterPathPrefix}/cutters-cutter-teeth-added.obj`,
+    OralMod01: `${CutterPathPrefix}/slf-mod/oral-mod-01.obj`,
   },
 };

@@ -774,21 +774,27 @@ const init = async () => {
 
     const headMale2CutPaths = [
       // Male Heads
-      // "/bigHead-01",
+      "/big-one-01",
       "/isspd-01",
-      // "/sasha-01",
-      // "/ukn-01",
+      "/sasha-01",
+      "/ukn-01",
       // Female Heads
-      // "/default",
-      // "/ellie01",
+      "/default/prev",
+      "/ellie01",
+      "/ukn01-issue01",
     ];
     const femaleHeadStartIdx = 4;
     let isFemale: boolean;
 
+    // boundingBox arr of the cut head
+    let cutHeadBoundingBoxArr: { headPath: string; boundingBox: THREE.Box3 }[] =
+      [];
+
     for (let i = 0; i < headMale2CutPaths.length; i++) {
       isFemale = i >= femaleHeadStartIdx;
+      const headPath = headMale2CutPaths[i];
       const cutHead = await csgCutHeadFnTstV3(
-        headMale2CutPaths[i],
+        headPath,
         isFemale,
         new THREE.Vector3(
           baseOffsetX + (isFemale ? i - femaleHeadStartIdx : i) * 0.3,
@@ -796,7 +802,38 @@ const init = async () => {
           isFemale ? 0.3 : 0
         )
       );
-      console.log("\n -- loadMultipleCutHeads -- cutHead ->", cutHead);
+      console.log(
+        `\n -- loadMultipleCutHeads -- cutHead of [${headPath}] ->`,
+        cutHead
+      );
+
+      // Log the bounding box of each CutHeadNode
+      const cutHeadNode = cutHead.getObjectByName("CutHeadNode") as THREE.Mesh;
+      console.log(
+        `\n -- loadMultipleCutHeads -- cutHeadNode of [${headPath}] ->`,
+        cutHeadNode
+      );
+      if (cutHeadNode.geometry.boundingBox) {
+        console.log(
+          `\n -- loadMultipleCutHeads -- cutHeadNode.boundingBox of [${headPath}] ->`,
+          cutHeadNode.geometry.boundingBox
+        );
+        cutHeadBoundingBoxArr.push({
+          headPath,
+          boundingBox: cutHeadNode.geometry.boundingBox,
+        });
+      } else {
+        // Compute the bounding box and log it
+        cutHeadNode.geometry.computeBoundingBox();
+        console.log(
+          `\n -- loadMultipleCutHeads -- cutHeadNode.boundingBox of [${headPath}] ->`,
+          cutHeadNode.geometry.boundingBox
+        );
+        cutHeadBoundingBoxArr.push({
+          headPath,
+          boundingBox: cutHeadNode.geometry.boundingBox,
+        });
+      }
 
       /*
         Wireframe set working at this point only when the wireframe is set to true in the material
@@ -818,12 +855,63 @@ const init = async () => {
       /*
         GUI
        */
-      addTransformDebugInspector(
-        guiInspectorFolderCutHead,
-        cutHead,
-        debugPropsCutHead
+      const cutHeadFolder = guiInspectorFolderCutHead.addFolder(headPath);
+      addTransformDebugInspector(cutHeadFolder, cutHead, debugPropsCutHead);
+    }
+
+    /*
+      Log the height of each cut head beased on the bounding box
+     */
+    // Sum height to calculate the average height
+    let sumHeight = 0;
+    // Minimum height
+    let minHeight = Infinity;
+    // Minimum height head path
+    let minHeightHeadPath = "";
+    for (let i = 0; i < cutHeadBoundingBoxArr.length - 1; i++) {
+      const { headPath, boundingBox } = cutHeadBoundingBoxArr[i];
+      const height = boundingBox.max.y - boundingBox.min.y;
+      sumHeight += height;
+      if (height < minHeight) {
+        minHeight = height;
+        minHeightHeadPath = headPath;
+      }
+      console.log(
+        `\n -- loadMultipleCutHeads -- height of [${headPath}] ->`,
+        height
       );
     }
+    const averageHeight = sumHeight / (cutHeadBoundingBoxArr.length - 1);
+    console.log(
+      `\n -- loadMultipleCutHeads -- average height ->`,
+      averageHeight
+    );
+    console.log(
+      `\n -- loadMultipleCutHeads -- minimum height of cut head ->  [${minHeightHeadPath}]: [${minHeight}] ->`
+    );
+
+    const lastHeadHeight =
+      cutHeadBoundingBoxArr[cutHeadBoundingBoxArr.length - 1].boundingBox.max
+        .y -
+      cutHeadBoundingBoxArr[cutHeadBoundingBoxArr.length - 1].boundingBox.min.y;
+    // Log the last head height (ukn01-issue01)
+    console.log(
+      `\n -- loadMultipleCutHeads -- last head height of [${
+        cutHeadBoundingBoxArr[cutHeadBoundingBoxArr.length - 1].headPath
+      }] ->`,
+      lastHeadHeight
+    );
+
+    // Calculate the range of height
+    const heightRange = Math.abs(lastHeadHeight - minHeight);
+    console.log(
+      `\n -- loadMultipleCutHeads -- min height and last head height range ->`,
+      heightRange
+    );
+    console.log(
+      `\n -- loadMultipleCutHeads -- min height and last head height half range ->`,
+      heightRange * 0.5
+    );
 
     // scene.add(headsGroup);
 
@@ -958,6 +1046,63 @@ const init = async () => {
     scene.add(cutHeadDefault, cutHeadNode);
   };
 
+  const oralCutterTst = async () => {
+    const isFemale = false;
+    const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
+      await OBJLoaderInstance.loadAsync(
+        // Male
+        isFemale ? ModelPaths.HeadFemale.Model : ModelPaths.HeadMale.Model
+      );
+    console.log(
+      "\n -- loadDefaultCutHeadAsync -- loadedHeadModel ->",
+      loadedHeadModel
+    );
+
+    // Apply textures
+    await applyTextures2LoadedHeadModelAsync(loadedHeadModel, isFemale);
+
+    // Get Cut Head
+    const cutHeadDefault = await getCutHead(
+      loadedHeadModel,
+      cuttersModelGlobal
+    );
+    cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
+    // Apply PBR Material and SRGB Color Space
+    applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
+    // Apply Double Side
+    applyDoubleSide(cutHeadDefault);
+    // Apply Transform
+    applyDebugTransformation(cutHeadDefault);
+
+    /*
+        Wireframe set working at this point only when the wireframe is set to true in the material
+       */
+    const debugPropsCutHead = {
+      // color: "#fff",
+      color: (cutHeadDefault.children[0] as StandardMesh).material.color,
+      isShowMap: true,
+      isShowWireframe: true,
+      progressBaseColAndTex: 1,
+      isShowMapPower: 1,
+    } as CutHeadInspectorDebugProps;
+    cutHeadDefault.children.forEach((child) => {
+      if (child instanceof THREE.Mesh && "wireframe" in child.material) {
+        child.material.wireframe = debugPropsCutHead.isShowWireframe;
+      }
+    });
+
+    /*
+        GUI
+       */
+    addTransformDebugInspector(
+      guiInspectorFolderCutHead,
+      cutHeadDefault,
+      debugPropsCutHead
+    );
+
+    scene.add(cutHeadDefault);
+  };
+
   // loadHairTst();
 
   // loadHeadTst();
@@ -966,13 +1111,15 @@ const init = async () => {
 
   // loadBodyTst();
 
-  // loadMultipleCutHeads();
+  loadMultipleCutHeads();
 
   // loadExportedFullModelsTst();
 
   // loadStlFileTst();
 
-  manifoldTst();
+  // manifoldTst();
+
+  // oralCutterTst();
 };
 
 // Resize fn

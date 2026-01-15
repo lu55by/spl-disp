@@ -385,7 +385,8 @@ const init = async () => {
 
   // Generate Facial Morphs
   const headNode = splicingGroupGlobal.getObjectByName(
-    NodeNames.HeadNames.Head
+    // NodeNames.HeadNames.Head
+    "CutHeadNode"
   ) as THREE.Mesh;
   const {
     noseTip,

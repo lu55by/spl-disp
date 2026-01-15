@@ -124,7 +124,7 @@ onUnmounted(() => {
   <Transition name="slide-fade">
     <div
       v-if="isVisible && morphTargetsData.length > 0"
-      class="fixed top-6 right-6 z-[60] w-72 md:w-80 pointer-events-none group"
+      class="fixed top-6 right-6 z-60 w-72 md:w-80 pointer-events-none group"
       @click.stop
     >
       <!-- Glassmorphism Container -->
@@ -179,10 +179,10 @@ onUnmounted(() => {
             <div class="relative group/slider">
               <!-- Slider Track Background -->
               <div
-                class="absolute inset-y-[7px] w-full h-[2px] bg-white/5 rounded-full overflow-hidden"
+                class="absolute inset-y-[7px] w-full h-0.5 bg-white/5 rounded-full overflow-hidden"
               >
                 <div
-                  class="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
+                  class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
                   :style="{
                     width:
                       target.label === 'Nose'

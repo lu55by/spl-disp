@@ -25,6 +25,11 @@ const DefaultCSGEvaluatorAttributes = ["position", "normal", "uv"];
 const IsCSGOperationLog = false;
 type CSGOperationLog = { isLog: boolean; value: string };
 
+/*
+  CutHead Height Threshold to decide whether to execute the hollow subtraction of the oral cavity
+ */
+const CutHeadHeightThreshold4OralCavity = 20;
+
 /**
  * Types
  */
@@ -58,7 +63,7 @@ export async function getCutHead(
   // 切割模型
   const loadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
     cutters instanceof THREE.Group ? cutters : await loadObj(cutters);
-  // console.log("loadedCuttersModel ->", loadedCuttersModel);
+  console.log("loadedCuttersModel ->", loadedCuttersModel);
   // return headModel;
   const cuttersLen = loadedCuttersModel.children.length;
 
@@ -137,7 +142,7 @@ export async function getCutHead(
   /*
     预创建 Brush
   */
-  let cutHeadBrush: Brush;
+  let cutHeadBrush: Brush | THREE.Mesh;
 
   // 一个切割节点，直接切
   if (isCuttersLen1) {
@@ -207,6 +212,7 @@ export async function getCutHead(
     cutter4OralCavityNode.geometry,
     cutter4OralCavityNode.material
   );
+  // oralCavityBrush.position.y += 2.3;
   oralCavityBrush.updateMatrixWorld();
 
   /*
@@ -231,19 +237,42 @@ export async function getCutHead(
   /**
    *  !! 执行切割操作
    */
+  // 执行底座椭圆切割以获取头模高度，根据头模高度判断是否需要执行口腔布尔孔洞切割
+  const sphHollowCutHead4OralHollowCSGValidation = csgSubtract(
+    headNode,
+    sphereCutterBrush,
+    false,
+    ["position"],
+    null,
+    {
+      isLog: IsCSGOperationLog,
+      value: "Sphere Cutter Node Subtraction for getting head height.",
+    }
+  );
+  const isSmallHead = validateSmallCutHead(
+    sphHollowCutHead4OralHollowCSGValidation
+  );
+  console.log("\n -- getCutHead -- isSmallHead ->", isSmallHead);
 
+  /*
+    Optionally execute the operation of oral cavity brush hollow cut based on the boolean value of 'isSmallHead'.
+   */
   // 执行口腔布尔孔洞切割 (HOLLOW_SUBTRACTION from 'three-bvh-csg')
   // Note: first operand (headNode) is a Mesh, csgSubtract will convert it to a Brush.
-  cutHeadBrush = csgSubtract(headNode, oralCavityBrush, true, null, null, {
-    isLog: IsCSGOperationLog,
-    value: "Oral Cavity Cutter Node Hollow Subtraction.",
-  });
+  cutHeadBrush = isSmallHead
+    ? headNode
+    : csgSubtract(headNode, oralCavityBrush, true, null, null, {
+        isLog: IsCSGOperationLog,
+        value: "Oral Cavity Cutter Node Hollow Subtraction.",
+      });
   // DEBUG hollow cut.
-  // return new THREE.Group().add(cutHeadObj);
+  // cutHeadBrush.name = "CutHeadNode";
+  // return new THREE.Group().add(cutHeadBrush);
 
   // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
   const sphHollowCutHead = csgSubtract(
     cutHeadBrush,
+    // headNode,
     sphereCutterBrush,
     true,
     ["position"],
@@ -253,10 +282,14 @@ export async function getCutHead(
       value: "Sphere Cutter Node Hollow Subtraction.",
     }
   );
+  // DEBUG sph hollow cut.
+  // sphHollowCutHead.name = "CutHeadNode";
+  // return new THREE.Group().add(sphHollowCutHead);
 
   // 执行底座椭圆切割
   cutHeadBrush = csgSubtract(
     cutHeadBrush,
+    // headNode,
     sphereCutterBrush,
     false,
     null,
@@ -270,13 +303,15 @@ export async function getCutHead(
   // UV 修改 (基于前一个切割几何体顶点数量)
   const postSphereCutOffest = { pos: 0, neg: 0 };
   modifyNewVerticesUv(
-    sphHollowCutHead, // Pass the hollow cut Brush directly as the "originalNode" reference for count
+    // Pass the hollow cut Brush directly as the "originalNode" reference for count
+    sphHollowCutHead,
     cutHeadBrush,
     postSphereCutOffest.pos,
     postSphereCutOffest.neg
   );
   // DEBUG sph cut.
-  // return new THREE.Group().add(cutHeadObj);
+  // cutHeadBrush.name = "CutHeadNode";
+  // return new THREE.Group().add(cutHeadBrush);
 
   // ! 更正：获取孔洞切割后的头模，取出其实际顶点数量修改 UV，而不是取之前未切割过后的原头模顶点数量
   const cylHollowCutHead = csgSubtract(
@@ -328,7 +363,8 @@ export async function getCutHead(
   return combineMeshesToGroup(
     "CutHeadEyesNodeCombinedGrp",
     cutHeadBrush,
-    teethNode,
+    // TODO: Uncomment the teethNode later
+    // teethNode,
     eyeLNode,
     eyeRNode
   );
@@ -570,4 +606,29 @@ async function loadObj(
  */
 function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
   return mesh.geometry.attributes;
+}
+
+/**
+ * Validate the small cut head
+ * @param sphHollowCutHead4OralHollowCSGValidation The post sphere cut head brush
+ * @returns true if the cut head is small enough to not execute the hollow subtraction of the oral cavity
+ */
+function validateSmallCutHead(
+  sphHollowCutHead4OralHollowCSGValidation: Brush
+): boolean {
+  // Get the boudingBox of the cutHeadBrush
+  const boundingBox = new THREE.Box3().setFromObject(
+    sphHollowCutHead4OralHollowCSGValidation
+  );
+  console.log(
+    "\n -- validateSmallCutHead -- calculated boundingBox of cutHeadBrush ->",
+    boundingBox
+  );
+  // Get the height of the boundingBox
+  const height = boundingBox.max.y - boundingBox.min.y;
+  console.log(
+    "\n -- validateSmallCutHead -- calculated height of cutHeadBrush ->",
+    height
+  );
+  return height < CutHeadHeightThreshold4OralCavity;
 }
