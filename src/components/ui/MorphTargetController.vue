@@ -40,11 +40,13 @@ const updateHeadNode = () => {
   }
 
   // Find the head node (it could be the selected object itself or a child)
-  let node: THREE.Object3D | undefined;
-  if (modelsStore.selectedObject.name === NodeNames.HeadNames.Head) {
-    node = modelsStore.selectedObject;
-  } else {
-    node = modelsStore.selectedObject.getObjectByName(NodeNames.HeadNames.Head);
+  const node =
+    modelsStore.selectedObject.getObjectByName(NodeNames.HeadNames.Head) ||
+    modelsStore.selectedObject.getObjectByName("CutHeadNode");
+
+  if (node === undefined) {
+    console.warn("\n -- updateHeadNode -- head node is undefined!");
+    return;
   }
 
   if (node instanceof THREE.Mesh && node.morphTargetInfluences) {

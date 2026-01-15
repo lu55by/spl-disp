@@ -782,6 +782,7 @@ const init = async () => {
       "/default/prev",
       "/ellie01",
       "/ukn01-issue01",
+      "/ukn02-issue01",
     ];
     const femaleHeadStartIdx = 4;
     let isFemale: boolean;
@@ -842,7 +843,7 @@ const init = async () => {
         // color: "#fff",
         color: (cutHead.children[0] as StandardMesh).material.color,
         isShowMap: true,
-        isShowWireframe: true,
+        isShowWireframe: false,
         progressBaseColAndTex: 1,
         isShowMapPower: 1,
       } as CutHeadInspectorDebugProps;
@@ -868,11 +869,12 @@ const init = async () => {
     let minHeight = Infinity;
     // Minimum height head path
     let minHeightHeadPath = "";
-    for (let i = 0; i < cutHeadBoundingBoxArr.length - 1; i++) {
+    for (let i = 0; i < cutHeadBoundingBoxArr.length; i++) {
+      const isNormalHead = i < cutHeadBoundingBoxArr.length - 2;
       const { headPath, boundingBox } = cutHeadBoundingBoxArr[i];
       const height = boundingBox.max.y - boundingBox.min.y;
-      sumHeight += height;
-      if (height < minHeight) {
+      if (isNormalHead) sumHeight += height;
+      if (isNormalHead && height < minHeight) {
         minHeight = height;
         minHeightHeadPath = headPath;
       }
@@ -881,36 +883,14 @@ const init = async () => {
         height
       );
     }
-    const averageHeight = sumHeight / (cutHeadBoundingBoxArr.length - 1);
+    const averageHeight = sumHeight / (cutHeadBoundingBoxArr.length - 2);
     console.log(
-      `\n -- loadMultipleCutHeads -- average height ->`,
+      `\n -- loadMultipleCutHeads -- average height of cut head with normal height ->`,
       averageHeight
     );
     console.log(
-      `\n -- loadMultipleCutHeads -- minimum height of cut head ->  [${minHeightHeadPath}]: [${minHeight}] ->`
-    );
-
-    const lastHeadHeight =
-      cutHeadBoundingBoxArr[cutHeadBoundingBoxArr.length - 1].boundingBox.max
-        .y -
-      cutHeadBoundingBoxArr[cutHeadBoundingBoxArr.length - 1].boundingBox.min.y;
-    // Log the last head height (ukn01-issue01)
-    console.log(
-      `\n -- loadMultipleCutHeads -- last head height of [${
-        cutHeadBoundingBoxArr[cutHeadBoundingBoxArr.length - 1].headPath
-      }] ->`,
-      lastHeadHeight
-    );
-
-    // Calculate the range of height
-    const heightRange = Math.abs(lastHeadHeight - minHeight);
-    console.log(
-      `\n -- loadMultipleCutHeads -- min height and last head height range ->`,
-      heightRange
-    );
-    console.log(
-      `\n -- loadMultipleCutHeads -- min height and last head height half range ->`,
-      heightRange * 0.5
+      `\n -- loadMultipleCutHeads -- minimum height of cut head with normal height (${minHeightHeadPath}) ->`,
+      minHeight
     );
 
     // scene.add(headsGroup);

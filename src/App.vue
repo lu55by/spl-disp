@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import LoadingOverlay from "./components/ui/LoadingOverlay.vue";
-import ThreeSceneTst from "./components/three/ThreeSceneTst.vue";
-// import SplicingModelsMainContainer from "./components/SplicingModelsMainContainer.vue";
+// import ThreeSceneTst from "./components/three/ThreeSceneTst.vue";
+import SplicingModelsMainContainer from "./components/SplicingModelsMainContainer.vue";
 </script>
 
 <template>
@@ -10,8 +10,8 @@ import ThreeSceneTst from "./components/three/ThreeSceneTst.vue";
     class="w-full h-svh bg-[linear-gradient(90deg,rgb(27,27,37),rgb(54,54,72),rgb(27,27,37))]"
   >
     <LoadingOverlay />
-    <ThreeSceneTst />
+    <!-- <ThreeSceneTst /> -->
     <!-- TODO: Optimize the code and make it cleaner. -->
-    <!-- <SplicingModelsMainContainer /> -->
+    <SplicingModelsMainContainer />
   </div>
 </template>

@@ -28,7 +28,7 @@ type CSGOperationLog = { isLog: boolean; value: string };
 /*
   CutHead Height Threshold to decide whether to execute the hollow subtraction of the oral cavity
  */
-const CutHeadHeightThreshold4OralCavity = 20;
+const CutHeadHeightThreshold4OralCavity = 20.1;
 
 /**
  * Types

@@ -224,8 +224,9 @@ export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
   default/prev
   default/new
   ukn01-issue01
+  ukn02-issue01
 */
-export const HeadFeMaleSubPath = `/ukn01-issue01`;
+export const HeadFeMaleSubPath = `/ukn02-issue01`;
 
 // --- Body Prefix ---
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
