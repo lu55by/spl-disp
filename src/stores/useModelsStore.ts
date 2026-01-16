@@ -101,7 +101,7 @@ console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(DefaultOriginalHeadFemale.clone())
+  new THREE.Group().add(DefaultOriginalHeadMale.clone())
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -121,9 +121,9 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: DefaultOriginalHeadFemale,
+    defaultOriginalHead: DefaultOriginalHeadMale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    isDefaultHeadFemale: true,
+    isDefaultHeadFemale: false,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model

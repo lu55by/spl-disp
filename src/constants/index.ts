@@ -128,5 +128,11 @@ export const UIContents = {
   IPOutfitZH: "IP 造型",
 };
 
+// Morph Target
+export const MorphTargetLabelMapping = {
+  Nose: "鼻子",
+  Jaw: "下颌",
+};
+
 // Global Model
 export const MaxModelLength = 3;

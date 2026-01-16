@@ -7,7 +7,7 @@ import MainUI from "./ui/MainUI.vue";
 </script>
 
 <template>
-  <!-- <MainUI /> -->
+  <MainUI />
   <DragAndDropOverlay />
   <MorphTargetController />
   <!-- <SplicingModels /> -->

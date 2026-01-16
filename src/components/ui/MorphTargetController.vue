@@ -5,6 +5,7 @@ import {
   CutHeadEyesNodeCombinedGroupName,
   NodeNames,
 } from "../../three/constants";
+import { MorphTargetLabelMapping } from "../../constants";
 import * as THREE from "three";
 
 const modelsStore = useModelsStore();
@@ -81,12 +82,13 @@ const morphTargetsData = computed(() => {
   if (!headNode.value || !headNode.value.morphTargetDictionary) return [];
 
   const dictionary = headNode.value.morphTargetDictionary;
+  console.log("\n -- morphTargetsData -- dictionary ->", dictionary);
   // Sort by index
   return Object.entries(dictionary)
     .sort((a, b) => a[1] - b[1])
-    .map(([name, index]) => ({
+    .map(([name, morphTargetInfIdx]) => ({
       label: name.charAt(0).toUpperCase() + name.slice(1),
-      index: index,
+      morphTargetInfIdx,
     }));
 });
 
@@ -161,18 +163,18 @@ onUnmounted(() => {
         <div class="space-y-6">
           <div
             v-for="target in morphTargetsData"
-            :key="target.index"
+            :key="target.morphTargetInfIdx"
             class="space-y-3"
           >
             <div class="flex justify-between items-end">
               <label
                 class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
               >
-                {{ target.label }}
+                {{ MorphTargetLabelMapping[target.label] }}
               </label>
               <div class="flex items-baseline gap-1">
                 <span class="font-mono text-xs text-cyan-400 font-bold">
-                  {{ influencesValues[target.index]?.toFixed(2) }}
+                  {{ influencesValues[target.morphTargetInfIdx]?.toFixed(2) }}
                 </span>
                 <span class="text-[8px] text-cyan-700 font-mono">val</span>
               </div>
@@ -188,8 +190,14 @@ onUnmounted(() => {
                   :style="{
                     width:
                       target.label === 'Nose'
-                        ? `${((influencesValues[target.index] + 1) / 2) * 100}%`
-                        : `${influencesValues[target.index] * 100}%`,
+                        ? `${
+                            ((influencesValues[target.morphTargetInfIdx] + 1) /
+                              2) *
+                            100
+                          }%`
+                        : `${
+                            influencesValues[target.morphTargetInfIdx] * 100
+                          }%`,
                   }"
                 ></div>
               </div>
@@ -199,8 +207,8 @@ onUnmounted(() => {
                 :min="target.label === 'Nose' ? -1 : 0"
                 max="1"
                 step="0.01"
-                :value="influencesValues[target.index]"
-                @input="(e) => updateInfluence(target.index, parseFloat((e.target as HTMLInputElement).value))"
+                :value="influencesValues[target.morphTargetInfIdx]"
+                @input="(e) => updateInfluence(target.morphTargetInfIdx, parseFloat((e.target as HTMLInputElement).value))"
                 class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
               />
             </div>
