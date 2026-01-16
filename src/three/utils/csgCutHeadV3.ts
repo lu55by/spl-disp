@@ -42,22 +42,24 @@ type CSGOperationLog = { isLog: boolean; value: string };
 
       意味着，头模进行切割时，将其高度 (底座椭圆孔洞切割后) 与阈值高度进行对比，从而判断是否为小头模，最后条件式执行口腔切割操作
  */
-const NormalHeadLowestHeight = 21.578079223632812;
-const SmallHeadHighestHeight = 20.094833374023438;
-const NormalSmallHeightGap = NormalHeadLowestHeight - SmallHeadHighestHeight;
-// 插值系数，先折中取 0.5，后续可根据实际情况调整
-const InterpolationFactor = 0.5;
-const CutHeadHeightThreshold4OralCavity =
-  NormalHeadLowestHeight - NormalSmallHeightGap * InterpolationFactor;
+const FixedNormalHeadLowestHeight = 21.578079223632812;
+const FixedSmallHeadHighestHeight = 20.094833374023438;
+const FixedNormalSmallHeightGap =
+  FixedNormalHeadLowestHeight - FixedSmallHeadHighestHeight;
+// 插值系数
+const FixedInterpolationFactor = 0.3;
+const FixedCutHeadHeightThreshold4OralCavity =
+  FixedNormalHeadLowestHeight -
+  FixedNormalSmallHeightGap * FixedInterpolationFactor;
 
 // LOGS
-console.log("\n -- NormalHeadLowestHeight ->", NormalHeadLowestHeight);
-console.log("\n -- SmallHeadHighestHeight ->", SmallHeadHighestHeight);
-console.log("\n -- NormalSmallHeightGap ->", NormalSmallHeightGap);
-console.log("\n -- InterpolationFactor ->", InterpolationFactor);
+console.log("\n -- NormalHeadLowestHeight ->", FixedNormalHeadLowestHeight);
+console.log("\n -- SmallHeadHighestHeight ->", FixedSmallHeadHighestHeight);
+console.log("\n -- NormalSmallHeightGap ->", FixedNormalSmallHeightGap);
+console.log("\n -- InterpolationFactor ->", FixedInterpolationFactor);
 console.log(
   "\n -- CutHeadHeightThreshold4OralCavity ->",
-  CutHeadHeightThreshold4OralCavity
+  FixedCutHeadHeightThreshold4OralCavity
 );
 
 /**
@@ -150,7 +152,7 @@ export async function getCutHead(
 
   // 1.5 最终牙齿节点 (将与头部节点，左眼节点，右眼节点进行组合并返回)
   // 判断是否是单个切割节点，不是则进行切割，否则直接使用原始牙齿节点
-  const teethNode = !isCuttersLen1
+  const teethNode = cutterTeethNode
     ? csgSubtract(teethNodeOrg, cutterTeethNode, true, null, null, {
         isLog: IsCSGOperationLog,
         value: "Teeth Cutter Node Hollow Subtraction.",
@@ -682,5 +684,5 @@ function checkSmallCutHead(
     "\n -- checkSmallCutHead -- calculated height of cutHeadBrush ->",
     height
   );
-  return height < CutHeadHeightThreshold4OralCavity;
+  return height < FixedCutHeadHeightThreshold4OralCavity;
 }
