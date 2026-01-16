@@ -863,34 +863,35 @@ const init = async () => {
     /*
       Log the height of each cut head beased on the bounding box
      */
-    // Sum height to calculate the average height
-    let sumHeight = 0;
-    // Minimum height
-    let minHeight = Infinity;
-    // Minimum height head path
-    let minHeightHeadPath = "";
+    // Sum height of normal heads to calculate the average height
+    let sumHeightNormal = 0;
+    // Minimum height of normal heads
+    let minHeightNormal = Infinity;
+    // Minimum height normal head path                                        
+    let minHeightNormalHeadPath = "";
     for (let i = 0; i < cutHeadBoundingBoxArr.length; i++) {
       const isNormalHead = i < cutHeadBoundingBoxArr.length - 2;
       const { headPath, boundingBox } = cutHeadBoundingBoxArr[i];
       const height = boundingBox.max.y - boundingBox.min.y;
-      if (isNormalHead) sumHeight += height;
-      if (isNormalHead && height < minHeight) {
-        minHeight = height;
-        minHeightHeadPath = headPath;
+      if (isNormalHead) sumHeightNormal += height;
+      if (isNormalHead && height < minHeightNormal) {
+        minHeightNormal = height;
+        minHeightNormalHeadPath = headPath;
       }
       console.log(
         `\n -- loadMultipleCutHeads -- height of [${headPath}] ->`,
         height
       );
     }
-    const averageHeight = sumHeight / (cutHeadBoundingBoxArr.length - 2);
+    const averageHeightNormal =
+      sumHeightNormal / (cutHeadBoundingBoxArr.length - 2);
     console.log(
       `\n -- loadMultipleCutHeads -- average height of cut head with normal height ->`,
-      averageHeight
+      averageHeightNormal
     );
     console.log(
-      `\n -- loadMultipleCutHeads -- minimum height of cut head with normal height (${minHeightHeadPath}) ->`,
-      minHeight
+      `\n -- loadMultipleCutHeads -- minimum height of cut head with normal height (${minHeightNormalHeadPath}) ->`,
+      minHeightNormal
     );
 
     // scene.add(headsGroup);
