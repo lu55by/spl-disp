@@ -44,7 +44,7 @@ interface LoadObjOptions {
  * 获取布尔切割后的头部模型：接收头模对象，布尔切割后返回
  * @remarks
  *    切割步骤:
- *      1. 口腔顶点切割
+ *      1. 口腔顶点切割 (可选，根据底座椭圆切割后的头模高度决定是否执行)
  *      2. 底座椭圆孔洞切割 (获取顶点数量以精确修改 UV)
  *      3. 底座椭圆切割
  *      4. 圆柱孔洞切割 (获取顶点数量以精确修改 UV)
@@ -249,7 +249,7 @@ export async function getCutHead(
       value: "Sphere Cutter Node Subtraction for getting head height.",
     }
   );
-  const isSmallHead = validateSmallCutHead(
+  const isSmallHead = checkSmallCutHead(
     sphHollowCutHead4OralHollowCSGValidation
   );
   console.log("\n -- getCutHead -- isSmallHead ->", isSmallHead);
@@ -609,11 +609,11 @@ function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
 }
 
 /**
- * Validate the small cut head
+ * Check the small cut head
  * @param sphHollowCutHead4OralHollowCSGValidation The post sphere cut head brush
  * @returns true if the cut head is small enough to not execute the hollow subtraction of the oral cavity
  */
-function validateSmallCutHead(
+function checkSmallCutHead(
   sphHollowCutHead4OralHollowCSGValidation: Brush
 ): boolean {
   // Get the boudingBox of the cutHeadBrush
@@ -621,13 +621,13 @@ function validateSmallCutHead(
     sphHollowCutHead4OralHollowCSGValidation
   );
   console.log(
-    "\n -- validateSmallCutHead -- calculated boundingBox of cutHeadBrush ->",
+    "\n -- checkSmallCutHead -- calculated boundingBox of cutHeadBrush ->",
     boundingBox
   );
   // Get the height of the boundingBox
   const height = boundingBox.max.y - boundingBox.min.y;
   console.log(
-    "\n -- validateSmallCutHead -- calculated height of cutHeadBrush ->",
+    "\n -- checkSmallCutHead -- calculated height of cutHeadBrush ->",
     height
   );
   return height < CutHeadHeightThreshold4OralCavity;
