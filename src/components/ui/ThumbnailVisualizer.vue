@@ -38,7 +38,9 @@ onUnmounted(() => {
     <div
       v-if="
         selectedObject &&
-        selectedObject.name !== CutHeadEyesNodeCombinedGroupName
+        !selectedObject.name
+          .toLocaleLowerCase()
+          .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
       "
       class="mt-1 ml-4 pointer-events-auto flex flex-col gap-3 p-4 bg-slate-900/40 backdrop-blur-md border border-cyan-500/40 rounded-sm w-64 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all duration-300"
     >

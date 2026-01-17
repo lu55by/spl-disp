@@ -815,7 +815,10 @@ export function getFilteredSubGroups(
 ): THREE.Group<THREE.Object3DEventMap>[] {
   // Filter out the cut head group
   return splicingGroupGlobal.children.filter(
-    (c) => c.name !== CutHeadEyesNodeCombinedGroupName
+    (c) =>
+      !c.name
+        .toLocaleLowerCase()
+        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
   ) as THREE.Group<THREE.Object3DEventMap>[];
 }
 
@@ -1004,10 +1007,9 @@ export function disposeAndRemoveCurrentCutHead(
   let currentCutHead: THREE.Group<THREE.Object3DEventMap> | null = null;
   // Find the current cut head
   currentCutHead = splicingGroupGlobal.children.find((child) => {
-    return (
-      child.name.toLocaleLowerCase() ===
-      CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()
-    );
+    return child.name
+      .toLocaleLowerCase()
+      .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase());
   }) as THREE.Group<THREE.Object3DEventMap>;
   console.log(
     "\n -- disposeCurrentCutHead -- currentCutHead to be disposed ->",

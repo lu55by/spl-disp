@@ -80,7 +80,12 @@ const handleInput = () => {
 <template>
   <Transition name="slide-up">
     <div
-      v-if="modelsStore.selectedObject && modelsStore.selectedObject.name !== CutHeadEyesNodeCombinedGroupName"
+      v-if="
+        modelsStore.selectedObject &&
+        !modelsStore.selectedObject.name
+          .toLocaleLowerCase()
+          .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
+      "
       @click.stop
       class="pointer-events-auto absolute bottom-6 right-6 w-72 bg-slate-900/80 backdrop-blur-xl border border-cyan-500/30 p-5 font-futuristic shadow-[0_0_30px_rgba(34,211,238,0.15)] rounded-sm"
     >

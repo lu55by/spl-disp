@@ -29,7 +29,7 @@ export const modelService = {
       );
     });
     console.log("\n-- uploadModel -- isHair ->", isHair);
-    console.log("\n-- uploadModel -- endpoint ->", endpoint);
+    console.log("\n-- uploadModel -- current endpoint ->", endpoint);
     // return;
 
     return apiClient.post(endpoint, formData, {

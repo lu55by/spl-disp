@@ -25,7 +25,6 @@ import {
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
 import type { UploadModelInputFields } from "../types/index.ts";
-import { getCutHead } from "../three/utils/csgCutHeadV3.ts";
 
 /*
   Loaded Cutters Model
@@ -57,10 +56,9 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
     ! Set the cutHeadDefault to the original loadedHeadModel as we are about to add the 
     ! feature of letting the user import the cutters model and cut the loadedHeadModel dynamically
    */
-  // const cutHeadDefault = loadedHeadModel;
+  const cutHeadDefault = loadedHeadModel;
   // Get Cut Head
-  const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
-  cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
+  // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
   // Get the Head Node
   // const headNode = cutHeadDefault.getObjectByName(
   //   NodeNames.HeadNames.Head
@@ -89,13 +87,15 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   Default Original Head Female
  */
 const DefaultOriginalHeadFemale = await loadDefaultCutHeadAsync(true);
+DefaultOriginalHeadFemale.name = CutHeadEyesNodeCombinedGroupName + "Female";
 // console.log("\n DefaultOriginalHeadFemale ->", DefaultOriginalHeadFemale);
 
 /*
   Default Original Head Male
  */
 const DefaultOriginalHeadMale = await loadDefaultCutHeadAsync(false);
-console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
+DefaultOriginalHeadMale.name = CutHeadEyesNodeCombinedGroupName + "Male";
+// console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
 
 /*
   Splicing Group
@@ -435,7 +435,7 @@ export const useModelsStore = defineStore("models", {
         const stlModelGroup = new THREE.Group().add(stlMesh);
 
         // Cache the original stl file to userData for later upload reuse
-        stlModelGroup.userData.originalFile = stlFile;
+        stlModelGroup.userData.originalModelFile = stlFile;
         const isHair = stlFile.name
           .toLocaleLowerCase()
           .includes(NodeNames.HairNames.Hair.toLocaleLowerCase());
@@ -474,7 +474,7 @@ export const useModelsStore = defineStore("models", {
       }
 
       // Cache the original obj file to userData for later upload reuse
-      parsedObjGroup.userData.originalFile = objFile;
+      parsedObjGroup.userData.originalModelFile = objFile;
 
       /**
        * Cutter Import
@@ -604,7 +604,7 @@ export const useModelsStore = defineStore("models", {
       // 1. Get the model blob. Reuse the original file if it exists to preserve optimization and reduce size.
       const { mapTexToBlob } = await import("../three/exporters");
       let modelBlob: Blob | File | null =
-        this.selectedObject.userData.originalFile;
+        this.selectedObject.userData.originalModelFile;
 
       if (!modelBlob) {
         const { exportObjectToBlob } = await import("../three/exporters");

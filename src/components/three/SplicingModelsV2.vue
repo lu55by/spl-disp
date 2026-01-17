@@ -11,7 +11,7 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps } from "../../three/constants";
+import { CameraProps, NodeNames } from "../../three/constants";
 import {
   generateFacialMorphs,
   getObject3DBoundingBoxCenter,
@@ -384,10 +384,11 @@ const init = async () => {
   // const guiInspector = (renderer.inspector as Inspector).createParameters("Settings");
 
   // Generate Facial Morphs
-  const headNode = splicingGroupGlobal.getObjectByName(
-    // NodeNames.HeadNames.Head
-    "CutHeadNode"
-  ) as THREE.Mesh;
+  const headNode =
+    (splicingGroupGlobal.getObjectByName(
+      NodeNames.HeadNames.Head
+    ) as THREE.Mesh) ||
+    (splicingGroupGlobal.getObjectByName("CutHeadNode") as THREE.Mesh);
   const {
     noseTip,
     jawTipL,
@@ -439,7 +440,7 @@ const init = async () => {
     filteredVerticesJawMorphGeo,
     new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 })
   );
-  scene.add(filteredJawTipsPoints);
+  // scene.add(filteredJawTipsPoints);
   // scene.add(filteredNoseMorphPoints);
   // scene.add(filteredJawMorphPoints);
 
@@ -465,9 +466,9 @@ const init = async () => {
   noseTipVisualizer.position.copy(noseTip);
   jawLTipVisualizer.position.copy(jawTipL);
   jawRTipVisualizer.position.copy(jawTipR);
-  scene.add(noseTipVisualizer);
-  scene.add(jawLTipVisualizer);
-  scene.add(jawRTipVisualizer);
+  // scene.add(noseTipVisualizer);
+  // scene.add(jawLTipVisualizer);
+  // scene.add(jawRTipVisualizer);
 
   // Add the global group
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));

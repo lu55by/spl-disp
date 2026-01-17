@@ -26,7 +26,8 @@ const influencesValues = ref<number[]>([]);
 const isVisible = computed(() => {
   const selected = modelsStore.selectedObject;
   return (
-    selected !== null && selected.name === CutHeadEyesNodeCombinedGroupName
+    selected !== null &&
+    selected.name.toLocaleLowerCase().includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
   );
 });
 

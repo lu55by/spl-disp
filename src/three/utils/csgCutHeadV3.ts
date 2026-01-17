@@ -116,6 +116,7 @@ export async function getCutHead(
   const eyeLNode = headModel
     .getObjectByName("eyeLeft_lod0_mesh")
     .clone() as THREE.Mesh;
+  if (!eyeLNode) throw new Error("Left eye node not found.");
   // Set the name of the left eye node
   eyeLNode.name = "EyeLNode";
   // Set the name of the left eye node material
@@ -125,6 +126,7 @@ export async function getCutHead(
   const eyeRNode = headModel
     .getObjectByName("eyeRight_lod0_mesh")
     .clone() as THREE.Mesh;
+  if (!eyeRNode) throw new Error();
   // Set the name of the right eye node
   eyeRNode.name = "EyeRNode";
   // Set the name of the right eye node material
@@ -132,11 +134,13 @@ export async function getCutHead(
 
   // 1.3 头部节点
   const headNode = headModel.getObjectByName("head_lod0_mesh") as THREE.Mesh;
+  if (!headNode) throw new Error("Head node not found.");
 
   // 1.4 原始牙齿节点 (如为单个切割节点，则返回原始牙齿节点，否则直接进行切割，防止牙齿节点后部突出)
   const teethNodeOrg = headModel.getObjectByName(
     "teeth_lod0_mesh"
   ) as THREE.Mesh;
+  if (!teethNodeOrg) throw new Error("Teeth node not found.");
 
   /*
     获取牙齿切割节点，根据切割节点数量判断是否需要进行牙齿切割

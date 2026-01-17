@@ -8,7 +8,9 @@
       <div
         v-if="
           selectedObject &&
-          selectedObject.name !== CutHeadEyesNodeCombinedGroupName &&
+          !selectedObject.name
+            .toLocaleLowerCase()
+            .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()) &&
           !isUploadModalVisible
         "
         class="mb-4 pointer-events-auto"
