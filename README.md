@@ -49,12 +49,14 @@ root
 ## 采用技术栈
 
 ### 前端框架
+
 - **Vue 3 (Composition API)**：响应式 UI 框架。
 - **Vite**：高性能下一代前端构建工具。
 - **Pinia**：轻量级 Vue 状态管理库。
 - **TypeScript**：强类型保证代码质量。
 
 ### 3D 引擎与几何处理
+
 - **Three.js (r181+)**：核心 3D 渲染引擎，支持 WebGPU 环境。
 - **three-mesh-bvh**：加速几何检测与射线检测。
 - **three-bvh-csg**：实时布尔运算。
@@ -62,6 +64,7 @@ root
 - **TSL (Three.js Shading Language)**：编写高性能、跨平台的节点化着色器。
 
 ### UI & 工具
+
 - **Tailwind CSS**：现代原子化 CSS 框架。
 - **Tweakpane / lil-gui**：轻量级调试参数面板。
 - **vue3-toastify**：优雅的通知提示系统。
