@@ -124,7 +124,7 @@ const unsubscribeModelsStoreActions = modelsStore.$onAction(
         updateOrbitControlsTargetCenter();
       });
     }
-  }
+  },
 );
 
 /**
@@ -162,7 +162,7 @@ const init = async () => {
     CameraProps.Fov,
     width / height,
     CameraProps.Near,
-    CameraProps.Far
+    CameraProps.Far,
   );
   camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
   // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
@@ -335,8 +335,8 @@ const init = async () => {
               mix(uBaseColor, materialColor, uIsShowMap),
               uOutlineColor,
               getOutlinePattern(uOutlinePatternFactor).mul(
-                child.parent.userData.uLocalToggleOutline
-              )
+                child.parent.userData.uLocalToggleOutline,
+              ),
             );
 
             // child.material.colorNode = adjustAndManipulateColorNode();
@@ -386,7 +386,7 @@ const init = async () => {
   // Generate Facial Morphs
   const headNode =
     (splicingGroupGlobal.getObjectByName(
-      NodeNames.HeadNames.Head
+      NodeNames.HeadNames.Head,
     ) as THREE.Mesh) ||
     (splicingGroupGlobal.getObjectByName("CutHeadNode") as THREE.Mesh);
   const {
@@ -401,44 +401,44 @@ const init = async () => {
   });
   console.log(
     "\n -- init -- filteredVerticesJawTips ->",
-    filteredVerticesJawTips
+    filteredVerticesJawTips,
   );
   console.log(
     "\n -- init -- filteredVerticesNoseMorph generated ->",
-    filteredVerticesNoseMorph
+    filteredVerticesNoseMorph,
   );
   console.log(
     "\n -- init -- filteredVerticesJawMorph generated ->",
-    filteredVerticesJawMorph
+    filteredVerticesJawMorph,
   );
 
   /*
     Visualize the morphing vertices as particles
    */
   const filteredVerticesJawTipsGeo = new THREE.BufferGeometry().setFromPoints(
-    filteredVerticesJawTips
+    filteredVerticesJawTips,
   );
 
   const filteredVerticesNoseMorphGeo = new THREE.BufferGeometry().setFromPoints(
-    filteredVerticesNoseMorph
+    filteredVerticesNoseMorph,
   );
   const filteredVerticesJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
-    filteredVerticesJawMorph
+    filteredVerticesJawMorph,
   );
   // Filtered Jaw vertices (Cyan)
   const filteredJawTipsPoints = new THREE.Points(
     filteredVerticesJawTipsGeo,
-    new THREE.PointsMaterial({ color: "#ff0", size: 0.15 })
+    new THREE.PointsMaterial({ color: "#ff0", size: 0.15 }),
   );
   // Nose vertices (Red)
   const filteredNoseMorphPoints = new THREE.Points(
     filteredVerticesNoseMorphGeo,
-    new THREE.PointsMaterial({ color: 0xff0000, size: 5 })
+    new THREE.PointsMaterial({ color: 0xff0000, size: 5 }),
   );
   // Jaw vertices (Cyan)
   const filteredJawMorphPoints = new THREE.Points(
     filteredVerticesJawMorphGeo,
-    new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 })
+    new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 }),
   );
   // scene.add(filteredJawTipsPoints);
   // scene.add(filteredNoseMorphPoints);
@@ -451,17 +451,17 @@ const init = async () => {
   const noseTipVisualizer = new THREE.Mesh(
     // new THREE.BoxGeometry(0.5, 0.5, 0.5),
     sharedBoxGeo,
-    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true })
+    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true }),
   );
   const jawLTipVisualizer = new THREE.Mesh(
     // new THREE.BoxGeometry(0.5, 0.5, 0.5),
     sharedBoxGeo,
-    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
+    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
   );
   const jawRTipVisualizer = new THREE.Mesh(
     // new THREE.BoxGeometry(0.5, 0.5, 0.5),
     sharedBoxGeo,
-    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
+    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
   );
   noseTipVisualizer.position.copy(noseTip);
   jawLTipVisualizer.position.copy(jawTipL);
@@ -549,7 +549,7 @@ const mouse = new THREE.Vector2();
  */
 const setOutlineEffectVisibility = (
   object: THREE.Object3D | null,
-  isVisible: boolean
+  isVisible: boolean,
 ) => {
   if (!object) return;
   const value = isVisible ? 1 : 0;
@@ -590,7 +590,7 @@ const onPointerMove = (event: PointerEvent) => {
     const firstIntersectedObject = intersects.filter(
       (intersection: THREE.Intersection<THREE.Object3D>) => {
         return intersection && intersection.object;
-      }
+      },
     )[0];
     if (firstIntersectedObject && firstIntersectedObject.object) {
       // console.log("\nfirstIntersectedObject ->", firstIntersectedObject.object);
@@ -598,7 +598,7 @@ const onPointerMove = (event: PointerEvent) => {
       const parentGroup = firstIntersectedObject.object.parent;
       console.log(
         "\nintersected parent Group while mouse moving ->",
-        parentGroup
+        parentGroup,
       );
       // Set raycasterIntersectionObject
       raycasterIntersectionObject = parentGroup;
@@ -735,7 +735,7 @@ const onMouseClick = (e: MouseEvent) => {
       modelsStore.setSelectedObject(intersectionParent);
       console.log(
         "\n -- onMouseClick -- setSelectedObject ->",
-        modelsStore.selectedObject
+        modelsStore.selectedObject,
       );
 
       /*

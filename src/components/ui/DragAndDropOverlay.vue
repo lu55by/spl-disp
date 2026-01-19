@@ -14,6 +14,7 @@ import {
   isObjGroupCutterNode,
   validateImportFilesWithNodeNames,
 } from "../../utils/fileValidators";
+import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 
 const isDragging = ref(false);
 const isImageDragging = ref(false);
@@ -65,9 +66,11 @@ const onDrop = async (e: DragEvent) => {
     const files = e.dataTransfer?.files;
     console.log("\n -- onDrop -- files -- before validation ->", files);
 
-    // Check if we are hovering over an object and have an image file
     if (
       modelsStore.dragHoveredObject &&
+      !modelsStore.dragHoveredObject.parent.name
+        .toLocaleLowerCase()
+        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()) &&
       files.length === 1 &&
       (files[0].type.startsWith("image/") || /cutting/i.test(files[0].name))
     ) {
@@ -133,7 +136,7 @@ const onDrop = async (e: DragEvent) => {
       // await new Promise((resolve) => setTimeout(resolve, 5000));
       const success = await modelsStore.importObjStlWithNodeNames(
         files,
-        parsedObjGroupFromValidators
+        parsedObjGroupFromValidators,
       );
       if (success) {
         toast.update(loadingToastId, {
