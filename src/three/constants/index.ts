@@ -156,7 +156,7 @@ export const WhiteTex = new DataTexture(
   NearestFilter,
   NearestFilter,
   Texture.DEFAULT_ANISOTROPY,
-  SRGBColorSpace
+  SRGBColorSpace,
 );
 
 /*
@@ -263,13 +263,6 @@ export const ModelPaths = {
     Texture: { ColorTex: `${BodyPathPrefix}/map.png` },
   },
   Cutters: {
-    OralCavity: `${CutterPathPrefix}/cutter-oral-cavity-2.obj`,
-    CylinderMod: `${CutterPathPrefix}/cutters-cyl-mod.obj`,
-    CylinderStrLineRmvdMod: `${CutterPathPrefix}/cutter-cyl-strc-line-rmvd.obj`,
-    CylinderStrCloseLineRmvdMod: `${CutterPathPrefix}/cutter-cyl-strc-close-line-rmvd.obj`,
-    SphereLineTranslated: `${CutterPathPrefix}/cutters-sph-line-translated.obj`,
-    CylinderStrCloseLineTranslated: `${CutterPathPrefix}/cutters-cly-strc-close-line-translated.obj`,
-    ClyinderStrcLinesRmvd: `${CutterPathPrefix}/cutters-cyl-strc-lines-rmvd.obj`,
     OralSphereCylinderCombined: `${CutterPathPrefix}/cutters-cutter-teeth-added.obj`,
     OralMod01: `${CutterPathPrefix}/slf-mod/oral-mod-01.obj`,
   },
