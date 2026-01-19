@@ -24,7 +24,7 @@ import manifoldWasm from "manifold-3d/manifold.wasm?url";
  */
 export function generateFacialMorphs(
   mesh: THREE.Mesh,
-  brushParams: { noseRadius: number }
+  brushParams: { noseRadius: number },
 ): {
   noseTip: THREE.Vector3;
   jawTipL: THREE.Vector3;
@@ -57,7 +57,7 @@ export function generateFacialMorphs(
   }
   console.log(
     `\n -- generateFacialMorphs -- geometry of [${mesh.name}] boundingBox ->`,
-    boundingBox
+    boundingBox,
   );
 
   /*
@@ -116,11 +116,11 @@ export function generateFacialMorphs(
 
   console.log(
     "\n -- generateFacialMorphs -- jawTipL calculated ->",
-    jawTipL.x === Infinity ? "Not Found" : jawTipL
+    jawTipL.x === Infinity ? "Not Found" : jawTipL,
   );
   console.log(
     "\n -- generateFacialMorphs -- jawTipR calculated ->",
-    jawTipR.x === -Infinity ? "Not Found" : jawTipR
+    jawTipR.x === -Infinity ? "Not Found" : jawTipR,
   );
 
   // 2. CREATE BUFFERS FOR MORPHS
@@ -372,7 +372,7 @@ export async function repairMeshV2(mesh: THREE.Mesh): Promise<THREE.Mesh> {
   const newGeo = new THREE.BufferGeometry();
   newGeo.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(resultMesh.vertProperties, 3)
+    new THREE.Float32BufferAttribute(resultMesh.vertProperties, 3),
   );
   newGeo.setIndex(new THREE.BufferAttribute(resultMesh.triVerts, 1));
   newGeo.computeVertexNormals();
@@ -437,7 +437,7 @@ export async function repairMesh(mesh: THREE.Mesh): Promise<THREE.Mesh> {
   const newGeo = new THREE.BufferGeometry();
   newGeo.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(repairedMesh.vertProperties, 3)
+    new THREE.Float32BufferAttribute(repairedMesh.vertProperties, 3),
   );
   newGeo.setIndex(new THREE.BufferAttribute(repairedMesh.triVerts, 1));
   newGeo.computeVertexNormals();
@@ -477,19 +477,19 @@ export function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
 
 export async function applyTextures2LoadedHeadModelAsync(
   loadedHeadModel: THREE.Group<THREE.Object3DEventMap>,
-  isModelFeMale: boolean
+  isModelFeMale: boolean,
 ) {
   const headNode = loadedHeadModel.getObjectByName(
-    NodeNames.HeadNames.Head
+    NodeNames.HeadNames.Head,
   ) as PhongMesh;
   const teethNode = loadedHeadModel.getObjectByName(
-    NodeNames.HeadNames.Teeth
+    NodeNames.HeadNames.Teeth,
   ) as PhongMesh;
   const eyeLNode = loadedHeadModel.getObjectByName(
-    NodeNames.HeadNames.EyeL
+    NodeNames.HeadNames.EyeL,
   ) as PhongMesh;
   const eyeRNode = loadedHeadModel.getObjectByName(
-    NodeNames.HeadNames.EyeR
+    NodeNames.HeadNames.EyeR,
   ) as PhongMesh;
 
   const applyTexture = async (): Promise<void> => {
@@ -541,7 +541,7 @@ export async function applyTextures2LoadedHeadModelAsync(
 
 export function applyGeometryScaling(
   mesh: THREE.Mesh | Brush,
-  scale: number
+  scale: number,
 ): void {
   mesh.geometry.scale(scale, scale, scale);
   mesh.geometry.computeBoundingBox();
@@ -550,7 +550,7 @@ export function applyGeometryScaling(
 
 export function applyMaterialWireframe(
   obj: THREE.Object3D,
-  color?: THREE.Color
+  color?: THREE.Color,
 ) {
   if (obj instanceof THREE.Group)
     obj.traverse((m) => {
@@ -569,13 +569,13 @@ export function applyMaterialWireframe(
 
 export function applyDebugTransformation(
   obj: THREE.Object3D,
-  posOffset: THREE.Vector3 = new THREE.Vector3()
+  posOffset: THREE.Vector3 = new THREE.Vector3(),
 ): void {
   const { x, y, z } = posOffset;
   obj?.position.set(
     CutHeadDebugProps.Pos.x + x,
     CutHeadDebugProps.Pos.y + y,
-    CutHeadDebugProps.Pos.z + z
+    CutHeadDebugProps.Pos.z + z,
   );
   obj?.scale.setScalar(CutHeadDebugProps.Scalar);
 }
@@ -583,7 +583,7 @@ export function applyDebugTransformation(
 export function applyPBRMaterialAndSRGBColorSpace(
   obj: THREE.Object3D,
   isStandard: boolean,
-  params?: THREE.MeshStandardNodeMaterialParameters
+  params?: THREE.MeshStandardNodeMaterialParameters,
 ): void {
   obj.traverse((m) => {
     if (
@@ -630,7 +630,7 @@ export function modifyNewVerticesUv(
   originalNode: Brush | THREE.Mesh,
   cutObj: Brush | THREE.Mesh,
   offsetPositivePercentage: number,
-  offsetNegativePercentage: number
+  offsetNegativePercentage: number,
 ): void {
   const originalNodeAttr = getAttributes(originalNode as THREE.Mesh);
   const finalCutObjAttr = getAttributes(cutObj as THREE.Mesh);
@@ -643,7 +643,7 @@ export function modifyNewVerticesUv(
   // console.log('newVerticesCount ->', newVerticesCount)
 
   const orgCountOffsetPositive = Math.floor(
-    newVerticesCount * offsetPositivePercentage
+    newVerticesCount * offsetPositivePercentage,
   );
   const orgCountOffsetNegative =
     Math.floor(orgCount * offsetNegativePercentage) * -1;
@@ -695,7 +695,7 @@ export function combineMeshesToGroup(
  */
 export function scaleGroupToHeight(
   group: THREE.Group,
-  targetHeight: number = 37
+  targetHeight: number = 37,
 ): THREE.Group {
   // -------------------------------
   // 1. Compute the current height
@@ -727,7 +727,7 @@ export function scaleGroupToHeight(
           i,
           pos.getX(i) * scale,
           pos.getY(i) * scale,
-          pos.getZ(i) * scale
+          pos.getZ(i) * scale,
         );
       }
 
@@ -753,7 +753,7 @@ export function scaleGroupToHeight(
 
 export const exportCutHead = (
   exporterBtn: Element,
-  cutHead2Export: THREE.Object3D
+  cutHead2Export: THREE.Object3D,
 ): void => {
   exporterBtn.addEventListener("click", (e) => {
     e.preventDefault();
@@ -767,7 +767,7 @@ export const exportCutHead = (
 
 export function disposeHairBodyGroup(
   splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
-  hairOrBodyGroup: THREE.Group<THREE.Object3DEventMap>
+  hairOrBodyGroup: THREE.Group<THREE.Object3DEventMap>,
 ) {
   console.log("\nhairOrBodyGroup to be disposed ->", hairOrBodyGroup);
   hairOrBodyGroup.children.forEach((m) => {
@@ -788,7 +788,7 @@ export function disposeHairBodyGroup(
 
 export function disposeHairBodyFromSplicingGroupGlobal(
   splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
-  filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[]
+  filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[],
 ) {
   /*
     ! The Hair or Body Group or both are definitely the children of the splicingGroupGlobal as we checked in `clearModels` fn from `ButtonContainer.vue` if this fn is called.
@@ -805,27 +805,27 @@ export function getObject3DHeight(obj3D: THREE.Object3D): number {
 }
 
 export function getObject3DBoundingBoxCenter(
-  obj3D: THREE.Object3D
+  obj3D: THREE.Object3D,
 ): THREE.Vector3 {
   return new THREE.Box3().setFromObject(obj3D).getCenter(new THREE.Vector3());
 }
 
 export function getFilteredSubGroups(
-  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
 ): THREE.Group<THREE.Object3DEventMap>[] {
   // Filter out the cut head group
   return splicingGroupGlobal.children.filter(
     (c) =>
       !c.name
         .toLocaleLowerCase()
-        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
+        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()),
   ) as THREE.Group<THREE.Object3DEventMap>[];
 }
 
 export function removeAndAddModelWithModelHeight(
   splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
   importedGroup: THREE.Group<THREE.Object3DEventMap>,
-  isHairImported: boolean
+  isHairImported: boolean,
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
   const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
@@ -847,7 +847,7 @@ export function removeAndAddModelWithModelHeight(
     const existedHairOrBodyGroup = filteredSubGroups[0];
     // Get the height of the group to check if it is hair or body
     const existedHairOrBodyGroupHeight = getObject3DHeight(
-      existedHairOrBodyGroup
+      existedHairOrBodyGroup,
     );
     const isHairGroupExisted =
       existedHairOrBodyGroupHeight < CutHeadBoundingBoxHeight;
@@ -876,11 +876,11 @@ export function removeAndAddModelWithModelHeight(
 
   console.log(
     "\nHair Group Height after checking ->",
-    getObject3DHeight(hairGroup)
+    getObject3DHeight(hairGroup),
   );
   console.log(
     "\nBody Group Height after checking ->",
-    getObject3DHeight(bodyGroup)
+    getObject3DHeight(bodyGroup),
   );
 
   // Create a variable to store the group to remove
@@ -900,13 +900,13 @@ export function removeAndAddModelWithModelHeight(
 export function removeAndAddModelWithNodeNames(
   splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
   importedGroup: THREE.Group<THREE.Object3DEventMap>,
-  isHairImported: boolean
+  isHairImported: boolean,
 ) {
   // Check if there is a hair or body group in the splicingGroupGlobal
   const filteredSubGroups = getFilteredSubGroups(splicingGroupGlobal);
   console.log(
     "\n -- removeAndAddModelV2 -- filteredSubGroups length ->",
-    filteredSubGroups.length
+    filteredSubGroups.length,
   );
   // return;
 
@@ -973,7 +973,7 @@ export function removeAndAddModelWithNodeNames(
  * @param obj2Dispose The group object to dispose.
  */
 export function disposeGroupObject(
-  obj2Dispose: THREE.Group<THREE.Object3DEventMap>
+  obj2Dispose: THREE.Group<THREE.Object3DEventMap>,
 ) {
   obj2Dispose.traverse((child) => {
     if (child instanceof THREE.Mesh) {
@@ -1002,7 +1002,7 @@ export function disposeGroupObject(
  * @param splicingGroupGlobal The splicing group global.
  */
 export function disposeAndRemoveCurrentCutHead(
-  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>
+  splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
 ) {
   let currentCutHead: THREE.Group<THREE.Object3DEventMap> | null = null;
   // Find the current cut head
@@ -1013,7 +1013,7 @@ export function disposeAndRemoveCurrentCutHead(
   }) as THREE.Group<THREE.Object3DEventMap>;
   console.log(
     "\n -- disposeCurrentCutHead -- currentCutHead to be disposed ->",
-    currentCutHead
+    currentCutHead,
   );
 
   // Check if the current cut head is found
@@ -1037,19 +1037,31 @@ export function disposeAndRemoveCurrentCutHead(
 export async function replaceCurrentHeadWithCutHead(
   splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
   defaultOriginalHead: THREE.Group<THREE.Object3DEventMap>,
-  importedCutter: THREE.Group<THREE.Object3DEventMap>
+  importedCutter: THREE.Group<THREE.Object3DEventMap>,
 ) {
+  // Get the userData of the current head
+  const currentHeadUserData = splicingGroupGlobal.children.find((child) => {
+    return child.name
+      .toLocaleLowerCase()
+      .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase());
+  })?.userData;
+  console.log(
+    "\n -- replaceCurrentHeadWithCutHead -- currentHeadUserData ->",
+    currentHeadUserData,
+  );
   // Remove the current default original head in the splicing group global
   disposeAndRemoveCurrentCutHead(splicingGroupGlobal);
   // Execute the getCutHead operation
   const newCutHead = await getCutHead(
     defaultOriginalHead,
     importedCutter,
-    false
+    false,
   );
+  // Place the userData of the current head to the new cut head
+  newCutHead.userData = currentHeadUserData;
   console.log(
     "\n -- replaceDefaultHeadWithCutHead -- newCutHead ->",
-    newCutHead
+    newCutHead,
   );
   disposeGroupObject(importedCutter);
   // Add the new cut head to the splicing group global

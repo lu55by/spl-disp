@@ -101,7 +101,7 @@ DefaultOriginalHeadMale.name = CutHeadEyesNodeCombinedGroupName + "Male";
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(DefaultOriginalHeadMale.clone())
+  new THREE.Group().add(DefaultOriginalHeadFemale.clone()),
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -109,7 +109,7 @@ SplicingGroupGlobal.name = "SplicingGroupGlobal";
   Cutters Model
  */
 const CuttersModelGlobal = markRaw(
-  LoadedCuttersModel
+  LoadedCuttersModel,
 ) as THREE.Group<THREE.Object3DEventMap>;
 CuttersModelGlobal.name = "CuttersModelGlobal";
 
@@ -121,9 +121,9 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: DefaultOriginalHeadMale,
+    defaultOriginalHead: DefaultOriginalHeadFemale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    isDefaultHeadFemale: false,
+    isDefaultHeadFemale: true,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model
@@ -208,7 +208,7 @@ export const useModelsStore = defineStore("models", {
      * @returns Promise<void>
      */
     async bindThumbnailToDragHoveredObject(
-      thumbnailImgFile: File
+      thumbnailImgFile: File,
     ): Promise<void> {
       if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
@@ -221,7 +221,7 @@ export const useModelsStore = defineStore("models", {
      * @returns Promise<void>
      */
     async bindCuttingModelToDragHoveredObject(
-      cuttingModelBlob: Blob
+      cuttingModelBlob: Blob,
     ): Promise<void> {
       if (!this.dragHoveredObject) throw new Error("No hovered object found!");
 
@@ -249,7 +249,7 @@ export const useModelsStore = defineStore("models", {
     clear(filteredSubGroups: THREE.Group<THREE.Object3DEventMap>[]) {
       disposeHairBodyFromSplicingGroupGlobal(
         this.splicingGroupGlobal,
-        filteredSubGroups
+        filteredSubGroups,
       );
       this.syncSplicingGroupLength();
     },
@@ -309,7 +309,7 @@ export const useModelsStore = defineStore("models", {
         removeAndAddModelWithModelHeight(
           this.splicingGroupGlobal,
           stlModelGroup,
-          isHair
+          isHair,
         );
 
         // Sync the splicing group length
@@ -377,7 +377,7 @@ export const useModelsStore = defineStore("models", {
       removeAndAddModelWithModelHeight(
         this.splicingGroupGlobal,
         importedParsedObj,
-        isHairImported
+        isHairImported,
       );
       this.syncSplicingGroupLength();
     },
@@ -389,7 +389,7 @@ export const useModelsStore = defineStore("models", {
      */
     async importObjStlWithNodeNames(
       files: FileList,
-      parsedObjGroupFromValidators?: THREE.Group<THREE.Object3DEventMap>
+      parsedObjGroupFromValidators?: THREE.Group<THREE.Object3DEventMap>,
     ): Promise<boolean> {
       // Log the files to import
 
@@ -448,7 +448,7 @@ export const useModelsStore = defineStore("models", {
         removeAndAddModelWithNodeNames(
           this.splicingGroupGlobal,
           stlModelGroup,
-          isHair
+          isHair,
         );
 
         // Sync the splicing group length
@@ -497,12 +497,12 @@ export const useModelsStore = defineStore("models", {
           replaceCurrentHeadWithCutHead(
             this.splicingGroupGlobal,
             this.defaultOriginalHead,
-            parsedObjGroup
+            parsedObjGroup,
           );
         else
           console.warn(
             "Invalid cutter single model name ->",
-            parsedObjGroup.children[0].name
+            parsedObjGroup.children[0].name,
           );
 
         // Return the function immediately to prevent the cutter single model from being added to the splicing group
@@ -548,7 +548,7 @@ export const useModelsStore = defineStore("models", {
       removeAndAddModelWithNodeNames(
         this.splicingGroupGlobal,
         parsedObjGroup,
-        isHairImported
+        isHairImported,
       );
       this.syncSplicingGroupLength();
       return true;
@@ -585,7 +585,7 @@ export const useModelsStore = defineStore("models", {
      */
     async uploadSelectedObject(
       outfitType: "Default" | "Normal Outfit" | "IP Outfit",
-      uploadModelInputFields: UploadModelInputFields
+      uploadModelInputFields: UploadModelInputFields,
     ): Promise<boolean> {
       if (!this.selectedObject) {
         console.warn("No object selected for upload.");
@@ -598,7 +598,7 @@ export const useModelsStore = defineStore("models", {
 
       console.log(
         "-- uploadSelectedObject -- selected object to be uploaded ->",
-        this.selectedObject
+        this.selectedObject,
       );
 
       // 1. Get the model blob. Reuse the original file if it exists to preserve optimization and reduce size.
@@ -650,10 +650,10 @@ export const useModelsStore = defineStore("models", {
       formData.append(
         "mold",
         modelBlob,
-        `${this.selectedObject.name || "model"}.obj`
+        `${this.selectedObject.name || "model"}.obj`,
       );
       console.log(
-        `\nForm Data of ${firstModelNode.name} model (mold) attached!`
+        `\nForm Data of ${firstModelNode.name} model (mold) attached!`,
       );
 
       // 6. map (the textureBlob)
@@ -676,7 +676,7 @@ export const useModelsStore = defineStore("models", {
       formData.append(
         "thumbnail",
         userDataThumbnail,
-        `${firstModelNode.name}_thumbnail.png`
+        `${firstModelNode.name}_thumbnail.png`,
       );
       console.log(`\nForm Data of ${firstModelNode.name} thumbnail attached!`);
 
@@ -691,11 +691,11 @@ export const useModelsStore = defineStore("models", {
           formData.append(
             "cutting_model",
             cutterSingleBlob,
-            `${firstModelNode.name}_cutter_single_model.obj`
+            `${firstModelNode.name}_cutter_single_model.obj`,
           );
         }
         console.log(
-          `\nForm Data of ${firstModelNode.name} cutting_model attached!`
+          `\nForm Data of ${firstModelNode.name} cutting_model attached!`,
         );
       }
 
@@ -708,11 +708,11 @@ export const useModelsStore = defineStore("models", {
       console.log("\nForm Data entry value of map ->", formData.get("map"));
       console.log(
         "\nForm Data entry value of thumbnail ->",
-        formData.get("thumbnail")
+        formData.get("thumbnail"),
       );
       console.log(
         "\nForm Data entry value of cutting_model ->",
-        formData.get("cutting_model")
+        formData.get("cutting_model"),
       );
       // return true;
 
@@ -723,16 +723,16 @@ export const useModelsStore = defineStore("models", {
       */
       try {
         console.log(
-          `Uploading model ${this.selectedObject.name} to the backend...`
+          `Uploading model ${this.selectedObject.name} to the backend...`,
         );
         const response = await modelService.uploadModel(
           formData,
           isHairSelected,
           (progress) => {
             console.log(
-              `\nModel ${this.selectedObject.name} Upload progress -> ${progress}%`
+              `\nModel ${this.selectedObject.name} Upload progress -> ${progress}%`,
             );
-          }
+          },
         );
 
         const resCode: number = response.data.code;
@@ -740,21 +740,21 @@ export const useModelsStore = defineStore("models", {
         if (resCode === 200) {
           console.log(
             `\nModel ${this.selectedObject.name} Upload successful! Response data ->`,
-            response.data
+            response.data,
           );
           this.setUploadModalVisible(false);
           return true;
         } else {
           console.error(
             `\nError during model ${this.selectedObject.name} upload process ->`,
-            response.data
+            response.data,
           );
           return false;
         }
       } catch (error) {
         console.error(
           `\nError during model ${this.selectedObject.name} upload process ->`,
-          error
+          error,
         );
         return false;
       }
