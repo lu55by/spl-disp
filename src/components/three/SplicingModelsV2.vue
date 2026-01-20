@@ -602,7 +602,7 @@ const init = async () => {
     };
     visualizeMorphingVertices("nostril");
   };
-  generateFacialMorphsAndVisualizers();
+  // generateFacialMorphsAndVisualizers();
 
   /**
    * Add the global group
