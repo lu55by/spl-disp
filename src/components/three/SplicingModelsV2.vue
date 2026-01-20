@@ -410,85 +410,110 @@ const init = async () => {
     ) as THREE.Mesh) ||
     (splicingGroupGlobal.getObjectByName("CutHeadNode") as THREE.Mesh);
   const {
-    noseTip,
-    jawTipL,
-    jawTipR,
-    filteredVerticesJawTips,
-    filteredVerticesNoseMorph,
-    filteredVerticesJawMorph,
+    visualizerNoseTip, // Vector3
+    visualizerjawTipL, // Vector3
+    visualizerjawTipR, // Vector3
+    visualizerByJawTipsDetection,
+    visualizerByNoseMorph,
+    visualizerByJawMorph,
   } = generateFacialMorphs(headNode, {
     noseRadius: 7,
   });
-  console.log(
-    "\n -- init -- filteredVerticesJawTips ->",
-    filteredVerticesJawTips,
-  );
-  console.log(
-    "\n -- init -- filteredVerticesNoseMorph generated ->",
-    filteredVerticesNoseMorph,
-  );
-  console.log(
-    "\n -- init -- filteredVerticesJawMorph generated ->",
-    filteredVerticesJawMorph,
-  );
+  // console.log(
+  //   "\n -- init -- filteredVerticesJawTips ->",
+  //   filteredVerticesJawTips,
+  // );
+  // console.log(
+  //   "\n -- init -- filteredVerticesNoseMorph generated ->",
+  //   filteredVerticesNoseMorph,
+  // );
+  // console.log(
+  //   "\n -- init -- filteredVerticesJawMorph generated ->",
+  //   filteredVerticesJawMorph,
+  // );
 
-  /*
-    Visualize the morphing vertices as particles
+  /**
+   * Tips Visualizers
    */
-  const filteredVerticesJawTipsGeo = new THREE.BufferGeometry().setFromPoints(
-    filteredVerticesJawTips,
-  );
+  const visualizeTips = () => {
+    const sharedBoxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    /*
+      Nose Tip Visualizer
+     */
+    const noseTipVisMesh = new THREE.Mesh(
+      sharedBoxGeo,
+      new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true }),
+    );
+    /*
+      Jaw Tip Left Visualizer
+     */
+    const jawLTipVisMesh = new THREE.Mesh(
+      sharedBoxGeo,
+      new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
+    );
+    /*
+      Jaw Tip Right Visualizer
+     */
+    const jawRTipVisMesh = new THREE.Mesh(
+      sharedBoxGeo,
+      new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
+    );
+    /*
+      Set positions
+     */
+    noseTipVisMesh.position.copy(visualizerNoseTip);
+    jawLTipVisMesh.position.copy(visualizerjawTipL);
+    jawRTipVisMesh.position.copy(visualizerjawTipR);
+    /*
+      Add to scene
+     */
+    scene.add(noseTipVisMesh);
+    scene.add(jawLTipVisMesh);
+    scene.add(jawRTipVisMesh);
+  };
+  visualizeTips();
 
-  const filteredVerticesNoseMorphGeo = new THREE.BufferGeometry().setFromPoints(
-    filteredVerticesNoseMorph,
-  );
-  const filteredVerticesJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
-    filteredVerticesJawMorph,
-  );
-  // Filtered Jaw vertices (Cyan)
-  const filteredJawTipsPoints = new THREE.Points(
-    filteredVerticesJawTipsGeo,
-    new THREE.PointsMaterial({ color: "#ff0", size: 0.15 }),
-  );
-  // Nose vertices (Red)
-  const filteredNoseMorphPoints = new THREE.Points(
-    filteredVerticesNoseMorphGeo,
-    new THREE.PointsMaterial({ color: 0xff0000, size: 5 }),
-  );
-  // Jaw vertices (Cyan)
-  const filteredJawMorphPoints = new THREE.Points(
-    filteredVerticesJawMorphGeo,
-    new THREE.PointsMaterial({ color: 0x00ffff, size: 0.15 }),
-  );
-  // scene.add(filteredJawTipsPoints);
-  // scene.add(filteredNoseMorphPoints);
-  // scene.add(filteredJawMorphPoints);
-
-  /*
-    Visualize the nose and jaw tips with some 3D objects
+  /**
+   * Morphing Vertices Visualizers
    */
-  const sharedBoxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-  const noseTipVisualizer = new THREE.Mesh(
-    // new THREE.BoxGeometry(0.5, 0.5, 0.5),
-    sharedBoxGeo,
-    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true }),
-  );
-  const jawLTipVisualizer = new THREE.Mesh(
-    // new THREE.BoxGeometry(0.5, 0.5, 0.5),
-    sharedBoxGeo,
-    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
-  );
-  const jawRTipVisualizer = new THREE.Mesh(
-    // new THREE.BoxGeometry(0.5, 0.5, 0.5),
-    sharedBoxGeo,
-    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
-  );
-  noseTipVisualizer.position.copy(noseTip);
-  jawLTipVisualizer.position.copy(jawTipL);
-  jawRTipVisualizer.position.copy(jawTipR);
-  // scene.add(noseTipVisualizer);
-  // scene.add(jawLTipVisualizer);
-  // scene.add(jawRTipVisualizer);
+  const visualizeMorphingVertices = () => {
+    /*
+      Create geometries from the corresponding vertices
+     */
+    const visualizerByJawTipsDetectionGeo =
+      new THREE.BufferGeometry().setFromPoints(visualizerByJawTipsDetection);
+    const visualizerByNoseMorphGeo = new THREE.BufferGeometry().setFromPoints(
+      visualizerByNoseMorph,
+    );
+    const visualizerByJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
+      visualizerByJawMorph,
+    );
+    /*
+      Create points from the geometries
+     */
+    // Jaw tips detection vertices (Yellow)
+    const jawTipsDetectionPoints = new THREE.Points(
+      visualizerByJawTipsDetectionGeo,
+      new THREE.PointsMaterial({ color: "#ffff00", size: 0.15 }),
+    );
+    // Nose morph vertices (Red)
+    const noseMorphPoints = new THREE.Points(
+      visualizerByNoseMorphGeo,
+      new THREE.PointsMaterial({ color: "#ff0000", size: 5 }),
+    );
+    // Jaw morph vertices (Cyan)
+    const jawMorphPoints = new THREE.Points(
+      visualizerByJawMorphGeo,
+      new THREE.PointsMaterial({ color: "#00ffff", size: 0.15 }),
+    );
+    /*
+      Add to scene
+     */
+    scene.add(jawTipsDetectionPoints);
+    scene.add(noseMorphPoints);
+    scene.add(jawMorphPoints);
+  };
+  // visualizeMorphingVertices();
 
   /**
    * Add the global group
