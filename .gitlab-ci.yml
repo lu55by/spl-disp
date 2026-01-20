@@ -1,0 +1,31 @@
+stages:
+  - build
+  - deploy
+
+build_dist:
+  stage: build
+  tags:
+    - docker  
+  image: node:24.11.0  
+  script:
+   - echo "Build dist..."
+   - npm install -g pnpm
+   - pnpm install 
+   - pnpm build
+  artifacts:
+    paths:
+      - dist/
+
+deploy_dist:
+  stage: deploy
+  tags:
+    - shell  
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - |
+       echo "Deploying to server..."
+       sftp -o Port=22  $URI <<< "put -r ./dist/*" 
+    - rm -rf *
+  needs: [build_dist]
+  when: manual  # 手动确认部署
