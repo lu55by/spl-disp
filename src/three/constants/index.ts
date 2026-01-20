@@ -101,7 +101,7 @@ export const CameraProps = {
   Pos: { x: -39.13, y: 221.74, z: 52.17 },
   PosNormal: { x: 1, y: 1, z: 1 },
   Fov: 45,
-  Near: 0.01,
+  Near: 0.1,
   Far: 500,
 };
 

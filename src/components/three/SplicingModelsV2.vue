@@ -381,9 +381,29 @@ const init = async () => {
   /**
    * Inspector
    */
-  // const guiInspector = (renderer.inspector as Inspector).createParameters("Settings");
+  // const guiInspector = (renderer.inspector as Inspector).createParameters(
+  //   "Settings",
+  // );
+  // Add Debug for the camera
+  // const guiInsCam = guiInspector.addFolder("Camera");
+  // Near
+  // guiInsCam
+  //   .add(camera, "near", 0.001, 2)
+  //   .name("Near")
+  //   .onChange(() => {
+  //     camera.updateProjectionMatrix();
+  //   });
+  // Far
+  // guiInsCam
+  //   .add(camera, "far", 500, 1000)
+  //   .name("Far")
+  //   .onChange(() => {
+  //     camera.updateProjectionMatrix();
+  //   });
 
-  // Generate Facial Morphs
+  /**
+   * Generate Facial Morphs
+   */
   const headNode =
     (splicingGroupGlobal.getObjectByName(
       NodeNames.HeadNames.Head,
@@ -470,7 +490,9 @@ const init = async () => {
   // scene.add(jawLTipVisualizer);
   // scene.add(jawRTipVisualizer);
 
-  // Add the global group
+  /**
+   * Add the global group
+   */
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));
   scene.add(splicingGroupGlobal);
 
