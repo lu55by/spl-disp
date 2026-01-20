@@ -17,9 +17,14 @@ export interface UploadModelInputFields {
  */
 export interface FacialMorphsVisualizers {
   visualizerNoseTip: Vector3;
+  visualizerNostrilTipL: Vector3;
+  visualizerNostrilTipR: Vector3;
   visualizerjawTipL: Vector3;
   visualizerjawTipR: Vector3;
+  visualizerByNoseTipsDetection: Vector3[];
+  visualizerByNostrilTipsDetection: Vector3[];
   visualizerByJawTipsDetection: Vector3[];
   visualizerByNoseMorph: Vector3[];
+  visualizerByNostrilMorph: Vector3[];
   visualizerByJawMorph: Vector3[];
 }

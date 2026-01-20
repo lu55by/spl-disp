@@ -31,7 +31,7 @@ import type { UploadModelInputFields } from "../types/index.ts";
  */
 const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
-    ModelPaths.Cutters.OralSphereCylinderCombined
+    ModelPaths.Cutters.OralSphereCylinderCombined,
     // ModelPaths.Cutters.OralMod01
   );
 
@@ -42,11 +42,11 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(
       // Male
-      isFemale ? ModelPaths.HeadFemale.Model : ModelPaths.HeadMale.Model
+      isFemale ? ModelPaths.HeadFemale.Model : ModelPaths.HeadMale.Model,
     );
   console.log(
     "\n -- loadDefaultCutHeadAsync -- loadedHeadModel ->",
-    loadedHeadModel
+    loadedHeadModel,
   );
 
   // Apply textures

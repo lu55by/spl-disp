@@ -130,7 +130,8 @@ export const UIContents = {
 
 // Morph Target
 export const MorphTargetLabelMapping = {
-  Nose: "鼻子",
+  Nose: "鼻高",
+  Nostril: "鼻翼",
   Jaw: "下颌",
 };
 

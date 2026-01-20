@@ -309,7 +309,8 @@ const init = async () => {
   uBaseColor = uniform(color("#fff"));
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
   uOutlineColor = uniform(color("#0ff"));
-  uOutlinePatternFactor = uniform(vec2(0.85, 0.86));
+  // Increase the value to make the outline thinner
+  uOutlinePatternFactor = uniform(vec2(0.91, 0.92));
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {
@@ -404,116 +405,204 @@ const init = async () => {
   /**
    * Generate Facial Morphs
    */
-  const headNode =
-    (splicingGroupGlobal.getObjectByName(
-      NodeNames.HeadNames.Head,
-    ) as THREE.Mesh) ||
-    (splicingGroupGlobal.getObjectByName("CutHeadNode") as THREE.Mesh);
-  const {
-    visualizerNoseTip, // Vector3
-    visualizerjawTipL, // Vector3
-    visualizerjawTipR, // Vector3
-    visualizerByJawTipsDetection,
-    visualizerByNoseMorph,
-    visualizerByJawMorph,
-  } = generateFacialMorphs(headNode, {
-    noseRadius: 7,
-  });
-  // console.log(
-  //   "\n -- init -- filteredVerticesJawTips ->",
-  //   filteredVerticesJawTips,
-  // );
-  // console.log(
-  //   "\n -- init -- filteredVerticesNoseMorph generated ->",
-  //   filteredVerticesNoseMorph,
-  // );
-  // console.log(
-  //   "\n -- init -- filteredVerticesJawMorph generated ->",
-  //   filteredVerticesJawMorph,
-  // );
+  const generateFacialMorphsAndVisualizers = () => {
+    const headNode =
+      (splicingGroupGlobal.getObjectByName(
+        NodeNames.HeadNames.Head,
+      ) as THREE.Mesh) ||
+      (splicingGroupGlobal.getObjectByName("CutHeadNode") as THREE.Mesh);
+    const {
+      visualizerNoseTip, // Vector3
+      visualizerNostrilTipL, // Vector3
+      visualizerNostrilTipR, // Vector3
+      visualizerjawTipL, // Vector3
+      visualizerjawTipR, // Vector3
+      visualizerByNoseTipsDetection,
+      visualizerByNostrilTipsDetection, // Vector3[]
+      visualizerByJawTipsDetection, // Vector3[]
+      visualizerByNoseMorph, // Vector3[]
+      visualizerByJawMorph, // Vector3[]
+      visualizerByNostrilMorph, // Vector3[]
+    } = generateFacialMorphs(headNode, {
+      noseRadius: 7,
+    });
 
-  /**
-   * Tips Visualizers
-   */
-  const visualizeTips = () => {
-    const sharedBoxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    /*
-      Nose Tip Visualizer
+    /**
+     * Tips Visualizers
      */
-    const noseTipVisMesh = new THREE.Mesh(
-      sharedBoxGeo,
-      new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true }),
-    );
-    /*
-      Jaw Tip Left Visualizer
-     */
-    const jawLTipVisMesh = new THREE.Mesh(
-      sharedBoxGeo,
-      new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
-    );
-    /*
-      Jaw Tip Right Visualizer
-     */
-    const jawRTipVisMesh = new THREE.Mesh(
-      sharedBoxGeo,
-      new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }),
-    );
-    /*
-      Set positions
-     */
-    noseTipVisMesh.position.copy(visualizerNoseTip);
-    jawLTipVisMesh.position.copy(visualizerjawTipL);
-    jawRTipVisMesh.position.copy(visualizerjawTipR);
-    /*
-      Add to scene
-     */
-    scene.add(noseTipVisMesh);
-    scene.add(jawLTipVisMesh);
-    scene.add(jawRTipVisMesh);
-  };
-  visualizeTips();
+    const visualizeTips = (selection: string = "all") => {
+      const sharedBoxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+      /*
+        Nose Tip Visualizer
+      */
+      const noseTipVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#f00", transparent: true }),
+      );
+      /*
+        Nostril Tip Left Visualizer
+      */
+      const nostrilLTipVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#00f", transparent: true }),
+      );
+      /*
+        Nostril Tip Right Visualizer
+      */
+      const nostrilRTipVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#00f", transparent: true }),
+      );
+      /*
+        Jaw Tip Left Visualizer
+      */
+      const jawLTipVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#0ff", transparent: true }),
+      );
+      /*
+        Jaw Tip Right Visualizer
+      */
+      const jawRTipVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#0ff", transparent: true }),
+      );
+      /*
+        Set positions
+      */
+      noseTipVisMesh.position.copy(visualizerNoseTip);
+      nostrilLTipVisMesh.position.copy(visualizerNostrilTipL);
+      nostrilRTipVisMesh.position.copy(visualizerNostrilTipR);
+      jawLTipVisMesh.position.copy(visualizerjawTipL);
+      jawRTipVisMesh.position.copy(visualizerjawTipR);
+      /*
+        Add to scene
+      */
+      if (selection === "all") {
+        scene.add(noseTipVisMesh);
+        scene.add(nostrilLTipVisMesh);
+        scene.add(nostrilRTipVisMesh);
+        scene.add(jawLTipVisMesh);
+        scene.add(jawRTipVisMesh);
+      } else if (selection === "nose") {
+        scene.add(noseTipVisMesh);
+      } else if (selection === "nostril") {
+        scene.add(nostrilLTipVisMesh);
+        scene.add(nostrilRTipVisMesh);
+      } else if (selection === "jaw") {
+        scene.add(jawLTipVisMesh);
+        scene.add(jawRTipVisMesh);
+      }
+    };
+    // visualizeTips("nostril");
 
-  /**
-   * Morphing Vertices Visualizers
-   */
-  const visualizeMorphingVertices = () => {
-    /*
-      Create geometries from the corresponding vertices
+    /**
+     * Morphing Vertices Detection Visualizers
      */
-    const visualizerByJawTipsDetectionGeo =
-      new THREE.BufferGeometry().setFromPoints(visualizerByJawTipsDetection);
-    const visualizerByNoseMorphGeo = new THREE.BufferGeometry().setFromPoints(
-      visualizerByNoseMorph,
-    );
-    const visualizerByJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
-      visualizerByJawMorph,
-    );
-    /*
-      Create points from the geometries
+    const visualizeMorphingDetectionVertices = (selection: string = "all") => {
+      /*
+        Create geometries from the corresponding vertices
+      */
+      // Nose tip geometry from detection vertices
+      const visualizerByNoseTipsDetectionGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByNoseTipsDetection);
+      // Nostril tip geometry from detection vertices
+      const visualizerByNostrilTipsDetectionGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByNostrilTipsDetection,
+        );
+      // Jaw tip geometry from detection vertices
+      const visualizerByJawTipsDetectionGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByJawTipsDetection);
+      /*
+        Create points from the corresponding geometries
+      */
+      // Nose tip detection points (Red)
+      const noseTipsDetectionPoints = new THREE.Points(
+        visualizerByNoseTipsDetectionGeo,
+        new THREE.PointsMaterial({ color: "#f00", size: 0.15 }),
+      );
+      // Nostril tip detection points (Blue)
+      const nostrilTipsDetectionPoints = new THREE.Points(
+        visualizerByNostrilTipsDetectionGeo,
+        new THREE.PointsMaterial({ color: "#00f", size: 0.15 }),
+      );
+      // Jaw tip detection points (Cyan)
+      const jawTipsDetectionPoints = new THREE.Points(
+        visualizerByJawTipsDetectionGeo,
+        new THREE.PointsMaterial({ color: "#0ff", size: 0.15 }),
+      );
+      /*
+        Add to scene
+      */
+      if (selection === "all") {
+        scene.add(noseTipsDetectionPoints);
+        scene.add(nostrilTipsDetectionPoints);
+        scene.add(jawTipsDetectionPoints);
+      } else if (selection === "nose") {
+        scene.add(noseTipsDetectionPoints);
+      } else if (selection === "nostril") {
+        scene.add(nostrilTipsDetectionPoints);
+      } else if (selection === "jaw") {
+        scene.add(jawTipsDetectionPoints);
+      }
+    };
+    // visualizeMorphingDetectionVertices("nostril");
+
+    /**
+     * Morphing Vertices Visualizers
      */
-    // Jaw tips detection vertices (Yellow)
-    const jawTipsDetectionPoints = new THREE.Points(
-      visualizerByJawTipsDetectionGeo,
-      new THREE.PointsMaterial({ color: "#ffff00", size: 0.15 }),
-    );
-    // Nose morph vertices (Red)
-    const noseMorphPoints = new THREE.Points(
-      visualizerByNoseMorphGeo,
-      new THREE.PointsMaterial({ color: "#ff0000", size: 5 }),
-    );
-    // Jaw morph vertices (Cyan)
-    const jawMorphPoints = new THREE.Points(
-      visualizerByJawMorphGeo,
-      new THREE.PointsMaterial({ color: "#00ffff", size: 0.15 }),
-    );
-    /*
-      Add to scene
-     */
-    scene.add(jawTipsDetectionPoints);
-    scene.add(noseMorphPoints);
-    scene.add(jawMorphPoints);
+    const visualizeMorphingVertices = (selection: string = "all") => {
+      /*
+        Create geometries from the corresponding vertices
+      */
+      // Nose morph geometry from morph vertices
+      const visualizerByNoseMorphGeo = new THREE.BufferGeometry().setFromPoints(
+        visualizerByNoseMorph,
+      );
+      // Nostril morph geometry from morph vertices
+      const visualizerByNostrilMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByNostrilMorph);
+      // Jaw morph geometry from morph vertices
+      const visualizerByJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
+        visualizerByJawMorph,
+      );
+      /*
+        Create points from the corresponding geometries
+      */
+      // Nose morph points (Red)
+      const noseMorphPoints = new THREE.Points(
+        visualizerByNoseMorphGeo,
+        new THREE.PointsMaterial({ color: "#f00", size: 5 }),
+      );
+      // Nostril morph points (Blue)
+      const nostrilMorphPoints = new THREE.Points(
+        visualizerByNostrilMorphGeo,
+        new THREE.PointsMaterial({ color: "#00f", size: 0.15 }),
+      );
+      // Jaw morph points (Cyan)
+      const jawMorphPoints = new THREE.Points(
+        visualizerByJawMorphGeo,
+        new THREE.PointsMaterial({ color: "#0ff", size: 0.15 }),
+      );
+      /*
+        Add to scene
+      */
+      if (selection === "all") {
+        scene.add(noseMorphPoints);
+        scene.add(nostrilMorphPoints);
+        scene.add(jawMorphPoints);
+      } else if (selection === "nose") {
+        scene.add(noseMorphPoints);
+      } else if (selection === "nostril") {
+        scene.add(nostrilMorphPoints);
+      } else if (selection === "jaw") {
+        scene.add(jawMorphPoints);
+      }
+    };
+    visualizeMorphingVertices("nostril");
   };
-  // visualizeMorphingVertices();
+  generateFacialMorphsAndVisualizers();
 
   /**
    * Add the global group
@@ -554,6 +643,7 @@ const init = async () => {
   // Reapply the mixed colorNode if isDefaultHeadFemale state changes
   watch(isDefaultHeadFemale, () => {
     applyMixedColorNode(splicingGroupGlobal);
+    generateFacialMorphsAndVisualizers();
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
@@ -780,10 +870,10 @@ const onMouseClick = (e: MouseEvent) => {
         Set the global selected object in modelsStore to the intersectedParentGroup
        */
       modelsStore.setSelectedObject(intersectionParent);
-      console.log(
-        "\n -- onMouseClick -- setSelectedObject ->",
-        modelsStore.selectedObject,
-      );
+      // console.log(
+      //   "\n -- onMouseClick -- setSelectedObject ->",
+      //   modelsStore.selectedObject,
+      // );
 
       /*
         Set the outline effect to be visible

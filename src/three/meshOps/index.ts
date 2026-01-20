@@ -27,6 +27,13 @@ export function generateFacialMorphs(
   mesh: THREE.Mesh,
   brushParams: { noseRadius: number },
 ): FacialMorphsVisualizers {
+  // Check if the geometry has morph attributes
+  if (mesh.geometry.morphAttributes.position) {
+    console.warn(
+      "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists",
+    );
+    return;
+  }
   const geoOrg = mesh.geometry;
   // Clone geometry to ensure we don't affect other meshes sharing the same geometry
   mesh.geometry = mesh.geometry.clone();
@@ -36,16 +43,34 @@ export function generateFacialMorphs(
   const positions = geo.getAttribute("position");
   const vertex = new THREE.Vector3();
 
-  // Vertices for visualization
+  /*
+    Tips
+   */
+  // Nose Tip
+  let noseTip = new THREE.Vector3(0, 0, -Infinity);
+  // Nostril Tip L
+  let nostrilTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Nostril Tip R
+  let nostrilTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Jaw Tip L
+  let jawTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Jaw Tip R
+  let jawTipR = new THREE.Vector3(-Infinity, 0, 0);
+
+  /*
+    Vertices for visualization
+   */
+  const visualizerByNoseTipsDetection: THREE.Vector3[] = [];
+  const visualizerByNostrilTipsDetection: THREE.Vector3[] = [];
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   const visualizerByNoseMorph: THREE.Vector3[] = [];
+  const visualizerByNostrilMorph: THREE.Vector3[] = [];
   const visualizerByJawMorph: THREE.Vector3[] = [];
 
   /**
-   * Ⅰ. NOSE TIP DETECTION
+   * Ⅰ.Ⅰ NOSE TIP DETECTION
    */
-  // 1.1 Look for the vertex with the max Z value within a narrow vertical strip in the center
-  let noseTip = new THREE.Vector3(0, 0, -Infinity);
+  // 1.1.1 Look for the vertex with the max Z value within a narrow vertical strip in the center
   let boundingBox = geo.boundingBox;
   if (!boundingBox) {
     geo.computeBoundingBox();
@@ -66,7 +91,7 @@ export function generateFacialMorphs(
   const maxVertYNose = boundingBox.max.y - maxVertYPerc * dYBoundingBox;
   const minVertYNose = boundingBox.min.y + minVertYPerc * dYBoundingBox;
 
-  // 1.2 Iterate through the vertex count to get the nose tip
+  // 1.1.2 Iterate through the vertex count to get the nose tip
   for (let i = 0; i < positions.count; i++) {
     // Update the vertex based on the current index
     vertex.fromBufferAttribute(positions, i);
@@ -74,41 +99,54 @@ export function generateFacialMorphs(
     if (vertex.y <= maxVertYNose && vertex.y >= minVertYNose) {
       // Find the vertex with maximal Z
       if (vertex.z > noseTip.z) noseTip.copy(vertex);
+      visualizerByNoseTipsDetection.push(vertex.clone());
     }
   }
   console.log("\n -- generateFacialMorphs -- noseTip detected ->", noseTip);
 
   /**
-   * Ⅱ. JAW TIPS DETECTION
+   * Ⅰ.Ⅱ NOSTRIL TIPS DETECTION
    */
-  // 2.1 Define the lateral points in the lower face area and update them later
-  let jawTipL = new THREE.Vector3(Infinity, 0, 0);
-  let jawTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Find the lateral extremes (min X and max X) within a target bounding box relative to a reference point
+  findLateralTips(
+    noseTip,
+    {
+      yMinOffset: 0,
+      yMaxOffset: 1,
+      zMinOffset: -2,
+      zMaxOffset: 0,
+    },
+    positions,
+    nostrilTipL,
+    nostrilTipR,
+    visualizerByNostrilTipsDetection,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- nostrilTipL calculated ->",
+    nostrilTipL.x === Infinity ? "Not Found" : nostrilTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- nostrilTipR calculated ->",
+    nostrilTipR.x === -Infinity ? "Not Found" : nostrilTipR,
+  );
 
-  // 2.2 Define ranges for jaw angle detection relative to the nose tip
-  // These ranges are tuned for Metahuman-style head models
-  const jawYMin = noseTip.y - 7;
-  const jawYMax = noseTip.y - 6;
-  const jawZMin = noseTip.z - 7;
-  const jawZMax = noseTip.z - 5;
-
-  // 2.3 Iterate through the vertex count to get the jaw tips
-  for (let i = 0; i < positions.count; i++) {
-    vertex.fromBufferAttribute(positions, i);
-    // Filter for lower face region (below nose, mid-depth)
-    if (
-      vertex.y > jawYMin &&
-      vertex.y < jawYMax &&
-      vertex.z > jawZMin &&
-      vertex.z < jawZMax
-    ) {
-      // Find the lateral extremes
-      if (vertex.x < jawTipL.x) jawTipL.copy(vertex);
-      if (vertex.x > jawTipR.x) jawTipR.copy(vertex);
-      // Add the vertex to the filtered jaw tips array for visualization
-      visualizerByJawTipsDetection.push(vertex.clone());
-    }
-  }
+  /**
+   * Ⅰ.Ⅲ JAW TIPS DETECTION
+   */
+  // Find the lateral extremes (min X and max X) within a target bounding box relative to a reference point
+  findLateralTips(
+    noseTip,
+    {
+      yMinOffset: -7,
+      yMaxOffset: -6,
+      zMinOffset: -7,
+      zMaxOffset: -5,
+    },
+    positions,
+    jawTipL,
+    jawTipR,
+    visualizerByJawTipsDetection,
+  );
   console.log(
     "\n -- generateFacialMorphs -- jawTipL calculated ->",
     jawTipL.x === Infinity ? "Not Found" : jawTipL,
@@ -119,16 +157,17 @@ export function generateFacialMorphs(
   );
 
   /**
-   * Ⅲ. CREATE BUFFERS FOR MORPHS
+   * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
-  // 3.1 Define the distinct arrays for each "shape" we want
+  // 2.1 Define the distinct arrays for each "shape" we want
   const noseTarget = new Float32Array(positions.array);
+  const nostrilTarget = new Float32Array(positions.array);
   const jawTarget = new Float32Array(positions.array);
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
 
-  // 3.2 Traverse through the vertex count to get the nose morph and jaw morph
+  // 2.2 Traverse through the vertex count to get the nose morph and jaw morph
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
     // --- A. GENERATE NOSE MORPH (Move Forward) ---
@@ -148,82 +187,78 @@ export function generateFacialMorphs(
       visualizerByNoseMorph.push(vertex.clone());
     }
 
-    // --- B. GENERATE JAW MORPH (Widen) ---
-    // Use the detected jaw tips as anchors for the morph
-    const targetJawTip = vertex.x < 0 ? jawTipL : jawTipR;
+    // --- B. GENERATE NOSTRIL MORPH (Widen) ---
+    applyWideningMorph(
+      vertex,
+      i,
+      nostrilTipL,
+      nostrilTipR,
+      { yRange: 1.0, zRange: 0.6 },
+      nostrilTarget,
+      visualizerByNostrilMorph,
+      1.5,
+    );
 
-    // Check if jaw tips were actually found
-    if (targetJawTip.x !== Infinity && targetJawTip.x !== -Infinity) {
-      // Calculate distance to the nearest jaw tip (mandible corner)
-      // Focus on Y and Z proximity for the vertical/depth "strip" of the jaw
-      const dyJaw = Math.abs(vertex.y - targetJawTip.y);
-      const dzJaw = Math.abs(vertex.z - targetJawTip.z);
-
-      // Define influence ranges
-      const jawYRange = 6.0;
-      const jawZRange = 4.0;
-
-      if (dyJaw < jawYRange && dzJaw < jawZRange) {
-        // Vertical Falloff (Y)
-        // const influenceY = Math.pow(1 - dyJaw / jawYRange, 2) * 0.5 + 4;
-        const influenceY = Math.pow(Math.sin(1 - dyJaw / jawYRange), 2);
-        // Depth Falloff (Z)
-        // const influenceZ = Math.pow(1 - dzJaw / jawZRange, 2) * 0.5 + 4;
-        const influenceZ = Math.pow(Math.sin(1 - dzJaw / jawZRange), 2);
-
-        // Lateral Falloff (X) - ensure we affect the sides more than the center
-        // Avoid tearing the center line (X=0)
-        const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
-
-        const totalInfluence = influenceY * influenceZ * influenceX * 1.25;
-
-        // Apply widening on the X axis (move lateral extremes further out)
-        jawTarget[i * 3] += Math.sign(vertex.x) * totalInfluence;
-        // Add the vertex to the filtered jaw vertices morph array
-        visualizerByJawMorph.push(vertex.clone());
-      }
-    }
+    // --- C. GENERATE JAW MORPH (Widen) ---
+    applyWideningMorph(
+      vertex,
+      i,
+      jawTipL,
+      jawTipR,
+      { yRange: 6.0, zRange: 4.0 },
+      jawTarget,
+      visualizerByJawMorph,
+      1.25,
+    );
   }
 
   /**
-   * Ⅳ. APPLY THE MORPH TARGETS
+   * Ⅲ. APPLY THE MORPH TARGETS
    */
-  // 4.1 Create the BufferAttributes for the morphs
+  // 3.1 Create the BufferAttributes for the morphs
   const noseAttr = new THREE.BufferAttribute(noseTarget, 3);
+  const nostrilAttr = new THREE.BufferAttribute(nostrilTarget, 3);
   const jawAttr = new THREE.BufferAttribute(jawTarget, 3);
-  // 4.2 Assign names to the BufferAttributes
+  // 3.2 Assign names to the BufferAttributes
   noseAttr.name = "nose-morph-target-attr";
+  nostrilAttr.name = "nostril-morph-target-attr";
   jawAttr.name = "jaw-morph-target-attr";
   // console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
   // console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
 
-  // 4.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
-  geo.morphAttributes.position = [noseAttr, jawAttr];
+  // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
+  geo.morphAttributes.position = [noseAttr, nostrilAttr, jawAttr];
 
-  // 4.4 Required for lighting to update correctly when morphed
+  // 3.4 Required for lighting to update correctly when morphed
   geo.computeVertexNormals();
 
-  // 4.5 Updates the morphTargets to have no influence on the object
+  // 3.5 Updates the morphTargets to have no influence on the object
   mesh.updateMorphTargets();
 
-  // 4.6 Explicitly set the dictionary for UI labeling
+  // 3.6 Explicitly set the dictionary for UI labeling
   mesh.morphTargetDictionary = {
     nose: 0,
-    jaw: 1,
+    nostril: 1,
+    jaw: 2,
   };
 
-  // 4.7 Initialize at 0 of the morph targets on the mesh
-  mesh.morphTargetInfluences = [0, 0];
+  // 3.7 Initialize at 0 of the morph targets on the mesh
+  mesh.morphTargetInfluences = [0, 0, 0];
 
   /**
-   * Ⅴ. RETURN THE RESULTS FOR VISUALIZATION
+   * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
    */
   return {
     visualizerNoseTip: noseTip,
+    visualizerNostrilTipL: nostrilTipL,
+    visualizerNostrilTipR: nostrilTipR,
     visualizerjawTipL: jawTipL,
     visualizerjawTipR: jawTipR,
+    visualizerByNoseTipsDetection,
+    visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
     visualizerByNoseMorph,
+    visualizerByNostrilMorph,
     visualizerByJawMorph,
   };
 }
@@ -296,6 +331,108 @@ export function bakeMorphTargets(mesh: THREE.Mesh): void {
   geometry.morphAttributes = {};
   mesh.morphTargetDictionary = {};
   mesh.morphTargetInfluences = [];
+}
+
+/**
+ * Finds the lateral extremes (min X and max X) within a target bounding box relative to a reference point.
+ * Used for detecting jaw angles, nostrils, etc.
+ * @param referencePoint The reference point (e.g., nose tip) to calculate the offsets from.
+ * @param range The offsets for Y and Z axes to define the search region.
+ * @param positions The position attribute of the geometry.
+ * @param tipL The vector to store the left-most vertex (min X).
+ * @param tipR The vector to store the right-most vertex (max X).
+ * @param visualizer Optional array to store all vertices within the range for visualization.
+ */
+function findLateralTips(
+  referencePoint: THREE.Vector3,
+  range: {
+    yMinOffset: number;
+    yMaxOffset: number;
+    zMinOffset: number;
+    zMaxOffset: number;
+  },
+  positions: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
+  tipL: THREE.Vector3,
+  tipR: THREE.Vector3,
+  visualizer?: THREE.Vector3[],
+): void {
+  const yMin = referencePoint.y + range.yMinOffset;
+  const yMax = referencePoint.y + range.yMaxOffset;
+  const zMin = referencePoint.z + range.zMinOffset;
+  const zMax = referencePoint.z + range.zMaxOffset;
+
+  const vertex = new THREE.Vector3();
+
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+    // Filter for the specified region relative to the reference point
+    if (
+      vertex.y > yMin &&
+      vertex.y < yMax &&
+      vertex.z > zMin &&
+      vertex.z < zMax
+    ) {
+      // Find the lateral extremes (min X for left, max X for right)
+      if (vertex.x < tipL.x) tipL.copy(vertex);
+      if (vertex.x > tipR.x) tipR.copy(vertex);
+      // Add the vertex to the visualizer array if provided
+      if (visualizer) visualizer.push(vertex.clone());
+    }
+  }
+}
+
+/**
+ * Applies a widening morph to a vertex based on its proximity to the nearest lateral tip (L/R).
+ * @param vertex The current vertex being processed.
+ * @param index The index of the vertex.
+ * @param tipL The detected left-side tip.
+ * @param tipR The detected right-side tip.
+ * @param ranges Range for Y and Z influence.
+ * @param targetArray The target Float32Array to write the morph delta to.
+ * @param visualizer Optional array to store the vertex for visualization if it was affected.
+ */
+function applyWideningMorph(
+  vertex: THREE.Vector3,
+  index: number,
+  tipL: THREE.Vector3,
+  tipR: THREE.Vector3,
+  ranges: { yRange: number; zRange: number },
+  targetArray: Float32Array,
+  visualizer?: THREE.Vector3[],
+  totalInfluenceStrength: number = 1.25,
+): void {
+  // Use the detected tips as anchors for the morph
+  const targetTip = vertex.x < 0 ? tipL : tipR;
+
+  // Check if tips were actually found
+  if (targetTip.x === Infinity || targetTip.x === -Infinity) return;
+
+  // Calculate distance to the nearest tip
+  // Focus on Y and Z proximity for the vertical/depth "strip"
+  const dy = Math.abs(vertex.y - targetTip.y);
+  const dz = Math.abs(vertex.z - targetTip.z);
+
+  const { yRange, zRange } = ranges;
+
+  if (dy < yRange && dz < zRange) {
+    // Vertical Falloff (Y)
+    const influenceY = Math.pow(Math.sin(1 - dy / yRange), 2);
+    // Depth Falloff (Z)
+    const influenceZ = Math.pow(Math.sin(1 - dz / zRange), dz < zRange ? 2 : 1); // Maintain consistency with original power
+
+    // Lateral Falloff (X) - ensure we affect the sides more than the center
+    // Avoid tearing the center line (X=0)
+    const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
+
+    const totalInfluence =
+      influenceY * influenceZ * influenceX * totalInfluenceStrength;
+
+    // Apply widening on the X axis (move lateral extremes further out)
+    targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
+
+    // Add the vertex to the filtered vertices array for visualization
+    if (visualizer) visualizer.push(vertex.clone());
+  }
 }
 
 let cachedManifoldModule: any = null;
