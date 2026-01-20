@@ -600,9 +600,9 @@ const init = async () => {
         scene.add(jawMorphPoints);
       }
     };
-    visualizeMorphingVertices("nostril");
+    // visualizeMorphingVertices("nostril");
   };
-  // generateFacialMorphsAndVisualizers();
+  generateFacialMorphsAndVisualizers();
 
   /**
    * Add the global group
