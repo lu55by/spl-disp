@@ -27,6 +27,9 @@ export function generateFacialMorphs(
   mesh: THREE.Mesh,
   brushParams: { noseRadius: number },
 ): FacialMorphsVisualizers {
+  console.log(
+    `\n---- Ready to generate facial morphs for [${mesh.name}] ----\n`,
+  );
   // Check if the geometry has morph attributes
   if (mesh.geometry.morphAttributes.position) {
     console.warn(
@@ -433,6 +436,32 @@ function applyWideningMorph(
     // Add the vertex to the filtered vertices array for visualization
     if (visualizer) visualizer.push(vertex.clone());
   }
+}
+
+/**
+ * Adjusts the pivot points of a mesh.
+ * @param mesh The Mesh to be adjusted.
+ */
+export function adjustPivotPointsForMesh(mesh: THREE.Mesh): void {
+  const meshName = mesh.name;
+
+  console.log(`\n---- Ready to adjust the pivots of mesh ${meshName} ----\n`);
+
+  if (mesh.geometry.boundingBox === null) mesh.geometry.computeBoundingBox();
+  const center = mesh.geometry.boundingBox!.getCenter(new THREE.Vector3());
+
+  // Apply the negative offset to the geometry to center it around (0,0,0)
+  mesh.geometry.translate(-center.x, -center.y, -center.z);
+
+  // Apply the positive offset to the object's position to keep it in the same visual place
+  const vec = center.clone();
+  vec.applyQuaternion(mesh.quaternion);
+  vec.multiply(mesh.scale);
+  // console.log(
+  //   `\n -- adjustPivots -- vec to be add to ${childName} position ->`,
+  //   vec
+  // );
+  mesh.position.add(vec);
 }
 
 let cachedManifoldModule: any = null;

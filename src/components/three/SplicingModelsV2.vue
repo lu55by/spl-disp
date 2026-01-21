@@ -13,6 +13,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CameraProps, NodeNames } from "../../three/constants";
 import {
+  adjustPivotPointsForMesh,
   generateFacialMorphs,
   getObject3DBoundingBoxCenter,
 } from "../../three/meshOps";
@@ -44,26 +45,7 @@ const adjustPivots = (group: THREE.Group) => {
   group.updateMatrixWorld();
   group.children.forEach((child) => {
     if (child instanceof THREE.Mesh) {
-      const childName = child.name;
-
-      console.log(`\nReady to adjust the pivots of child ${childName}`);
-
-      if (child.geometry.boundingBox === null)
-        child.geometry.computeBoundingBox();
-      const center = child.geometry.boundingBox!.getCenter(new THREE.Vector3());
-
-      // Apply the negative offset to the geometry to center it around (0,0,0)
-      child.geometry.translate(-center.x, -center.y, -center.z);
-
-      // Apply the positive offset to the object's position to keep it in the same visual place
-      const vec = center.clone();
-      vec.applyQuaternion(child.quaternion);
-      vec.multiply(child.scale);
-      // console.log(
-      //   `\n -- adjustPivots -- vec to be add to ${childName} position ->`,
-      //   vec
-      // );
-      child.position.add(vec);
+      adjustPivotPointsForMesh(child);
     } else if (child instanceof THREE.Group) {
       // child -> HeadGrp, HairGrp or BodyGrp
       const box = new THREE.Box3().setFromObject(child);
@@ -870,10 +852,10 @@ const onMouseClick = (e: MouseEvent) => {
         Set the global selected object in modelsStore to the intersectedParentGroup
        */
       modelsStore.setSelectedObject(intersectionParent);
-      // console.log(
-      //   "\n -- onMouseClick -- setSelectedObject ->",
-      //   modelsStore.selectedObject,
-      // );
+      console.log(
+        "\n -- onMouseClick -- setSelectedObject ->",
+        modelsStore.selectedObject,
+      );
 
       /*
         Set the outline effect to be visible

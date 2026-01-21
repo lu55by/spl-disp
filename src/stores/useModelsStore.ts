@@ -14,6 +14,7 @@ import {
 import { loadSTLFile } from "../three/loaders/ModelLoader.ts";
 import { loadTexture } from "../three/loaders/TextureLoader";
 import {
+  adjustPivotPointsForMesh,
   applyDoubleSide,
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
@@ -52,35 +53,28 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(loadedHeadModel, isFemale);
 
-  /*
-    ! Set the cutHeadDefault to the original loadedHeadModel as we are about to add the 
-    ! feature of letting the user import the cutters model and cut the loadedHeadModel dynamically
-   */
-  const cutHeadDefault = loadedHeadModel;
-  // Get Cut Head
-  // const cutHeadDefault = await getCutHead(loadedHeadModel, LoadedCuttersModel);
-  // Get the Head Node
-  // const headNode = cutHeadDefault.getObjectByName(
-  //   NodeNames.HeadNames.Head
-  // ) as THREE.Mesh;
-  // Apply PBR Material and SRGB Color Space
-  applyPBRMaterialAndSRGBColorSpace(cutHeadDefault, true);
-  // Apply Double Side
-  applyDoubleSide(cutHeadDefault);
-  // Set Scale
-  // cutHeadDefault.scale.setScalar(CutHeadDebugProps.ScalarSplicing);
-  // Add to GUI
-  // addTransformDebug("Cut Head", GUIGlobal, cutHeadDefault, {
-  //   showScale: true,
-  // });
-  // Compute the bounding box of the cut head and get the height and log it
-  // getObject3DHeight(cutHeadDefault);
-  // Generate Morphs on the Head Node
-  // const { jawTipL, jawTipR } = generateFacialMorphs(headNode, {
-  //   noseRadius: 7,
-  // });
+  // THE ORIGINAL LOADED HEAD MODEL
+  const headModel = loadedHeadModel;
+  // THE CUT HEAD MODEL
+  // const headModel = getCutHead(loadedHeadModel, LoadedCuttersModel);
 
-  return cutHeadDefault;
+  // Get the eye nodes
+  const eyeLNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeL) ||
+    headModel.getObjectByName("EyeLNode")) as THREE.Mesh;
+  const eyeRNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeR) ||
+    headModel.getObjectByName("EyeLNode")) as THREE.Mesh;
+
+  /*
+    Apply PBR Material and SRGB Color Space
+    Apply Double Side
+    Adjust the Pivot Points of the Eye Nodes
+   */
+  applyPBRMaterialAndSRGBColorSpace(headModel, true);
+  applyDoubleSide(headModel);
+  adjustPivotPointsForMesh(eyeLNode);
+  adjustPivotPointsForMesh(eyeRNode);
+
+  return headModel;
 };
 
 /*

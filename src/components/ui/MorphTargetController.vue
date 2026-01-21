@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, watch, ref, onMounted, onUnmounted } from "vue";
+import * as THREE from "three";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { MorphTargetLabelMapping } from "../../constants";
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
   CutHeadEyesNodeCombinedGroupName,
   NodeNames,
 } from "../../three/constants";
-import { MorphTargetLabelMapping } from "../../constants";
-import * as THREE from "three";
 
 const modelsStore = useModelsStore();
 
@@ -18,7 +18,21 @@ const headNode = ref<THREE.Mesh | null>(null);
 /**
  * Local reactive values for the morph target influences to ensure Vue reactivity.
  */
-const influencesValues = ref<number[]>([]);
+const headNodeinfluencesValues = ref<number[]>([]);
+
+/**
+ * The Eye Nodes
+ */
+const eyeLNode = ref<THREE.Mesh | null>(null);
+const eyeRNode = ref<THREE.Mesh | null>(null);
+
+/**
+ * Eye scale value for the UI slider.
+ */
+const eyeScale = ref(1);
+
+const minEyeScale = 0.9;
+const maxEyeScale = 1.2;
 
 /**
  * Check if the controller should be visible.
@@ -27,7 +41,9 @@ const isVisible = computed(() => {
   const selected = modelsStore.selectedObject;
   return (
     selected !== null &&
-    selected.name.toLocaleLowerCase().includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
+    selected.name
+      .toLocaleLowerCase()
+      .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
   );
 });
 
@@ -37,11 +53,11 @@ const isVisible = computed(() => {
 const updateHeadNode = () => {
   if (!isVisible.value || !modelsStore.selectedObject) {
     headNode.value = null;
-    influencesValues.value = [];
+    headNodeinfluencesValues.value = [];
     return;
   }
 
-  // Find the head node (it could be the selected object itself or a child)
+  // Find the head node
   const node =
     modelsStore.selectedObject.getObjectByName(NodeNames.HeadNames.Head) ||
     modelsStore.selectedObject.getObjectByName("CutHeadNode");
@@ -54,15 +70,53 @@ const updateHeadNode = () => {
   if (node instanceof THREE.Mesh && node.morphTargetInfluences) {
     headNode.value = node;
     // Copy the values to local reactive ref
-    influencesValues.value = [...node.morphTargetInfluences];
+    headNodeinfluencesValues.value = [...node.morphTargetInfluences];
   } else {
     headNode.value = null;
-    influencesValues.value = [];
+    headNodeinfluencesValues.value = [];
+  }
+};
+
+/**
+ * Find the eye nodes within the selected object.
+ */
+const updateEyeNodes = () => {
+  if (!isVisible.value || !modelsStore.selectedObject) {
+    eyeLNode.value = null;
+    eyeRNode.value = null;
+    return;
+  }
+
+  // Find the eye nodes
+  const nodeL =
+    modelsStore.selectedObject.getObjectByName(NodeNames.HeadNames.EyeL) ||
+    modelsStore.selectedObject.getObjectByName("EyeLNode");
+  const nodeR =
+    modelsStore.selectedObject.getObjectByName(NodeNames.HeadNames.EyeR) ||
+    modelsStore.selectedObject.getObjectByName("EyeRNode");
+
+  if (nodeL === undefined || nodeR === undefined) {
+    console.warn("\n -- updateEyeNodes -- eye nodes are undefined!");
+    return;
+  }
+
+  console.log("\n -- updateEyeNodes -- eyeLNode ->", nodeL);
+  console.log("\n -- updateEyeNodes -- eyeRNode ->", nodeR);
+
+  if (nodeL instanceof THREE.Mesh && nodeR instanceof THREE.Mesh) {
+    eyeLNode.value = nodeL;
+    eyeRNode.value = nodeR;
+    // Set the eyeScale value to the current scale of the eye node
+    eyeScale.value = nodeL.scale.x;
+  } else {
+    eyeLNode.value = null;
+    eyeRNode.value = null;
   }
 };
 
 // Watch for selection changes
 watch(() => modelsStore.selectedObject, updateHeadNode, { immediate: true });
+watch(() => modelsStore.selectedObject, updateEyeNodes, { immediate: true });
 
 /**
  * Watch for condition changes
@@ -70,20 +124,26 @@ watch(() => modelsStore.selectedObject, updateHeadNode, { immediate: true });
 watch(isVisible, (newVal) => {
   if (!newVal) {
     headNode.value = null;
-    influencesValues.value = [];
+    headNodeinfluencesValues.value = [];
+    eyeLNode.value = null;
+    eyeRNode.value = null;
   } else {
     updateHeadNode();
+    updateEyeNodes();
   }
 });
 
 /**
  * Morph Target Data for the template
  */
-const morphTargetsData = computed(() => {
+const headNodeMorphTargetsData = computed(() => {
   if (!headNode.value || !headNode.value.morphTargetDictionary) return [];
 
   const dictionary = headNode.value.morphTargetDictionary;
-  console.log("\n -- morphTargetsData -- dictionary ->", dictionary);
+  console.log(
+    "\n -- headNodeMorphTargetsData -- dictionary of head node ->",
+    dictionary,
+  );
   // Sort by index
   return Object.entries(dictionary)
     .sort((a, b) => a[1] - b[1])
@@ -96,11 +156,27 @@ const morphTargetsData = computed(() => {
 /**
  * Update the morph target influence value.
  */
-const updateInfluence = (index: number, value: number) => {
+const updateHeadNodeInfluence = (index: number, value: number) => {
   if (headNode.value && headNode.value.morphTargetInfluences) {
     headNode.value.morphTargetInfluences[index] = value;
-    influencesValues.value[index] = value;
+    headNodeinfluencesValues.value[index] = value;
   }
+};
+
+/**
+ * Update the eye scale for both left and right eye nodes.
+ */
+const updateEyeScale = (value: number) => {
+  eyeScale.value = value;
+  if (eyeLNode.value) eyeLNode.value.scale.setScalar(value);
+  if (eyeRNode.value) eyeRNode.value.scale.setScalar(value);
+};
+
+/**
+ * Reset the eye scale to 1.
+ */
+const resetEyeScale = () => {
+  updateEyeScale(1);
 };
 
 /**
@@ -112,8 +188,8 @@ onMounted(() => {
     if (headNode.value && headNode.value.morphTargetInfluences) {
       // Sync back only if they differ (to avoid unnecessary reactivity triggers)
       headNode.value.morphTargetInfluences.forEach((val, i) => {
-        if (influencesValues.value[i] !== val) {
-          influencesValues.value[i] = val;
+        if (headNodeinfluencesValues.value[i] !== val) {
+          headNodeinfluencesValues.value[i] = val;
         }
       });
     }
@@ -128,7 +204,7 @@ onUnmounted(() => {
 <template>
   <Transition name="slide-fade">
     <div
-      v-if="isVisible && morphTargetsData.length > 0"
+      v-if="isVisible && headNodeMorphTargetsData.length > 0"
       class="fixed top-6 right-6 z-60 w-72 md:w-80 pointer-events-none group"
       @click.stop
     >
@@ -163,7 +239,7 @@ onUnmounted(() => {
         <!-- Sliders List -->
         <div class="space-y-6">
           <div
-            v-for="target in morphTargetsData"
+            v-for="target in headNodeMorphTargetsData"
             :key="target.morphTargetInfIdx"
             class="space-y-3"
           >
@@ -175,7 +251,11 @@ onUnmounted(() => {
               </label>
               <div class="flex items-baseline gap-1">
                 <span class="font-mono text-xs text-cyan-400 font-bold">
-                  {{ influencesValues[target.morphTargetInfIdx]?.toFixed(2) }}
+                  {{
+                    headNodeinfluencesValues[target.morphTargetInfIdx]?.toFixed(
+                      2,
+                    )
+                  }}
                 </span>
                 <span class="text-[8px] text-cyan-700 font-mono">val</span>
               </div>
@@ -192,12 +272,16 @@ onUnmounted(() => {
                     width:
                       target.label === 'Nose'
                         ? `${
-                            ((influencesValues[target.morphTargetInfIdx] + 1) /
+                            ((headNodeinfluencesValues[
+                              target.morphTargetInfIdx
+                            ] +
+                              1) /
                               2) *
                             100
                           }%`
                         : `${
-                            influencesValues[target.morphTargetInfIdx] * 100
+                            headNodeinfluencesValues[target.morphTargetInfIdx] *
+                            100
                           }%`,
                   }"
                 ></div>
@@ -208,8 +292,86 @@ onUnmounted(() => {
                 :min="target.label === 'Nose' ? -1 : 0"
                 max="1"
                 step="0.01"
-                :value="influencesValues[target.morphTargetInfIdx]"
-                @input="(e) => updateInfluence(target.morphTargetInfIdx, parseFloat((e.target as HTMLInputElement).value))"
+                :value="headNodeinfluencesValues[target.morphTargetInfIdx]"
+                @input="
+                  (e) =>
+                    updateHeadNodeInfluence(
+                      target.morphTargetInfIdx,
+                      parseFloat((e.target as HTMLInputElement).value),
+                    )
+                "
+                class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
+              />
+            </div>
+          </div>
+
+          <!-- Eye Size Slider -->
+          <div
+            v-if="eyeLNode && eyeRNode"
+            class="space-y-3 pt-4 border-t border-white/5"
+          >
+            <div class="flex justify-between items-end">
+              <label
+                class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
+              >
+                眼睛大小
+              </label>
+              <div class="flex items-center gap-2">
+                <div class="flex items-baseline gap-1">
+                  <span class="font-mono text-xs text-cyan-400 font-bold">
+                    {{ eyeScale.toFixed(2) }}
+                  </span>
+                  <span class="text-[8px] text-cyan-700 font-mono">scale</span>
+                </div>
+                <!-- Reset Button -->
+                <button
+                  @click="resetEyeScale"
+                  class="p-1.5 hover:bg-white/10 rounded-lg transition-all duration-300 group/reset border border-white/0 hover:border-white/10 active:scale-95"
+                  title="Reset Scale"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-3.5 h-3.5 text-cyan-500/50 group-hover/reset:text-cyan-400 group-hover/reset:rotate-180 transition-transform duration-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="relative group/slider">
+              <!-- Slider Track Background -->
+              <div
+                class="absolute inset-y-[7px] w-full h-0.5 bg-white/5 rounded-full overflow-hidden"
+              >
+                <div
+                  class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
+                  :style="{
+                    width: `${((eyeScale - minEyeScale) / (maxEyeScale - minEyeScale)) * 100}%`,
+                  }"
+                ></div>
+              </div>
+
+              <input
+                type="range"
+                :min="minEyeScale"
+                :max="maxEyeScale"
+                step="0.01"
+                :value="eyeScale"
+                @input="
+                  (e) =>
+                    updateEyeScale(
+                      parseFloat((e.target as HTMLInputElement).value),
+                    )
+                "
                 class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
               />
             </div>
