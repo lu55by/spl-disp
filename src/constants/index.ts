@@ -133,6 +133,7 @@ export const MorphTargetLabelMapping = {
   Nose: "鼻高",
   Nostril: "鼻翼",
   Jaw: "下颌",
+  EyeBrow: "眉毛",
 };
 
 // Global Model

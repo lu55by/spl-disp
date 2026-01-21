@@ -16,6 +16,7 @@ import { loadTexture } from "../three/loaders/TextureLoader";
 import {
   adjustPivotPointsForMesh,
   applyDoubleSide,
+  applyMaterialWireframe,
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
   disposeAndRemoveCurrentCutHead,
@@ -62,7 +63,7 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   const eyeLNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeL) ||
     headModel.getObjectByName("EyeLNode")) as THREE.Mesh;
   const eyeRNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeR) ||
-    headModel.getObjectByName("EyeLNode")) as THREE.Mesh;
+    headModel.getObjectByName("EyeRNode")) as THREE.Mesh;
 
   /*
     Apply PBR Material and SRGB Color Space
@@ -95,7 +96,8 @@ DefaultOriginalHeadMale.name = CutHeadEyesNodeCombinedGroupName + "Male";
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  new THREE.Group().add(DefaultOriginalHeadFemale.clone()),
+  // new THREE.Group().add(DefaultOriginalHeadFemale.clone()),
+  new THREE.Group().add(DefaultOriginalHeadMale.clone()),
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
@@ -115,9 +117,11 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    defaultOriginalHead: DefaultOriginalHeadFemale,
+    // defaultOriginalHead: DefaultOriginalHeadFemale,
+    defaultOriginalHead: DefaultOriginalHeadMale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    isDefaultHeadFemale: true,
+    // isDefaultHeadFemale: true,
+    isDefaultHeadFemale: false,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Global Cutters Model

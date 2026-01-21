@@ -20,29 +20,59 @@ import manifoldWasm from "manifold-3d/manifold.wasm?url";
 import type { FacialMorphsVisualizers } from "../../types";
 
 /**
- * Generates facial morphs for a given mesh.
- * @param mesh The mesh to generate facial morphs for.
+ * Generates facial morphs for a given model.
+ * @param model The model to generate facial morphs for.
+ * @param brushParams The brush parameters.
  */
 export function generateFacialMorphs(
-  mesh: THREE.Mesh,
+  model: THREE.Group,
   brushParams: { noseRadius: number },
 ): FacialMorphsVisualizers {
   console.log(
-    `\n---- Ready to generate facial morphs for [${mesh.name}] ----\n`,
+    `\n---- Ready to generate facial morphs for [${model.name}] ----\n`,
   );
+  console.log("\n -- generateFacialMorphs -- model ->", model);
+
+  // Get the head node
+  const headNode = (model.getObjectByName(NodeNames.HeadNames.Head) ||
+    model.getObjectByName("CutHeadNode")) as THREE.Mesh;
+  // Get the eye nodes
+  const eyeLNode = (model.getObjectByName(NodeNames.HeadNames.EyeL) ||
+    model.getObjectByName("EyeLNode")) as THREE.Mesh;
+  const eyeRNode = (model.getObjectByName(NodeNames.HeadNames.EyeR) ||
+    model.getObjectByName("EyeRNode")) as THREE.Mesh;
+  // Get the center of the eye nodes
+  const centerEyeLNode = new THREE.Box3()
+    .setFromObject(eyeLNode)
+    .getCenter(new THREE.Vector3());
+  const centerEyeRNode = new THREE.Box3()
+    .setFromObject(eyeRNode)
+    .getCenter(new THREE.Vector3());
+  console.log("\n -- generateFacialMorphs -- headNode ->", headNode);
+  console.log("\n -- generateFacialMorphs -- eyeLNode ->", eyeLNode);
+  console.log("\n -- generateFacialMorphs -- eyeRNode ->", eyeRNode);
+  console.log(
+    "\n -- generateFacialMorphs -- centerEyeLNode ->",
+    centerEyeLNode,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- centerEyeRNode ->",
+    centerEyeRNode,
+  );
+
   // Check if the geometry has morph attributes
-  if (mesh.geometry.morphAttributes.position) {
+  if (headNode.geometry.morphAttributes.position) {
     console.warn(
       "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists",
     );
     return;
   }
-  const geoOrg = mesh.geometry;
+  const geoOrg = headNode.geometry;
   // Clone geometry to ensure we don't affect other meshes sharing the same geometry
-  mesh.geometry = mesh.geometry.clone();
+  headNode.geometry = headNode.geometry.clone();
   // Dispose the original geometry before cloning
   geoOrg.dispose();
-  const geo = mesh.geometry;
+  const geo = headNode.geometry;
   const positions = geo.getAttribute("position");
   const vertex = new THREE.Vector3();
 
@@ -59,6 +89,10 @@ export function generateFacialMorphs(
   let jawTipL = new THREE.Vector3(Infinity, 0, 0);
   // Jaw Tip R
   let jawTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Eye Brow Tip L
+  let eyeBrowTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Eye Brow Tip R
+  let eyeBrowTipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
@@ -66,9 +100,11 @@ export function generateFacialMorphs(
   const visualizerByNoseTipsDetection: THREE.Vector3[] = [];
   const visualizerByNostrilTipsDetection: THREE.Vector3[] = [];
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
+  const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
   const visualizerByJawMorph: THREE.Vector3[] = [];
+  const visualizerByEyeBrowMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -80,7 +116,7 @@ export function generateFacialMorphs(
     boundingBox = geo.boundingBox;
   }
   console.log(
-    `\n -- generateFacialMorphs -- geometry of [${mesh.name}] boundingBox ->`,
+    `\n -- generateFacialMorphs -- geometry of [${headNode.name}] boundingBox ->`,
     boundingBox,
   );
 
@@ -160,12 +196,20 @@ export function generateFacialMorphs(
   );
 
   /**
+   * Ⅰ.Ⅳ EYE BROW TIPS DETECTION
+   */
+  // Update the eye brow tips relative to the center of the eye nodes with some offsets
+  eyeBrowTipL.copy(centerEyeRNode.add(new THREE.Vector3(0, 1.5, 2.3)));
+  eyeBrowTipR.copy(centerEyeLNode.add(new THREE.Vector3(0, 1.5, 2.3)));
+
+  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Define the distinct arrays for each "shape" we want
   const noseTarget = new Float32Array(positions.array);
   const nostrilTarget = new Float32Array(positions.array);
   const jawTarget = new Float32Array(positions.array);
+  const eyeBrowTarget = new Float32Array(positions.array);
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
@@ -213,6 +257,18 @@ export function generateFacialMorphs(
       visualizerByJawMorph,
       1.25,
     );
+
+    // --- D. GENERATE EYE BROW MORPH (Height) ---
+    applyHeightMorph(
+      vertex,
+      i,
+      eyeBrowTipL,
+      eyeBrowTipR,
+      { xRange: 3.0, yRange: 1.0 },
+      eyeBrowTarget,
+      visualizerByEyeBrowMorph,
+      1.25,
+    );
   }
 
   /**
@@ -222,31 +278,34 @@ export function generateFacialMorphs(
   const noseAttr = new THREE.BufferAttribute(noseTarget, 3);
   const nostrilAttr = new THREE.BufferAttribute(nostrilTarget, 3);
   const jawAttr = new THREE.BufferAttribute(jawTarget, 3);
+  const eyeBrowAttr = new THREE.BufferAttribute(eyeBrowTarget, 3);
   // 3.2 Assign names to the BufferAttributes
   noseAttr.name = "nose-morph-target-attr";
   nostrilAttr.name = "nostril-morph-target-attr";
   jawAttr.name = "jaw-morph-target-attr";
+  eyeBrowAttr.name = "eyeBrow-morph-target-attr";
   // console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
   // console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
-  geo.morphAttributes.position = [noseAttr, nostrilAttr, jawAttr];
+  geo.morphAttributes.position = [noseAttr, nostrilAttr, jawAttr, eyeBrowAttr];
 
   // 3.4 Required for lighting to update correctly when morphed
   geo.computeVertexNormals();
 
   // 3.5 Updates the morphTargets to have no influence on the object
-  mesh.updateMorphTargets();
+  headNode.updateMorphTargets();
 
   // 3.6 Explicitly set the dictionary for UI labeling
-  mesh.morphTargetDictionary = {
+  headNode.morphTargetDictionary = {
     nose: 0,
     nostril: 1,
     jaw: 2,
+    eyeBrow: 3,
   };
 
   // 3.7 Initialize at 0 of the morph targets on the mesh
-  mesh.morphTargetInfluences = [0, 0, 0];
+  headNode.morphTargetInfluences = [0, 0, 0, 0];
 
   /**
    * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
@@ -257,12 +316,16 @@ export function generateFacialMorphs(
     visualizerNostrilTipR: nostrilTipR,
     visualizerjawTipL: jawTipL,
     visualizerjawTipR: jawTipR,
+    visualizerEyeBrowTipL: eyeBrowTipL,
+    visualizerEyeBrowTipR: eyeBrowTipR,
     visualizerByNoseTipsDetection,
     visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
+    visualizerByEyeBrowTipsDetection,
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
     visualizerByJawMorph,
+    visualizerByEyeBrowMorph,
   };
 }
 
@@ -436,6 +499,78 @@ function applyWideningMorph(
     // Add the vertex to the filtered vertices array for visualization
     if (visualizer) visualizer.push(vertex.clone());
   }
+}
+
+/**
+ * Applies a height morph to a vertex based on its proximity to the nearest lateral tip (L/R).
+ * @param vertex The current vertex being processed.
+ * @param index The index of the vertex.
+ * @param tipL The detected left-side tip.
+ * @param tipR The detected right-side tip.
+ * @param ranges Range for X, Y and Z influence.
+ * @param targetArray The target Float32Array to write the morph delta to.
+ * @param visualizer Optional array to store the vertex for visualization if it was affected.
+ * @param totalInfluenceStrength The total influence strength.
+ */
+function applyHeightMorph(
+  vertex: THREE.Vector3,
+  index: number,
+  tipL: THREE.Vector3,
+  tipR: THREE.Vector3,
+  ranges: { xRange: number; yRange: number },
+  targetArray: Float32Array,
+  visualizer?: THREE.Vector3[],
+  totalInfluenceStrength: number = 1.25,
+): void {
+  // Use the detected tips as anchors for the morph
+  const targetTip = vertex.x < 0 ? tipL : tipR;
+
+  // Check if tips were actually found
+  if (targetTip.x === Infinity || targetTip.x === -Infinity) return;
+
+  // Calculate distance to the nearest tip
+  const dx = Math.abs(vertex.x - targetTip.x);
+  const dy = Math.abs(vertex.y - targetTip.y);
+
+  const { xRange, yRange } = ranges;
+
+  if (dx < xRange && dy < yRange) {
+    // Lateral Falloff (X) - "the larger the distance on the X axis, the less influences it should be"
+    const influenceX = Math.sin(1 - dx / xRange);
+    // Vertical Falloff (Y)
+    const influenceY =
+      vertex.y < targetTip.y
+        ? Math.pow(Math.sin(1 - dy / yRange), 2)
+        : remap01(Math.sin(1 - dy / yRange), 0.3);
+
+    // TODO: Optimize the influence calculation
+    const totalInfluence = influenceX * influenceY * totalInfluenceStrength;
+
+    // Apply height adjustment on the Y axis (up/down)
+    targetArray[index * 3 + 1] += totalInfluence;
+
+    // Add the vertex to the filtered vertices array for visualization
+    if (visualizer) visualizer.push(vertex.clone());
+  }
+}
+
+/**
+ * Returns a value between 0 and 1 using a sine wave.
+ * @param value The input value.
+ * @returns The output value.
+ */
+export function getOscSine(value: number) {
+  return Math.sin(value) * 0.5 + 0.5;
+}
+
+/**
+ * Remaps a value between a input factor and 1.
+ * @param value The input value (0 ~ 1).
+ * @param factor The input factor to remap the value.
+ * @returns The remapped value.
+ */
+export function remap01(value: number, factor: number) {
+  return value * (1 - factor) + factor;
 }
 
 /**
