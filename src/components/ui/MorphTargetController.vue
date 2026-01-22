@@ -270,7 +270,8 @@ onUnmounted(() => {
                   class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
                   :style="{
                     width:
-                      target.label === 'Nose'
+                      target.label === 'Nose' ||
+                      target.label === 'MouseCornersWidth'
                         ? `${
                             ((headNodeinfluencesValues[
                               target.morphTargetInfIdx
@@ -289,7 +290,12 @@ onUnmounted(() => {
 
               <input
                 type="range"
-                :min="(target.label === 'Nose' || target.label === 'Mouse') ? -1 : 0"
+                :min="
+                  target.label === 'Nose' ||
+                  target.label === 'MouseCornersWidth'
+                    ? -1
+                    : 0
+                "
                 max="1"
                 step="0.01"
                 :value="headNodeinfluencesValues[target.morphTargetInfIdx]"

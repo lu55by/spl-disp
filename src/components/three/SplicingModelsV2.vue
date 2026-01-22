@@ -396,18 +396,18 @@ const init = async () => {
       visualizerjawTipR, // Vector3
       visualizerEyeBrowTipL, // Vector3
       visualizerEyeBrowTipR, // Vector3
-      visualizerMouseTipL, // Vector3
-      visualizerMouseTipR, // Vector3
+      visualizerMouseCornerTipL, // Vector3
+      visualizerMouseCornerTipR, // Vector3
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
       visualizerByJawTipsDetection, // Vector3[]
       visualizerByEyeBrowTipsDetection, // Vector3[]
-      visualizerByMouseTipDetection, // Vector3[]
+      visualizerByMouseCornerTipsDetection, // Vector3[]
       visualizerByNoseMorph, // Vector3[]
       visualizerByJawMorph, // Vector3[]
       visualizerByNostrilMorph, // Vector3[]
       visualizerByEyeBrowMorph, // Vector3[]
-      visualizerByMouseMorph, // Vector3[]
+      visualizerByMouseCornersWidthMorph, // Vector3[]
     } = generateFacialMorphs(splicingGroupGlobal, {
       noseRadius: 7,
     });
@@ -490,8 +490,8 @@ const init = async () => {
       jawRTipVisMesh.position.copy(visualizerjawTipR);
       eyeBrowLTipVisMesh.position.copy(visualizerEyeBrowTipL);
       eyeBrowRTipVisMesh.position.copy(visualizerEyeBrowTipR);
-      mouseTipLVisMesh.position.copy(visualizerMouseTipL);
-      mouseTipRVisMesh.position.copy(visualizerMouseTipR);
+      mouseTipLVisMesh.position.copy(visualizerMouseCornerTipL);
+      mouseTipRVisMesh.position.copy(visualizerMouseCornerTipR);
       /*
         Add to scene
       */
@@ -517,7 +517,7 @@ const init = async () => {
         scene.add(mouseTipRVisMesh);
       }
     };
-    visualizeTips("mouse");
+    // visualizeTips("mouse");
 
     /**
      * Morphing Vertices Detection Visualizers
@@ -547,10 +547,10 @@ const init = async () => {
           );
       }
       let visualizerByMouseTipDetectionGeo: THREE.BufferGeometry | null = null;
-      if (visualizerByMouseTipDetection.length > 0) {
+      if (visualizerByMouseCornerTipsDetection.length > 0) {
         visualizerByMouseTipDetectionGeo =
           new THREE.BufferGeometry().setFromPoints(
-            visualizerByMouseTipDetection,
+            visualizerByMouseCornerTipsDetection,
           );
       }
       /*
@@ -633,7 +633,9 @@ const init = async () => {
       const visualizerByEyeBrowMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByEyeBrowMorph);
       const visualizerByMouseMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByMouseMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMouseCornersWidthMorph,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -681,7 +683,7 @@ const init = async () => {
         scene.add(mouseMorphPoints);
       }
     };
-    visualizeMorphingVertices("mouse");
+    // visualizeMorphingVertices("mouse");
   };
   generateFacialMorphsAndVisualizers();
 
