@@ -21,14 +21,18 @@ export interface FacialMorphsVisualizers {
   visualizerNostrilTipR: Vector3;
   visualizerjawTipL: Vector3;
   visualizerjawTipR: Vector3;
+  visualizerMouseTipL: Vector3;
+  visualizerMouseTipR: Vector3;
   visualizerEyeBrowTipL: Vector3;
   visualizerEyeBrowTipR: Vector3;
-  visualizerByNoseTipsDetection: Vector3[];
+  visualizerByNoseTipDetection: Vector3[];
   visualizerByNostrilTipsDetection: Vector3[];
   visualizerByJawTipsDetection: Vector3[];
   visualizerByEyeBrowTipsDetection: Vector3[];
+  visualizerByMouseTipDetection: Vector3[];
   visualizerByNoseMorph: Vector3[];
   visualizerByNostrilMorph: Vector3[];
   visualizerByJawMorph: Vector3[];
   visualizerByEyeBrowMorph: Vector3[];
+  visualizerByMouseMorph: Vector3[];
 }

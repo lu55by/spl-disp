@@ -417,13 +417,13 @@ export async function getCutHead(
  * @param {CSGOperationLog} operationLog 切割操作 DEBUG 日志
  * @returns {Brush} 切割后的模型 {@see Brush extends THREE.Mesh}
  */
-function csgSubtract(
+export function csgSubtract(
   objToBeCut: THREE.Mesh | Brush,
   cutter: THREE.Mesh | Brush,
   isHollowSub: boolean,
   evaluatorAttributes?: string[] | null,
   material?: THREE.Material | null,
-  operationLog?: CSGOperationLog
+  operationLog?: CSGOperationLog,
 ): Brush {
   /**
    *  Opt: Reuse Brush to be cut if passed
@@ -436,7 +436,7 @@ function csgSubtract(
   } else {
     brushObjToBeCut = new Brush(
       objToBeCut.geometry,
-      material || objToBeCut.material
+      material || objToBeCut.material,
     );
     brushObjToBeCut.updateMatrixWorld();
   }
@@ -467,7 +467,7 @@ function csgSubtract(
     console.log("\n -- csgSubtract -- operationLog ->", operationLog);
     console.log(
       "\n -- csgSubtract -- CSGEvaluator.attributes ->",
-      CSGEvaluator.attributes
+      CSGEvaluator.attributes,
     );
   }
 
@@ -477,7 +477,7 @@ function csgSubtract(
   const rs = CSGEvaluator.evaluate(
     brushObjToBeCut,
     brushCutter,
-    isHollowSub ? HOLLOW_SUBTRACTION : SUBTRACTION
+    isHollowSub ? HOLLOW_SUBTRACTION : SUBTRACTION,
   );
 
   /**

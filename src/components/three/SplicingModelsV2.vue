@@ -396,14 +396,18 @@ const init = async () => {
       visualizerjawTipR, // Vector3
       visualizerEyeBrowTipL, // Vector3
       visualizerEyeBrowTipR, // Vector3
-      visualizerByNoseTipsDetection,
+      visualizerMouseTipL, // Vector3
+      visualizerMouseTipR, // Vector3
+      visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
       visualizerByJawTipsDetection, // Vector3[]
       visualizerByEyeBrowTipsDetection, // Vector3[]
+      visualizerByMouseTipDetection, // Vector3[]
       visualizerByNoseMorph, // Vector3[]
       visualizerByJawMorph, // Vector3[]
       visualizerByNostrilMorph, // Vector3[]
       visualizerByEyeBrowMorph, // Vector3[]
+      visualizerByMouseMorph, // Vector3[]
     } = generateFacialMorphs(splicingGroupGlobal, {
       noseRadius: 7,
     });
@@ -463,6 +467,20 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#ff0", transparent: true }),
       );
       /*
+        Mouse Tip Left Visualizer
+      */
+      const mouseTipLVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#0f0", transparent: true }),
+      );
+      /*
+        Mouse Tip Right Visualizer
+      */
+      const mouseTipRVisMesh = new THREE.Mesh(
+        sharedBoxGeo,
+        new THREE.MeshBasicMaterial({ color: "#0f0", transparent: true }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -472,6 +490,8 @@ const init = async () => {
       jawRTipVisMesh.position.copy(visualizerjawTipR);
       eyeBrowLTipVisMesh.position.copy(visualizerEyeBrowTipL);
       eyeBrowRTipVisMesh.position.copy(visualizerEyeBrowTipR);
+      mouseTipLVisMesh.position.copy(visualizerMouseTipL);
+      mouseTipRVisMesh.position.copy(visualizerMouseTipR);
       /*
         Add to scene
       */
@@ -492,9 +512,12 @@ const init = async () => {
       } else if (selection === "eyeBrow") {
         scene.add(eyeBrowLTipVisMesh);
         scene.add(eyeBrowRTipVisMesh);
+      } else if (selection === "mouse") {
+        scene.add(mouseTipLVisMesh);
+        scene.add(mouseTipRVisMesh);
       }
     };
-    // visualizeTips("eyeBrow");
+    visualizeTips("mouse");
 
     /**
      * Morphing Vertices Detection Visualizers
@@ -505,7 +528,7 @@ const init = async () => {
       */
       // Nose tip geometry from detection vertices
       const visualizerByNoseTipsDetectionGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByNoseTipsDetection);
+        new THREE.BufferGeometry().setFromPoints(visualizerByNoseTipDetection);
       // Nostril tip geometry from detection vertices
       const visualizerByNostrilTipsDetectionGeo =
         new THREE.BufferGeometry().setFromPoints(
@@ -521,6 +544,13 @@ const init = async () => {
         visualizerByEyeBrowTipsDetectionGeo =
           new THREE.BufferGeometry().setFromPoints(
             visualizerByEyeBrowTipsDetection,
+          );
+      }
+      let visualizerByMouseTipDetectionGeo: THREE.BufferGeometry | null = null;
+      if (visualizerByMouseTipDetection.length > 0) {
+        visualizerByMouseTipDetectionGeo =
+          new THREE.BufferGeometry().setFromPoints(
+            visualizerByMouseTipDetection,
           );
       }
       /*
@@ -550,6 +580,14 @@ const init = async () => {
           new THREE.PointsMaterial({ color: "#ff0", size: 0.15 }),
         );
       }
+      // Mouse tip detection points (Green)
+      let mouseTipsDetectionPoints: THREE.Points | null = null;
+      if (visualizerByMouseTipDetectionGeo) {
+        mouseTipsDetectionPoints = new THREE.Points(
+          visualizerByMouseTipDetectionGeo,
+          new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
+        );
+      }
       /*
         Add to scene
       */
@@ -557,7 +595,8 @@ const init = async () => {
         scene.add(noseTipsDetectionPoints);
         scene.add(nostrilTipsDetectionPoints);
         scene.add(jawTipsDetectionPoints);
-        scene.add(eyeBrowTipsDetectionPoints);
+        eyeBrowTipsDetectionPoints && scene.add(eyeBrowTipsDetectionPoints);
+        mouseTipsDetectionPoints && scene.add(mouseTipsDetectionPoints);
       } else if (selection === "nose") {
         scene.add(noseTipsDetectionPoints);
       } else if (selection === "nostril") {
@@ -566,9 +605,11 @@ const init = async () => {
         scene.add(jawTipsDetectionPoints);
       } else if (eyeBrowTipsDetectionPoints && selection === "eyeBrow") {
         scene.add(eyeBrowTipsDetectionPoints);
+      } else if (mouseTipsDetectionPoints && selection === "mouse") {
+        scene.add(mouseTipsDetectionPoints);
       }
     };
-    // visualizeMorphingDetectionVertices("eyeBrow");
+    // visualizeMorphingDetectionVertices("mouse");
 
     /**
      * Morphing Vertices Visualizers
@@ -591,6 +632,8 @@ const init = async () => {
       // Eye brow morph geometry from morph vertices
       const visualizerByEyeBrowMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByEyeBrowMorph);
+      const visualizerByMouseMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByMouseMorph);
       /*
         Create points from the corresponding geometries
       */
@@ -614,6 +657,10 @@ const init = async () => {
         visualizerByEyeBrowMorphGeo,
         new THREE.PointsMaterial({ color: "#ff0", size: 0.15 }),
       );
+      const mouseMorphPoints = new THREE.Points(
+        visualizerByMouseMorphGeo,
+        new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -630,9 +677,11 @@ const init = async () => {
         scene.add(jawMorphPoints);
       } else if (selection === "eyeBrow") {
         scene.add(eyeBrowMorphPoints);
+      } else if (selection === "mouse") {
+        scene.add(mouseMorphPoints);
       }
     };
-    visualizeMorphingVertices("eyeBrow");
+    visualizeMorphingVertices("mouse");
   };
   generateFacialMorphsAndVisualizers();
 

@@ -134,6 +134,7 @@ export const MorphTargetLabelMapping = {
   Nostril: "鼻翼",
   Jaw: "下颌",
   EyeBrow: "眉毛",
+  Mouse: "嘴唇",
 };
 
 // Global Model

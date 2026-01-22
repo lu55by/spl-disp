@@ -289,7 +289,7 @@ onUnmounted(() => {
 
               <input
                 type="range"
-                :min="target.label === 'Nose' ? -1 : 0"
+                :min="(target.label === 'Nose' || target.label === 'Mouse') ? -1 : 0"
                 max="1"
                 step="0.01"
                 :value="headNodeinfluencesValues[target.morphTargetInfIdx]"

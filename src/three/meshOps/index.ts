@@ -13,11 +13,12 @@ import {
 } from "../constants";
 import { exportObjectToOBJ } from "../exporters";
 import { loadTexture } from "../loaders/TextureLoader";
-import { getCutHead } from "../utils/csgCutHeadV3";
+import { csgSubtract, getCutHead } from "../utils/csgCutHeadV3";
 
 import initManifold, { type Mesh as IManifoldMesh } from "manifold-3d";
 import manifoldWasm from "manifold-3d/manifold.wasm?url";
 import type { FacialMorphsVisualizers } from "../../types";
+import { LoadedCuttersModel } from "../../stores/useModelsStore";
 
 /**
  * Generates facial morphs for a given model.
@@ -36,6 +37,15 @@ export function generateFacialMorphs(
   // Get the head node
   const headNode = (model.getObjectByName(NodeNames.HeadNames.Head) ||
     model.getObjectByName("CutHeadNode")) as THREE.Mesh;
+
+  // Check if the geometry has morph attributes
+  if (headNode.geometry.morphAttributes.position) {
+    console.warn(
+      "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists",
+    );
+    return;
+  }
+
   // Get the eye nodes
   const eyeLNode = (model.getObjectByName(NodeNames.HeadNames.EyeL) ||
     model.getObjectByName("EyeLNode")) as THREE.Mesh;
@@ -60,13 +70,40 @@ export function generateFacialMorphs(
     centerEyeRNode,
   );
 
-  // Check if the geometry has morph attributes
-  if (headNode.geometry.morphAttributes.position) {
-    console.warn(
-      "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists",
-    );
-    return;
-  }
+  // Get the sphere cut head height to measure the Y coordinate of the mouse tips
+  const sphereCutter = LoadedCuttersModel.getObjectByName(
+    "cutting02",
+  ) as THREE.Mesh;
+  console.log("\n -- generateFacialMorphs -- sphereCutter ->", sphereCutter);
+  const sphCutHead = csgSubtract(
+    headNode,
+    sphereCutter,
+    true,
+    ["position"],
+    null,
+  );
+  const sphCutHeadBoudingBox = new THREE.Box3().setFromObject(sphCutHead);
+  const minYSphCutHead = sphCutHeadBoudingBox.min.y;
+  const maxYSphCutHead = sphCutHeadBoudingBox.max.y;
+  const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
+  const mouseTipY = minYSphCutHead + sphCutHeadHeight * 0.215;
+  console.log(
+    "\n -- generateFacialMorphs -- minYSphCutHead ->",
+    minYSphCutHead,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- maxYSphCutHead ->",
+    maxYSphCutHead,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- sphCutHeadHeight ->",
+    sphCutHeadHeight,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- mouseTipY calculated ->",
+    mouseTipY,
+  );
+
   const geoOrg = headNode.geometry;
   // Clone geometry to ensure we don't affect other meshes sharing the same geometry
   headNode.geometry = headNode.geometry.clone();
@@ -93,18 +130,24 @@ export function generateFacialMorphs(
   let eyeBrowTipL = new THREE.Vector3(Infinity, 0, 0);
   // Eye Brow Tip R
   let eyeBrowTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Mouse Tip L
+  let mouseTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Mouse Tip R
+  let mouseTipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
    */
-  const visualizerByNoseTipsDetection: THREE.Vector3[] = [];
+  const visualizerByNoseTipDetection: THREE.Vector3[] = [];
   const visualizerByNostrilTipsDetection: THREE.Vector3[] = [];
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
+  const visualizerByMouseTipDetection: THREE.Vector3[] = [];
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
   const visualizerByJawMorph: THREE.Vector3[] = [];
   const visualizerByEyeBrowMorph: THREE.Vector3[] = [];
+  const visualizerByMouseMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -138,7 +181,7 @@ export function generateFacialMorphs(
     if (vertex.y <= maxVertYNose && vertex.y >= minVertYNose) {
       // Find the vertex with maximal Z
       if (vertex.z > noseTip.z) noseTip.copy(vertex);
-      visualizerByNoseTipsDetection.push(vertex.clone());
+      visualizerByNoseTipDetection.push(vertex.clone());
     }
   }
   console.log("\n -- generateFacialMorphs -- noseTip detected ->", noseTip);
@@ -199,8 +242,19 @@ export function generateFacialMorphs(
    * Ⅰ.Ⅳ EYE BROW TIPS DETECTION
    */
   // Update the eye brow tips relative to the center of the eye nodes with some offsets
-  eyeBrowTipL.copy(centerEyeRNode.add(new THREE.Vector3(0, 1.5, 2.3)));
-  eyeBrowTipR.copy(centerEyeLNode.add(new THREE.Vector3(0, 1.5, 2.3)));
+  eyeBrowTipL.copy(centerEyeRNode.clone().add(new THREE.Vector3(0, 1.5, 2.3)));
+  eyeBrowTipR.copy(centerEyeLNode.clone().add(new THREE.Vector3(0, 1.5, 2.3)));
+
+  /**
+   * Ⅰ.Ⅴ MOUSE TIP DETECTION
+   */
+  // Updat the mouse tips relative to the coordinate of X and Z (with some offset) of the centerEyeLNode and centerEyeRNode, and the calculated mouseTipY
+  mouseTipL.copy(
+    new THREE.Vector3(centerEyeRNode.x, mouseTipY, centerEyeRNode.z + 1.2),
+  );
+  mouseTipR.copy(
+    new THREE.Vector3(centerEyeLNode.x, mouseTipY, centerEyeLNode.z + 1.2),
+  );
 
   /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
@@ -210,6 +264,7 @@ export function generateFacialMorphs(
   const nostrilTarget = new Float32Array(positions.array);
   const jawTarget = new Float32Array(positions.array);
   const eyeBrowTarget = new Float32Array(positions.array);
+  const mouseTarget = new Float32Array(positions.array);
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
@@ -269,6 +324,18 @@ export function generateFacialMorphs(
       visualizerByEyeBrowMorph,
       1.25,
     );
+
+    // --- E. GENERATE MOUSE MORPH (Widen) ---
+    applyWideningMorph(
+      vertex,
+      i,
+      mouseTipL,
+      mouseTipR,
+      { yRange: 2.2, zRange: 1 },
+      mouseTarget,
+      visualizerByMouseMorph,
+      1.7,
+    );
   }
 
   /**
@@ -279,16 +346,24 @@ export function generateFacialMorphs(
   const nostrilAttr = new THREE.BufferAttribute(nostrilTarget, 3);
   const jawAttr = new THREE.BufferAttribute(jawTarget, 3);
   const eyeBrowAttr = new THREE.BufferAttribute(eyeBrowTarget, 3);
+  const mouseAttr = new THREE.BufferAttribute(mouseTarget, 3);
   // 3.2 Assign names to the BufferAttributes
   noseAttr.name = "nose-morph-target-attr";
   nostrilAttr.name = "nostril-morph-target-attr";
   jawAttr.name = "jaw-morph-target-attr";
   eyeBrowAttr.name = "eyeBrow-morph-target-attr";
+  mouseAttr.name = "mouse-morph-target-attr";
   // console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
   // console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
-  geo.morphAttributes.position = [noseAttr, nostrilAttr, jawAttr, eyeBrowAttr];
+  geo.morphAttributes.position = [
+    noseAttr,
+    nostrilAttr,
+    jawAttr,
+    eyeBrowAttr,
+    mouseAttr,
+  ];
 
   // 3.4 Required for lighting to update correctly when morphed
   geo.computeVertexNormals();
@@ -302,10 +377,11 @@ export function generateFacialMorphs(
     nostril: 1,
     jaw: 2,
     eyeBrow: 3,
+    mouse: 4,
   };
 
   // 3.7 Initialize at 0 of the morph targets on the mesh
-  headNode.morphTargetInfluences = [0, 0, 0, 0];
+  headNode.morphTargetInfluences = [0, 0, 0, 0, 0];
 
   /**
    * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
@@ -318,14 +394,18 @@ export function generateFacialMorphs(
     visualizerjawTipR: jawTipR,
     visualizerEyeBrowTipL: eyeBrowTipL,
     visualizerEyeBrowTipR: eyeBrowTipR,
-    visualizerByNoseTipsDetection,
+    visualizerMouseTipL: mouseTipL,
+    visualizerMouseTipR: mouseTipR,
+    visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
     visualizerByEyeBrowTipsDetection,
+    visualizerByMouseTipDetection,
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
     visualizerByJawMorph,
     visualizerByEyeBrowMorph,
+    visualizerByMouseMorph,
   };
 }
 

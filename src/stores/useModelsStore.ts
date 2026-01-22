@@ -31,7 +31,7 @@ import type { UploadModelInputFields } from "../types/index.ts";
 /*
   Loaded Cutters Model
  */
-const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
+export const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
     ModelPaths.Cutters.OralSphereCylinderCombined,
     // ModelPaths.Cutters.OralMod01
