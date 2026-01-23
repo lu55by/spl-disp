@@ -16,7 +16,6 @@ import { loadTexture } from "../three/loaders/TextureLoader";
 import {
   adjustPivotPointsForMesh,
   applyDoubleSide,
-  applyMaterialWireframe,
   applyPBRMaterialAndSRGBColorSpace,
   applyTextures2LoadedHeadModelAsync,
   disposeAndRemoveCurrentCutHead,

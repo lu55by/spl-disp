@@ -87,6 +87,7 @@ export function generateFacialMorphs(
   const maxYSphCutHead = sphCutHeadBoudingBox.max.y;
   const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
   const mouseTipY = minYSphCutHead + sphCutHeadHeight * 0.215;
+  console.log("\n -- generateFacialMorphs -- sphCutHead ->", sphCutHead);
   console.log(
     "\n -- generateFacialMorphs -- minYSphCutHead ->",
     minYSphCutHead,
@@ -134,6 +135,10 @@ export function generateFacialMorphs(
   let mouseCornerTipL = new THREE.Vector3(Infinity, 0, 0);
   // Mouse Tip R
   let mouseCornerTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Ear Tip L
+  let earTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Ear Tip R
+  let earTipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
@@ -143,24 +148,26 @@ export function generateFacialMorphs(
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
   const visualizerByMouseCornerTipsDetection: THREE.Vector3[] = [];
+  const visualizerByEarTipsDetection: THREE.Vector3[] = [];
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
   const visualizerByJawMorph: THREE.Vector3[] = [];
   const visualizerByEyeBrowMorph: THREE.Vector3[] = [];
   const visualizerByMouseCornersWidthMorph: THREE.Vector3[] = [];
+  const visualizerByEarMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
    */
   // 1.1.1 Look for the vertex with the max Z value within a narrow vertical strip in the center
-  let boundingBox = geo.boundingBox;
-  if (!boundingBox) {
+  let boundingBoxHeadNode = geo.boundingBox;
+  if (!boundingBoxHeadNode) {
     geo.computeBoundingBox();
-    boundingBox = geo.boundingBox;
+    boundingBoxHeadNode = geo.boundingBox;
   }
   console.log(
     `\n -- generateFacialMorphs -- geometry of [${headNode.name}] boundingBox ->`,
-    boundingBox,
+    boundingBoxHeadNode,
   );
 
   /*
@@ -169,16 +176,19 @@ export function generateFacialMorphs(
    */
   const maxVertYPerc = 0.3;
   const minVertYPerc = 0.25;
-  const dYBoundingBox = boundingBox.max.y - boundingBox.min.y;
-  const maxVertYNose = boundingBox.max.y - maxVertYPerc * dYBoundingBox;
-  const minVertYNose = boundingBox.min.y + minVertYPerc * dYBoundingBox;
+  const noseTipDetectionDisY =
+    boundingBoxHeadNode.max.y - boundingBoxHeadNode.min.y;
+  const maxYNoseTipDetection =
+    boundingBoxHeadNode.max.y - noseTipDetectionDisY * maxVertYPerc;
+  const minYNoseTipDetection =
+    boundingBoxHeadNode.min.y + noseTipDetectionDisY * minVertYPerc;
 
   // 1.1.2 Iterate through the vertex count to get the nose tip
   for (let i = 0; i < positions.count; i++) {
     // Update the vertex based on the current index
     vertex.fromBufferAttribute(positions, i);
     // Exclude the vertices that the y coordinate is outside the offset boundingBox on the Y axis
-    if (vertex.y <= maxVertYNose && vertex.y >= minVertYNose) {
+    if (vertex.y <= maxYNoseTipDetection && vertex.y >= minYNoseTipDetection) {
       // Find the vertex with maximal Z
       if (vertex.z > noseTip.z) noseTip.copy(vertex);
       visualizerByNoseTipDetection.push(vertex.clone());
@@ -242,11 +252,11 @@ export function generateFacialMorphs(
    * Ⅰ.Ⅳ EYE BROW TIPS DETECTION
    */
   // Update the eye brow tips relative to the center of the eye nodes with some offsets
-  eyeBrowTipL.copy(centerEyeRNode.clone().add(new THREE.Vector3(0, 1.5, 2.3)));
-  eyeBrowTipR.copy(centerEyeLNode.clone().add(new THREE.Vector3(0, 1.5, 2.3)));
+  eyeBrowTipL.copy(centerEyeRNode.clone().add(new THREE.Vector3(0, 1.6, 2.3)));
+  eyeBrowTipR.copy(centerEyeLNode.clone().add(new THREE.Vector3(0, 1.6, 2.3)));
 
   /**
-   * Ⅰ.Ⅴ MOUSE TIP DETECTION
+   * Ⅰ.Ⅴ MOUSE CORNER TIPS DETECTION
    */
   // Updat the mouse tips relative to the coordinate of X and Z (with some offset) of the centerEyeLNode and centerEyeRNode, and the calculated mouseTipY
   mouseCornerTipL.copy(
@@ -257,6 +267,27 @@ export function generateFacialMorphs(
   );
 
   /**
+   * Ⅰ.Ⅵ EAR TIPS DETECTION (Reuse the bounding box on the Y axis based on the sph cut head)
+   */
+  const maxPerc = 0.3;
+  const minPerc = 0.25;
+  const maxYEarTipDetection = maxYSphCutHead - sphCutHeadHeight * maxPerc;
+  const minYEarTipDetection = minYSphCutHead + sphCutHeadHeight * minPerc;
+
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+    if (vertex.y <= maxYEarTipDetection && vertex.y >= minYEarTipDetection) {
+      // Find the ear tips with the max X and min X
+      if (vertex.x < earTipL.x) earTipL.copy(vertex);
+      if (vertex.x > earTipR.x) earTipR.copy(vertex);
+      visualizerByEarTipsDetection.push(vertex.clone());
+    }
+  }
+  // Offset the ear tips on the Y axis
+  earTipL.sub(new THREE.Vector3(0, 1.5, 0));
+  earTipR.sub(new THREE.Vector3(0, 1.5, 0));
+
+  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Define the distinct arrays for each "shape" we want
@@ -265,14 +296,16 @@ export function generateFacialMorphs(
   const jawTarget = new Float32Array(positions.array);
   const eyeBrowTarget = new Float32Array(positions.array);
   const mouseCornersWidthTarget = new Float32Array(positions.array);
+  const earTarget = new Float32Array(positions.array);
 
   // Parameters for the procedural brushes
   const { noseRadius } = brushParams;
 
-  // 2.2 Traverse through the vertex count to get the nose morph and jaw morph
+  // 2.2 Traverse through the vertex count to get the morphs
+
+  // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
-    // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
     const distToNoseTip = vertex.distanceTo(noseTip);
     if (distToNoseTip < noseRadius) {
       // Influence based on the distance to the nose tip, the further the vertex is from the nose tip, the less influence it has
@@ -290,51 +323,69 @@ export function generateFacialMorphs(
     }
 
     // --- B. GENERATE NOSTRIL WIDTH MORPH (Widen) ---
-    applyWideningMorph(
+    applyMorph(
       vertex,
       i,
       nostrilTipL,
       nostrilTipR,
-      { yRange: 1.0, zRange: 0.6 },
+      { xRange: 2, yRange: 1, zRange: 1 },
       nostrilTarget,
+      "widening",
       visualizerByNostrilMorph,
       1.5,
     );
 
     // --- C. GENERATE JAW WIDTH MORPH (Widen) ---
-    applyWideningMorph(
+    applyMorph(
       vertex,
       i,
       jawTipL,
       jawTipR,
-      { yRange: 6.0, zRange: 4.0 },
+      { xRange: 5, yRange: 6.0, zRange: 4.0 },
       jawTarget,
+      "widening",
       visualizerByJawMorph,
       1.25,
     );
 
     // --- D. GENERATE EYE BROW HEIGHT MORPH (Height) ---
-    applyHeightMorph(
+    applyMorph(
       vertex,
       i,
       eyeBrowTipL,
       eyeBrowTipR,
-      { xRange: 3.0, yRange: 1.0 },
+      { xRange: 3.0, yRange: 1.0, zRange: 2 },
       eyeBrowTarget,
+      "height",
       visualizerByEyeBrowMorph,
-      1.25,
+      0.7,
+      true,
     );
 
     // --- E. GENERATE MOUSE CORNERS WIDTH MORPH (Widen) ---
-    applyWideningMorph(
+    applyMorph(
       vertex,
       i,
       mouseCornerTipL,
       mouseCornerTipR,
-      { yRange: 2.2, zRange: 1 },
+      { xRange: 2, yRange: 2.2, zRange: 1 },
       mouseCornersWidthTarget,
+      "widening",
       visualizerByMouseCornersWidthMorph,
       1.7,
+    );
+
+    // --- F. GENERATE EAR TIPS WIDTH MORPH (Widen) ---
+    applyMorph(
+      vertex,
+      i,
+      earTipL,
+      earTipR,
+      { xRange: 6, yRange: 3, zRange: 2.5 },
+      earTarget,
+      ["widening", "height"],
+      visualizerByEarMorph,
+      0.7,
     );
   }
 
@@ -350,14 +401,15 @@ export function generateFacialMorphs(
     mouseCornersWidthTarget,
     3,
   );
+  const earAttr = new THREE.BufferAttribute(earTarget, 3);
+
   // 3.2 Assign names to the BufferAttributes
   noseAttr.name = "nose-morph-target-attr";
   nostrilAttr.name = "nostril-morph-target-attr";
   jawAttr.name = "jaw-morph-target-attr";
   eyeBrowAttr.name = "eyeBrow-morph-target-attr";
   mouseCornersWidthAttr.name = "mouseCornersWidth-morph-target-attr";
-  // console.log("\n -- generateFacialMorphs -- noseAttr ->", noseAttr);
-  // console.log("\n -- generateFacialMorphs -- jawAttr ->", jawAttr);
+  earAttr.name = "ear-morph-target-attr";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -366,6 +418,7 @@ export function generateFacialMorphs(
     jawAttr,
     eyeBrowAttr,
     mouseCornersWidthAttr,
+    earAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -381,10 +434,11 @@ export function generateFacialMorphs(
     jaw: 2,
     eyeBrow: 3,
     mouseCornersWidth: 4,
+    ear: 5,
   };
 
   // 3.7 Initialize at 0 of the morph targets on the mesh
-  headNode.morphTargetInfluences = [0, 0, 0, 0, 0];
+  headNode.morphTargetInfluences = [0, 0, 0, 0, 0, 0];
 
   /**
    * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
@@ -399,16 +453,20 @@ export function generateFacialMorphs(
     visualizerEyeBrowTipR: eyeBrowTipR,
     visualizerMouseCornerTipL: mouseCornerTipL,
     visualizerMouseCornerTipR: mouseCornerTipR,
+    visualizerEarTipL: earTipL,
+    visualizerEarTipR: earTipR,
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
     visualizerByEyeBrowTipsDetection,
     visualizerByMouseCornerTipsDetection,
+    visualizerByEarTipsDetection,
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
     visualizerByJawMorph,
     visualizerByEyeBrowMorph,
     visualizerByMouseCornersWidthMorph,
+    visualizerByEarMorph,
   };
 }
 
@@ -531,79 +589,28 @@ function findLateralTips(
 }
 
 /**
- * Applies a widening morph to a vertex based on its proximity to the nearest lateral tip (L/R).
- * @param vertex The current vertex being processed.
- * @param index The index of the vertex.
- * @param tipL The detected left-side tip.
- * @param tipR The detected right-side tip.
- * @param ranges Range for Y and Z influence.
- * @param targetArray The target Float32Array to write the morph delta to.
- * @param visualizer Optional array to store the vertex for visualization if it was affected.
- */
-function applyWideningMorph(
-  vertex: THREE.Vector3,
-  index: number,
-  tipL: THREE.Vector3,
-  tipR: THREE.Vector3,
-  ranges: { yRange: number; zRange: number },
-  targetArray: Float32Array,
-  visualizer?: THREE.Vector3[],
-  totalInfluenceStrength: number = 1.25,
-): void {
-  // Use the detected tips as anchors for the morph
-  const targetTip = vertex.x < 0 ? tipL : tipR;
-
-  // Check if tips were actually found
-  if (targetTip.x === Infinity || targetTip.x === -Infinity) return;
-
-  // Calculate distance to the nearest tip
-  // Focus on Y and Z proximity for the vertical/depth "strip"
-  const dy = Math.abs(vertex.y - targetTip.y);
-  const dz = Math.abs(vertex.z - targetTip.z);
-
-  const { yRange, zRange } = ranges;
-
-  if (dy < yRange && dz < zRange) {
-    // Vertical Falloff (Y)
-    const influenceY = Math.pow(Math.sin(1 - dy / yRange), 2);
-    // Depth Falloff (Z)
-    const influenceZ = Math.pow(Math.sin(1 - dz / zRange), dz < zRange ? 2 : 1); // Maintain consistency with original power
-
-    // Lateral Falloff (X) - ensure we affect the sides more than the center
-    // Avoid tearing the center line (X=0)
-    const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
-
-    const totalInfluence =
-      influenceY * influenceZ * influenceX * totalInfluenceStrength;
-
-    // Apply widening on the X axis (move lateral extremes further out)
-    targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
-
-    // Add the vertex to the filtered vertices array for visualization
-    if (visualizer) visualizer.push(vertex.clone());
-  }
-}
-
-/**
- * Applies a height morph to a vertex based on its proximity to the nearest lateral tip (L/R).
+ * Applies a morph to a vertex based on its proximity to the nearest lateral tip (L/R).
  * @param vertex The current vertex being processed.
  * @param index The index of the vertex.
  * @param tipL The detected left-side tip.
  * @param tipR The detected right-side tip.
  * @param ranges Range for X, Y and Z influence.
  * @param targetArray The target Float32Array to write the morph delta to.
+ * @param type The type of morph to apply (widening, height, depth).
  * @param visualizer Optional array to store the vertex for visualization if it was affected.
  * @param totalInfluenceStrength The total influence strength.
  */
-function applyHeightMorph(
+function applyMorph(
   vertex: THREE.Vector3,
   index: number,
   tipL: THREE.Vector3,
   tipR: THREE.Vector3,
-  ranges: { xRange: number; yRange: number },
+  ranges: { xRange: number; yRange: number; zRange: number },
   targetArray: Float32Array,
+  type: "widening" | "height" | "depth" | ("widening" | "height" | "depth")[],
   visualizer?: THREE.Vector3[],
   totalInfluenceStrength: number = 1.25,
+  isInfXFixed: boolean = false,
 ): void {
   // Use the detected tips as anchors for the morph
   const targetTip = vertex.x < 0 ? tipL : tipR;
@@ -611,30 +618,93 @@ function applyHeightMorph(
   // Check if tips were actually found
   if (targetTip.x === Infinity || targetTip.x === -Infinity) return;
 
-  // Calculate distance to the nearest tip
+  // Calculate distance to the nearest tip on all axes
   const dx = Math.abs(vertex.x - targetTip.x);
   const dy = Math.abs(vertex.y - targetTip.y);
+  const dz = Math.abs(vertex.z - targetTip.z);
 
-  const { xRange, yRange } = ranges;
+  const { xRange, yRange, zRange } = ranges;
 
-  if (dx < xRange && dy < yRange) {
-    // Lateral Falloff (X) - "the larger the distance on the X axis, the less influences it should be"
-    const influenceX = Math.sin(1 - dx / xRange);
-    // Vertical Falloff (Y)
-    const influenceY =
-      vertex.y < targetTip.y
-        ? Math.pow(Math.sin(1 - dy / yRange), 2)
-        : remap01(Math.sin(1 - dy / yRange), 0.3);
+  // Determine which morph types should be applied (handles single string or array of strings)
+  const isWidening =
+    type === "widening" || (Array.isArray(type) && type.includes("widening"));
+  const isHeight =
+    type === "height" || (Array.isArray(type) && type.includes("height"));
+  const isDepth =
+    type === "depth" || (Array.isArray(type) && type.includes("depth"));
 
-    // TODO: Optimize the influence calculation
-    const totalInfluence = influenceX * influenceY * totalInfluenceStrength;
+  let applied = false;
 
-    // Apply height adjustment on the Y axis (up/down)
-    targetArray[index * 3 + 1] += totalInfluence;
+  // --- 1. WIDENING MORPH (X axis) ---
+  // This morph type focuses on lateral expansion
+  if (dx < xRange && dy < yRange && dz < zRange) {
+    if (isWidening) {
+      // Vertical Falloff (Y) -> the power of 2 ensures a smoother falloff
+      const influenceY = Math.pow(Math.sin(1 - dy / yRange), 2);
+      // Depth Falloff (Z)
+      const influenceZ = Math.pow(Math.sin(1 - dz / zRange), 2);
 
-    // Add the vertex to the filtered vertices array for visualization
-    if (visualizer) visualizer.push(vertex.clone());
+      // Lateral Falloff (X) -> ensure we affect the sides more than the center to avoid tearing the center line (X=0)
+      const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
+
+      const totalInfluence =
+        influenceY * influenceZ * influenceX * totalInfluenceStrength;
+
+      // Apply widening on the X axis -> move lateral extremes further out
+      targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
+      applied = true;
+    }
+    // --- 2. HEIGHT and DEPTH MORPHS (Y and Z axes) ---
+    // These morph types share similar logic for lateral (X) and vertical (Y) falloff
+    if (isHeight || isDepth) {
+      /*
+        Inf X
+       */
+      // X -> 0 ~ 1 >> Y -> 0 ~ 1
+      const influenceX = isInfXFixed
+        ? 1
+        : Math.sin((1 - dx / xRange) * Math.PI * 0.5);
+
+      /*
+        Inf Y
+       */
+      const y01 = 1 - dy / yRange;
+      // const influenceX = 1 - Math.cos(1 - dx / xRange);
+      // const influenceY =
+      //   vertex.y < targetTip.y
+      //     ? Math.pow(Math.sin(1 - dy / yRange), 2)
+      //     : remap01(Math.sin(1 - dy / yRange), 0.3);
+      // const influenceY = Math.sin(1 - dy / yRange);
+      const influenceY = Math.sin(y01 * Math.PI * 0.5);
+
+      /*
+        Inf Z
+       */
+      const z01 = 1 - dz / zRange;
+      // const influenceZ = Math.pow(Math.sin(z01), 2);
+      // const influenceZ = Math.pow(z01, 2);
+      const influenceZ = z01;
+
+      /*
+        Total Inf
+       */
+      const totalInfluence =
+        influenceX * influenceY * influenceZ * totalInfluenceStrength;
+      // influenceY * influenceZ * totalInfluenceStrength;
+
+      /*
+        Apply
+       */
+      if (isHeight) targetArray[index * 3 + 1] += totalInfluence;
+
+      if (isDepth) targetArray[index * 3 + 2] -= totalInfluence;
+
+      applied = true;
+    }
   }
+
+  // Add the vertex to the filtered vertices array for visualization if it was affected by any morph
+  if (applied && visualizer) visualizer.push(vertex.clone());
 }
 
 /**
