@@ -200,7 +200,7 @@ const ModelsPathPrefix = "./models";
 const HairPathPrefix = `${ModelsPathPrefix}/hair`;
 
 // --- Head Prefix ---
-const HeadPathPrefix = `${ModelsPathPrefix}/head`;
+export const HeadPathPrefix = `${ModelsPathPrefix}/head`;
 
 // --- Head Male Prefix ---
 export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
@@ -214,7 +214,7 @@ export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
   ukn-01
   ukn-02
  */
-export const HeadMaleSubPath = `/isspd-01`;
+export const DefaultHeadMaleSubPath = `/isspd-01`;
 
 // --- Head Female Prefix ---
 export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
@@ -226,7 +226,31 @@ export const HeadFeMalePathPrefix = `${HeadPathPrefix}/female`;
   ukn01-issue01
   ukn02-issue01
 */
-export const HeadFeMaleSubPath = `/default/prev`;
+export const DefaultHeadFeMaleSubPath = `/default/prev`;
+
+/**
+ * Get the head model paths based on gender and subpath.
+ * @param isFemale boolean
+ * @param subPath string (optional, starts with /)
+ * @returns object with model and texture paths
+ */
+export const getHeadModelPaths = (isFemale: boolean, subPath?: string) => {
+  const prefix = isFemale ? HeadFeMalePathPrefix : HeadMalePathPrefix;
+  const currentSubPath =
+    subPath || (isFemale ? DefaultHeadFeMaleSubPath : DefaultHeadMaleSubPath);
+  const basePath = `${prefix}${currentSubPath}`;
+
+  return {
+    Model: `${basePath}/model.obj`,
+    Texture: {
+      HeadColTex: `${basePath}/headColor.png`,
+      EyeLColTex: `${basePath}/eyeColorL.png`,
+      EyeRColTex: `${basePath}/eyeColorR.png`,
+      TeethColTex: `${basePath}/TeethColor.png`,
+    },
+    MTLPath: `${basePath}/metaHumanLod0.mtl`,
+  };
+};
 
 // --- Body Prefix ---
 const BodyPathPrefix = `${ModelsPathPrefix}/body`;
@@ -239,25 +263,8 @@ export const ModelPaths = {
     Model: `${HairPathPrefix}/mold.obj`,
     Texture: { ColorTex: `${HairPathPrefix}/map.png` },
   },
-  HeadFemale: {
-    Model: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/model.obj`,
-    Texture: {
-      HeadColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/headColor.png`,
-      EyeLColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/eyeColorL.png`,
-      EyeRColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/eyeColorR.png`,
-      TeethColTex: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/TeethColor.png`,
-    },
-    MTLPath: `${HeadFeMalePathPrefix}${HeadFeMaleSubPath}/metaHumanLod0.mtl`,
-  },
-  HeadMale: {
-    Model: `${HeadMalePathPrefix}${HeadMaleSubPath}/model.obj`,
-    Texture: {
-      HeadColorTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/headColor.png`,
-      EyeLColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/eyeColorL.png`,
-      EyeRColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/eyeColorR.png`,
-      TeethColTex: `${HeadMalePathPrefix}${HeadMaleSubPath}/TeethColor.png`,
-    },
-  },
+  HeadFemale: getHeadModelPaths(true),
+  HeadMale: getHeadModelPaths(false),
   Body: {
     Model: `${BodyPathPrefix}/mold.obj`,
     Texture: { ColorTex: `${BodyPathPrefix}/map.png` },

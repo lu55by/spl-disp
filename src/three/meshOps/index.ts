@@ -917,6 +917,12 @@ export function getAttributes(mesh: THREE.Mesh): THREE.NormalBufferAttributes {
 export async function applyTextures2LoadedHeadModelAsync(
   loadedHeadModel: THREE.Group<THREE.Object3DEventMap>,
   isModelFeMale: boolean,
+  customPaths?: {
+    HeadColTex: string;
+    TeethColTex: string;
+    EyeLColTex: string;
+    EyeRColTex: string;
+  },
 ) {
   const headNode = loadedHeadModel.getObjectByName(
     NodeNames.HeadNames.Head,
@@ -935,18 +941,16 @@ export async function applyTextures2LoadedHeadModelAsync(
     /*
       Texture Paths
     */
-    const headColTexPath = isModelFeMale
-      ? ModelPaths.HeadFemale.Texture.HeadColTex
-      : ModelPaths.HeadMale.Texture.HeadColorTex;
-    const teethColTexPath = isModelFeMale
-      ? ModelPaths.HeadFemale.Texture.TeethColTex
-      : ModelPaths.HeadMale.Texture.TeethColTex;
-    const eyeLColTexPath = isModelFeMale
-      ? ModelPaths.HeadFemale.Texture.EyeLColTex
-      : ModelPaths.HeadMale.Texture.EyeLColTex;
-    const eyeRColTexPath = isModelFeMale
-      ? ModelPaths.HeadFemale.Texture.EyeRColTex
-      : ModelPaths.HeadMale.Texture.EyeRColTex;
+    const paths =
+      customPaths ||
+      (isModelFeMale
+        ? ModelPaths.HeadFemale.Texture
+        : ModelPaths.HeadMale.Texture);
+
+    const headColTexPath = paths.HeadColTex;
+    const teethColTexPath = paths.TeethColTex;
+    const eyeLColTexPath = paths.EyeLColTex;
+    const eyeRColTexPath = paths.EyeRColTex;
 
     /*
       Head Color Texture
@@ -1523,4 +1527,6 @@ export async function replaceCurrentHeadWithCutHead(
   disposeGroupObject(importedCutter);
   // Add the new cut head to the splicing group global
   splicingGroupGlobal.add(newCutHead);
+  // Generate the facial morphs
+  generateFacialMorphs(splicingGroupGlobal, { noseRadius: 7 });
 }

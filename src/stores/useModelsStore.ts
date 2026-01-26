@@ -6,6 +6,7 @@ import { ToastContents } from "../constants/index.ts";
 import {
   CutHeadBoundingBoxHeight,
   CutHeadEyesNodeCombinedGroupName,
+  getHeadModelPaths,
   ModelPaths,
   NodeNames,
   OBJLoaderInstance,
@@ -34,7 +35,6 @@ import { csgSubtract } from "../three/utils/csgCutHeadV3.ts";
 export const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
   await OBJLoaderInstance.loadAsync(
     ModelPaths.Cutters.OralSphereCylinderCombined,
-    // ModelPaths.Cutters.OralMod01
   );
 
 /*
@@ -50,26 +50,65 @@ const SphereCutter = LoadedCuttersModel.getObjectByName(
 const SphCutHeadBox3 = new THREE.Box3();
 
 /*
-  Load Default Cut Head
+  Available Head Models
  */
-const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
-  const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
-    await OBJLoaderInstance.loadAsync(
-      // Male
-      isFemale ? ModelPaths.HeadFemale.Model : ModelPaths.HeadMale.Model,
+export const AvailableHeadModels = {
+  female: [
+    { name: "头模-01", subPath: "/default/prev" },
+    { name: "头模-02", subPath: "/default/new" },
+    { name: "头模-03", subPath: "/ellie01" },
+    { name: "头模-04", subPath: "/ukn01-issue01" },
+    { name: "头模-05", subPath: "/ukn02-issue01" },
+  ],
+  male: [
+    { name: "头模-01", subPath: "/isspd-01" },
+    { name: "头模-02", subPath: "/big-one-01" },
+    { name: "头模-03", subPath: "/sasha-01" },
+    { name: "头模-04", subPath: "/seki-01" },
+    { name: "头模-05", subPath: "/ukn-01" },
+    { name: "头模-06", subPath: "/ukn-02" },
+    { name: "头模-07", subPath: "/default" },
+  ],
+};
+
+/*
+  Head Models Cache
+ */
+const HeadModelsCache = new Map<string, THREE.Group<THREE.Object3DEventMap>>();
+
+/**
+ * Load and prepare a head model.
+ * @param isFemale boolean
+ * @param subPath string
+ * @returns Promise<THREE.Group>
+ */
+const loadHeadModelAsync = async (isFemale: boolean, subPath?: string) => {
+  const cacheKey = `${isFemale ? "female" : "male"}_${subPath || "default"}`;
+  if (HeadModelsCache.has(cacheKey)) {
+    console.log(
+      `\n -- loadHeadModelAsync -- Returning cached model for ${cacheKey}`,
     );
+    return HeadModelsCache.get(cacheKey)!;
+  }
+
+  const paths = getHeadModelPaths(isFemale, subPath);
+  const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
+    await OBJLoaderInstance.loadAsync(paths.Model);
+
   console.log(
-    "\n -- loadDefaultCutHeadAsync -- loadedHeadModel ->",
+    `\n -- loadHeadModelAsync -- loadedHeadModel (${cacheKey}) ->`,
     loadedHeadModel,
   );
 
   // Apply textures
-  await applyTextures2LoadedHeadModelAsync(loadedHeadModel, isFemale);
+  await applyTextures2LoadedHeadModelAsync(
+    loadedHeadModel,
+    isFemale,
+    paths.Texture,
+  );
 
   // THE ORIGINAL LOADED HEAD MODEL
   const headModel = loadedHeadModel;
-  // THE CUT HEAD MODEL
-  // const headModel = await getCutHead(loadedHeadModel, LoadedCuttersModel);
 
   // Calculate the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight and store it to the userData of the loadedHeadModel
   const headNode = (headModel.getObjectByName(NodeNames.HeadNames.Head) ||
@@ -85,10 +124,7 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   const minYSphCutHead = sphCutHeadBoundingBox.min.y;
   const maxYSphCutHead = sphCutHeadBoundingBox.max.y;
   const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
-  console.log(
-    "\n -- loadDefaultCutHeadAsync -- sphCutHeadHeight ->",
-    sphCutHeadHeight,
-  );
+
   loadedHeadModel.userData.minYSphCutHead = minYSphCutHead;
   loadedHeadModel.userData.maxYSphCutHead = maxYSphCutHead;
   loadedHeadModel.userData.sphCutHeadHeight = sphCutHeadHeight;
@@ -109,32 +145,33 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   adjustPivotPointsForMesh(eyeLNode);
   adjustPivotPointsForMesh(eyeRNode);
 
+  // Set name
+  headModel.name =
+    CutHeadEyesNodeCombinedGroupName + (isFemale ? "Female" : "Male");
+
+  // Cache it
+  HeadModelsCache.set(cacheKey, headModel);
+
   return headModel;
 };
 
 /*
   Default Original Head Female
  */
-const DefaultOriginalHeadFemale = await loadDefaultCutHeadAsync(true);
-DefaultOriginalHeadFemale.name = CutHeadEyesNodeCombinedGroupName + "Female";
-// console.log("\n DefaultOriginalHeadFemale ->", DefaultOriginalHeadFemale);
+const DefaultOriginalHeadFemale = await loadHeadModelAsync(true);
 
 /*
   Default Original Head Male
  */
-const DefaultOriginalHeadMale = await loadDefaultCutHeadAsync(false);
-DefaultOriginalHeadMale.name = CutHeadEyesNodeCombinedGroupName + "Male";
-// console.log("\n DefaultOriginalHeadMale ->", DefaultOriginalHeadMale);
+const DefaultOriginalHeadMale = await loadHeadModelAsync(false);
 
 /*
   Splicing Group
  */
 const SplicingGroupGlobal = markRaw(
-  // new THREE.Group().add(DefaultOriginalHeadFemale.clone()),
   new THREE.Group().add(DefaultOriginalHeadMale.clone()),
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
-
 
 /**
  * Model Store
@@ -144,11 +181,11 @@ export const useModelsStore = defineStore("models", {
     // Global Splicing Group
     splicingGroupGlobal: SplicingGroupGlobal,
     // Default Original Head
-    // defaultOriginalHead: DefaultOriginalHeadFemale,
     defaultOriginalHead: DefaultOriginalHeadMale,
     // isDefaultHeadFemale state to toggle the gender of the default original head
-    // isDefaultHeadFemale: true,
     isDefaultHeadFemale: false,
+    // Current Head Model SubPath
+    currentHeadModelSubPath: AvailableHeadModels.male[0].subPath,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
     // Drag and Drop Hovered Object
@@ -167,17 +204,37 @@ export const useModelsStore = defineStore("models", {
 
   actions: {
     /**
-     * Set the default original head.
+     * Set the default original head (shorthand for gender toggle).
      * @param isFemale The gender of the default original head
      */
-    // TODO: Optimize the setDefaultOriginalHead fn that will cause the frame dropping.
-    setDefaultOriginalHead(isFemale: boolean) {
-      this.defaultOriginalHead = isFemale
-        ? DefaultOriginalHeadFemale
-        : DefaultOriginalHeadMale;
+    async setDefaultOriginalHead(isFemale: boolean) {
+      const subPath = isFemale
+        ? AvailableHeadModels.female[0].subPath
+        : AvailableHeadModels.male[0].subPath;
+      await this.setHeadModel(isFemale, subPath);
+    },
+
+    /**
+     * Set the head model by gender and subpath.
+     * @param isFemale boolean
+     * @param subPath string
+     */
+    async setHeadModel(isFemale: boolean, subPath: string) {
+      console.log(
+        `\n -- setHeadModel -- isFemale -> ${isFemale}, subPath -> ${subPath}`,
+      );
+
+      const headModel = await loadHeadModelAsync(isFemale, subPath);
+
+      this.defaultOriginalHead = headModel;
+      this.isDefaultHeadFemale = isFemale;
+      this.currentHeadModelSubPath = subPath;
+
       disposeAndRemoveCurrentCutHead(this.splicingGroupGlobal);
       this.splicingGroupGlobal.add(this.defaultOriginalHead.clone());
-      this.isDefaultHeadFemale = isFemale;
+
+      // Update state to trigger watchers
+      this.syncSplicingGroupLength();
     },
 
     /**

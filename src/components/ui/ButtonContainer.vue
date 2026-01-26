@@ -84,16 +84,13 @@
             <i class="opacity-50 text-[10px] uppercase">Vis</i>
             切换{{ isShowMap ? "白" : "彩" }}模
           </Button>
-          <Button @click="toggleIsFemale">
-            <i class="opacity-50 text-[10px] uppercase">Vis</i>
-            切换{{ isDefaultHeadFemale ? "男" : "女" }}头模
-          </Button>
           <Button @click="handleExport">
             <i class="opacity-50 text-[10px] uppercase">Out</i> 导出
           </Button>
           <Button @click="clearModels">
             <i class="opacity-50 text-[10px] uppercase">Clr</i> 清空
           </Button>
+          <HeadModelSelector />
         </div>
       </div>
 
@@ -164,6 +161,7 @@ import {
   validateImportFilesWithNodeNames,
 } from "../../utils/fileValidators";
 import Button from "./Button.vue";
+import HeadModelSelector from "./HeadModelSelector.vue";
 
 /*
   Toggle Menu (Mobile Only)
@@ -187,7 +185,7 @@ const {
 // Use 'watch' to perform a side effect (like logging) when a reactive source changes
 watch(splicingGroupLen, (newLength, oldLength) => {
   console.log(
-    `\n -- ButtonContainer -- splicingGroupLen changed from ${oldLength} to ${newLength}`
+    `\n -- ButtonContainer -- splicingGroupLen changed from ${oldLength} to ${newLength}`,
   );
 });
 
@@ -224,13 +222,6 @@ const toggleIsShowMap = () => {
 };
 
 /**
- * Toggle isFemaleDefaultHead
- */
-const toggleIsFemale = () => {
-  modelsStore.setDefaultOriginalHead(!isDefaultHeadFemale.value);
-};
-
-/**
  * Import Models
  * When file selected → import it
  */
@@ -260,7 +251,7 @@ const handleFileChange = async (e: Event) => {
     // await new Promise((resolve) => setTimeout(resolve, 5000));
     const success = await modelsStore.importObjStlWithNodeNames(
       files,
-      parsedObjGroupFromValidators
+      parsedObjGroupFromValidators,
     );
 
     if (success) {
@@ -296,7 +287,7 @@ const clearModels = () => {
 
   // Filter out the cut head group (filteredSubGroups -> sub groups to remove)
   const filteredSubGroups: Group<Object3DEventMap>[] = getFilteredSubGroups(
-    splicingGroupGlobal.value
+    splicingGroupGlobal.value,
   );
 
   console.log("\nfilteredSubGroups ->", filteredSubGroups);

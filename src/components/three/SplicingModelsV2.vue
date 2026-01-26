@@ -29,8 +29,12 @@ const canvasEle = ref<HTMLCanvasElement | null>(null);
  */
 const modelsStore = useModelsStore();
 const { splicingGroupGlobal } = modelsStore;
-const { splicingGroupLen, isShowMap, isDefaultHeadFemale } =
-  storeToRefs(modelsStore);
+const {
+  splicingGroupLen,
+  isShowMap,
+  isDefaultHeadFemale,
+  currentHeadModelSubPath,
+} = storeToRefs(modelsStore);
 
 /*
   Orbit Controls Target Center Update Logic
@@ -421,6 +425,8 @@ const init = async () => {
 
     if (isVisualizerDisabled) return;
 
+    // TODO: Remove the previous visualizers
+
     /**
      * Tips Visualizers
      */
@@ -783,8 +789,8 @@ const init = async () => {
     applyMixedColorNode(splicingGroupGlobal);
   });
 
-  // Reapply the mixed colorNode if isDefaultHeadFemale state changes
-  watch(isDefaultHeadFemale, () => {
+  // Reapply the mixed colorNode and regenerate the facial morphs and visualizers if head model changes (gender or subpath)
+  watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
     generateFacialMorphsAndVisualizers(true, selectedVisualizer);
   });

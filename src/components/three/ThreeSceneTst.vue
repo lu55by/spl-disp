@@ -20,13 +20,16 @@ import {
 import * as THREE from "three/webgpu";
 import type { Pane } from "tweakpane";
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { LoadedCuttersModel, useModelsStore } from "../../stores/useModelsStore";
+import {
+  LoadedCuttersModel,
+  useModelsStore,
+} from "../../stores/useModelsStore";
 import {
   CameraProps,
   CutHeadEyesNodeCombinedGroupName,
+  DefaultHeadFeMaleSubPath,
+  DefaultHeadMaleSubPath,
   HDRPath,
-  HeadFeMaleSubPath,
-  HeadMaleSubPath,
   ModelPaths,
   NodeNames,
   OBJLoaderInstance,
@@ -58,8 +61,7 @@ import { getCutHead } from "../../three/utils/csgCutHeadV3";
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const { splicingGroupGlobal: globalGroup } =
-  useModelsStore();
+const { splicingGroupGlobal: globalGroup } = useModelsStore();
 console.log("Global Group ->", globalGroup);
 
 let camera: THREE.PerspectiveCamera,
@@ -230,7 +232,7 @@ const init = async () => {
 
     // Male
     const headMaleColTex = await loadTexture(
-      ModelPaths.HeadMale.Texture.HeadColorTex,
+      ModelPaths.HeadMale.Texture.HeadColTex,
     );
     const eyeLMaleColTex = await loadTexture(
       ModelPaths.HeadMale.Texture.EyeLColTex,
@@ -364,7 +366,7 @@ const init = async () => {
 
     // Male
     const headMaleColTex = await loadTexture(
-      ModelPaths.HeadMale.Texture.HeadColorTex,
+      ModelPaths.HeadMale.Texture.HeadColTex,
     );
     const eyeLMaleColTex = await loadTexture(
       ModelPaths.HeadMale.Texture.EyeLColTex,
@@ -514,7 +516,9 @@ const init = async () => {
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
     // const headModelPath = modelPath;
-    const subPath2Search = isModelFeMale ? HeadFeMaleSubPath : HeadMaleSubPath;
+    const subPath2Search = isModelFeMale
+      ? DefaultHeadFeMaleSubPath
+      : DefaultHeadMaleSubPath;
     headModelPath = headModelPath.replace(subPath2Search, modelSubPath);
 
     console.log("headModelPath ->", headModelPath);
@@ -547,7 +551,7 @@ const init = async () => {
             subPath2Search,
             modelSubPath,
           )
-        : ModelPaths.HeadMale.Texture.HeadColorTex.replace(
+        : ModelPaths.HeadMale.Texture.HeadColTex.replace(
             subPath2Search,
             modelSubPath,
           );
@@ -602,7 +606,9 @@ const init = async () => {
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
     // const headModelPath = modelPath;
-    const subPath2Search = isModelFeMale ? HeadFeMaleSubPath : HeadMaleSubPath;
+    const subPath2Search = isModelFeMale
+      ? DefaultHeadFeMaleSubPath
+      : DefaultHeadMaleSubPath;
     headModelPath = headModelPath.replace(subPath2Search, modelSubPath);
 
     console.log("headModelPath ->", headModelPath);
@@ -635,7 +641,7 @@ const init = async () => {
             subPath2Search,
             modelSubPath,
           )
-        : ModelPaths.HeadMale.Texture.HeadColorTex.replace(
+        : ModelPaths.HeadMale.Texture.HeadColTex.replace(
             subPath2Search,
             modelSubPath,
           );
@@ -688,7 +694,9 @@ const init = async () => {
       ? ModelPaths.HeadFemale.Model
       : ModelPaths.HeadMale.Model;
     // const headModelPath = modelPath;
-    const subPath2Search = isModelFeMale ? HeadFeMaleSubPath : HeadMaleSubPath;
+    const subPath2Search = isModelFeMale
+      ? DefaultHeadFeMaleSubPath
+      : DefaultHeadMaleSubPath;
     headModelPath = headModelPath.replace(subPath2Search, modelSubPath);
 
     console.log("headModelPath ->", headModelPath);
@@ -721,7 +729,7 @@ const init = async () => {
             subPath2Search,
             modelSubPath,
           )
-        : ModelPaths.HeadMale.Texture.HeadColorTex.replace(
+        : ModelPaths.HeadMale.Texture.HeadColTex.replace(
             subPath2Search,
             modelSubPath,
           );
