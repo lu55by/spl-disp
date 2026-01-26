@@ -172,7 +172,7 @@ export function generateFacialMorphs(
       visualizerByNoseTipDetection.push(vertex.clone());
     }
   }
-  console.log("\n -- generateFacialMorphs -- noseTip detected ->", noseTip);
+  console.log("\n -- generateFacialMorphs -- noseTip calculated ->", noseTip);
 
   /**
    * Ⅰ.Ⅱ NOSTRIL TIPS DETECTION
@@ -959,7 +959,7 @@ export async function applyTextures2LoadedHeadModelAsync(
     try {
       teethColTex = await loadTexture(teethColTexPath);
     } catch (err: any) {
-      console.error(err);
+      console.warn(err);
     }
     /*
       Eye Left Color Texture
@@ -1019,6 +1019,12 @@ export function applyDebugTransformation(
   obj?.scale.setScalar(CutHeadDebugProps.Scalar);
 }
 
+/**
+ * Apply PBR Material and SRGB Color Space
+ * @param obj Object to apply PBR Material and SRGB Color Space
+ * @param isStandard Whether to use MeshStandardNodeMaterial
+ * @param params Parameters for MeshStandardNodeMaterial
+ */
 export function applyPBRMaterialAndSRGBColorSpace(
   obj: THREE.Object3D,
   isStandard: boolean,
@@ -1047,6 +1053,10 @@ export function applyPBRMaterialAndSRGBColorSpace(
   });
 }
 
+/**
+ * Apply Double Side
+ * @param obj Object to apply Double Side
+ */
 export function applyDoubleSide(obj: THREE.Object3D) {
   // console.log("\n -- applyDoubleSide -- obj ->", obj);
   if (!(obj instanceof THREE.Group)) return;
@@ -1408,7 +1418,7 @@ export function removeAndAddModelWithNodeNames(
 }
 
 /**
- * Dispose each geometry and material of meshes in the group object.
+ * Dispose each geometry and material of meshes in a group object.
  * @param obj2Dispose The group object to dispose.
  */
 export function disposeGroupObject(
@@ -1443,28 +1453,36 @@ export function disposeGroupObject(
 export function disposeAndRemoveCurrentCutHead(
   splicingGroupGlobal: THREE.Group<THREE.Object3DEventMap>,
 ) {
-  let currentCutHead: THREE.Group<THREE.Object3DEventMap> | null = null;
-  // Find the current cut head
-  currentCutHead = splicingGroupGlobal.children.find((child) => {
+  let currentHead: THREE.Group<THREE.Object3DEventMap> | null = null;
+  /*
+    Ⅰ. Find the current head in the splicing group global
+   */
+  currentHead = splicingGroupGlobal.children.find((child) => {
     return child.name
       .toLocaleLowerCase()
       .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase());
   }) as THREE.Group<THREE.Object3DEventMap>;
   console.log(
     "\n -- disposeCurrentCutHead -- currentCutHead to be disposed ->",
-    currentCutHead,
+    currentHead,
   );
 
-  // Check if the current cut head is found
-  if (!currentCutHead) {
+  /*
+    Ⅱ. Check if the current head is found
+   */
+  if (!currentHead) {
     console.warn("\n -- disposeCurrentCutHead -- No cut head found to dispose");
     return;
   }
-  // Execute the dispose operation
-  disposeGroupObject(currentCutHead);
+  /*
+    Ⅲ. Execute the dispose operation
+   */
+  disposeGroupObject(currentHead);
 
-  // Finally remove from the splicingGroupGlobal
-  splicingGroupGlobal.remove(currentCutHead);
+  /*
+    Ⅳ. Finally remove the head from the splicingGroupGlobal
+   */
+  splicingGroupGlobal.remove(currentHead);
 }
 
 /**

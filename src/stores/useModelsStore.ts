@@ -135,13 +135,6 @@ const SplicingGroupGlobal = markRaw(
 ) as THREE.Group<THREE.Object3DEventMap>;
 SplicingGroupGlobal.name = "SplicingGroupGlobal";
 
-/*
-  Cutters Model
- */
-const CuttersModelGlobal = markRaw(
-  LoadedCuttersModel,
-) as THREE.Group<THREE.Object3DEventMap>;
-CuttersModelGlobal.name = "CuttersModelGlobal";
 
 /**
  * Model Store
@@ -158,8 +151,6 @@ export const useModelsStore = defineStore("models", {
     isDefaultHeadFemale: false,
     // Splicing Group Length State
     splicingGroupLengthState: 1,
-    // Global Cutters Model
-    cuttersModelGlobal: CuttersModelGlobal,
     // Drag and Drop Hovered Object
     dragHoveredObject: null as THREE.Mesh | null,
     // Selected Object by mouse click

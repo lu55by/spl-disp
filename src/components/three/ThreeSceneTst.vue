@@ -20,7 +20,7 @@ import {
 import * as THREE from "three/webgpu";
 import type { Pane } from "tweakpane";
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { useModelsStore } from "../../stores/useModelsStore";
+import { LoadedCuttersModel, useModelsStore } from "../../stores/useModelsStore";
 import {
   CameraProps,
   CutHeadEyesNodeCombinedGroupName,
@@ -58,7 +58,7 @@ import { getCutHead } from "../../three/utils/csgCutHeadV3";
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
 
-const { splicingGroupGlobal: globalGroup, cuttersModelGlobal } =
+const { splicingGroupGlobal: globalGroup } =
   useModelsStore();
 console.log("Global Group ->", globalGroup);
 
@@ -581,7 +581,7 @@ const init = async () => {
 
     const cutHead = await getCutHeadV3(
       loadedHeadModel,
-      cuttersModelGlobal,
+      LoadedCuttersModel,
       isModelFeMale,
     );
     applyDebugTransformation(cutHead, debugPosOffset);
@@ -667,7 +667,7 @@ const init = async () => {
     };
     await applyTexture();
 
-    const cutHead = await getCutHeadV4(loadedHeadModel, cuttersModelGlobal);
+    const cutHead = await getCutHeadV4(loadedHeadModel, LoadedCuttersModel);
     applyDebugTransformation(cutHead, debugPosOffset);
     applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     applyDoubleSide(cutHead);
@@ -753,7 +753,7 @@ const init = async () => {
     };
     await applyTexture();
 
-    const cutHead = await getCutHead(loadedHeadModel, cuttersModelGlobal);
+    const cutHead = await getCutHead(loadedHeadModel, LoadedCuttersModel);
     applyDebugTransformation(cutHead, debugPosOffset);
     applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     applyDoubleSide(cutHead);
@@ -962,7 +962,7 @@ const init = async () => {
 
     const cutHeadDefault = await getCutHead(
       loadedHeadModel,
-      cuttersModelGlobal,
+      LoadedCuttersModel,
     );
     cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
     // Apply PBR Material and SRGB Color Space
@@ -1045,7 +1045,7 @@ const init = async () => {
     // Get Cut Head
     const cutHeadDefault = await getCutHead(
       loadedHeadModel,
-      cuttersModelGlobal,
+      LoadedCuttersModel,
     );
     cutHeadDefault.name = CutHeadEyesNodeCombinedGroupName;
     // Apply PBR Material and SRGB Color Space
