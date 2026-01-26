@@ -47,7 +47,7 @@ export function exportMeshToOBJ(mesh: Mesh, baseName = "cutHead-exported") {
  */
 export function exportObjectToOBJ(
   object: Object3D,
-  baseName: string = "cutHead-exported"
+  baseName: string = "cutHead-exported",
 ) {
   // Convert object to OBJ text
   const objText = parseObjectToOptimizedOBJ(object);
@@ -85,7 +85,7 @@ export function exportObjectToBlob(object: Object3D): Blob {
  * Converts a map Texture to a Blob (PNG)
  */
 export async function mapTexToBlob(
-  texture: THREE.Texture
+  texture: THREE.Texture,
 ): Promise<Blob | null> {
   if (!texture || !texture.image) return null;
 
@@ -166,7 +166,7 @@ export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
             if (blob) {
               zip.file(texName, blob);
             }
-          })()
+          })(),
         );
       }
     }
@@ -246,7 +246,7 @@ export async function exportSplicingGroup(group: Object3D): Promise<boolean> {
     if ((err as Error).name !== "AbortError") {
       console.warn(
         "File System Access API failed, falling back to download anchor",
-        err
+        err,
       );
       const link = document.createElement("a");
       link.href = URL.createObjectURL(zipBlob);

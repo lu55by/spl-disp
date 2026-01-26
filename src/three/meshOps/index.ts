@@ -1,6 +1,6 @@
-import * as THREE from "three/webgpu";
 import { Brush } from "three-bvh-csg";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import * as THREE from "three/webgpu";
 import {
   Colors,
   CutHeadBoundingBoxHeight,
@@ -13,15 +13,14 @@ import {
 } from "../constants";
 import { exportObjectToOBJ } from "../exporters";
 import { loadTexture } from "../loaders/TextureLoader";
-import { csgSubtract, getCutHead } from "../utils/csgCutHeadV3";
+import { getCutHead } from "../utils/csgCutHeadV3";
 
-import initManifold, { type Mesh as IManifoldMesh } from "manifold-3d";
+import initManifold from "manifold-3d";
 import manifoldWasm from "manifold-3d/manifold.wasm?url";
 import type {
   CutHeadEyesNodeCombinedGrpUserData,
   FacialMorphsVisualizers,
 } from "../../types";
-import { LoadedCuttersModel } from "../../stores/useModelsStore";
 
 /**
  * Generates facial morphs for a given model.
@@ -77,22 +76,22 @@ export function generateFacialMorphs(
   const { minYSphCutHead, maxYSphCutHead, sphCutHeadHeight } = headNode.parent
     ?.userData as CutHeadEyesNodeCombinedGrpUserData;
   const mouseTipY = minYSphCutHead + sphCutHeadHeight * 0.215;
-  console.log(
-    "\n -- generateFacialMorphs -- minYSphCutHead ->",
-    minYSphCutHead,
-  );
-  console.log(
-    "\n -- generateFacialMorphs -- maxYSphCutHead ->",
-    maxYSphCutHead,
-  );
-  console.log(
-    "\n -- generateFacialMorphs -- sphCutHeadHeight ->",
-    sphCutHeadHeight,
-  );
-  console.log(
-    "\n -- generateFacialMorphs -- mouseTipY calculated ->",
-    mouseTipY,
-  );
+  // console.log(
+  //   "\n -- generateFacialMorphs -- minYSphCutHead ->",
+  //   minYSphCutHead,
+  // );
+  // console.log(
+  //   "\n -- generateFacialMorphs -- maxYSphCutHead ->",
+  //   maxYSphCutHead,
+  // );
+  // console.log(
+  //   "\n -- generateFacialMorphs -- sphCutHeadHeight ->",
+  //   sphCutHeadHeight,
+  // );
+  // console.log(
+  //   "\n -- generateFacialMorphs -- mouseTipY calculated ->",
+  //   mouseTipY,
+  // );
 
   const geoOrg = headNode.geometry;
   // Clone geometry to ensure we don't affect other meshes sharing the same geometry
@@ -149,15 +148,6 @@ export function generateFacialMorphs(
    * Ⅰ.Ⅰ NOSE TIP DETECTION
    */
   // 1.1.1 Look for the vertex with the max Z value within a narrow vertical strip in the center
-  let boundingBoxHeadNode = geo.boundingBox;
-  if (!boundingBoxHeadNode) {
-    geo.computeBoundingBox();
-    boundingBoxHeadNode = geo.boundingBox;
-  }
-  console.log(
-    `\n -- generateFacialMorphs -- geometry of [${headNode.name}] boundingBox ->`,
-    boundingBoxHeadNode,
-  );
 
   /*
     Variables for excluding the vertices that the y coordinate is outside the
@@ -165,12 +155,11 @@ export function generateFacialMorphs(
    */
   const maxVertYPerc = 0.3;
   const minVertYPerc = 0.25;
-  const noseTipDetectionDisY =
-    boundingBoxHeadNode.max.y - boundingBoxHeadNode.min.y;
+  const noseTipDetectionDisY = sphCutHeadHeight;
   const maxYNoseTipDetection =
-    boundingBoxHeadNode.max.y - noseTipDetectionDisY * maxVertYPerc;
+    maxYSphCutHead - noseTipDetectionDisY * maxVertYPerc;
   const minYNoseTipDetection =
-    boundingBoxHeadNode.min.y + noseTipDetectionDisY * minVertYPerc;
+    minYSphCutHead + noseTipDetectionDisY * minVertYPerc;
 
   // 1.1.2 Iterate through the vertex count to get the nose tip
   for (let i = 0; i < positions.count; i++) {
@@ -465,18 +454,23 @@ export function generateFacialMorphs(
  * @param mesh The mesh to bake morphs for.
  */
 export function bakeMorphTargets(mesh: THREE.Mesh): void {
-  const geometry = mesh.geometry;
   const influences = mesh.morphTargetInfluences;
+  console.log(
+    `\n -- bakeMorphTargets -- influences of ${mesh.name} ->`,
+    influences,
+  );
 
   if (!influences || influences.length === 0) return;
 
-  const positionAttr = geometry.getAttribute("position");
-  const morphAttr = geometry.morphAttributes.position;
+  const clonedGeo = mesh.geometry.clone();
+
+  const morphAttr = clonedGeo.morphAttributes.position;
 
   if (!morphAttr || morphAttr.length === 0) return;
 
+  const positionAttr = clonedGeo.getAttribute("position");
   const vertexCount = positionAttr.count;
-  const isRelative = (geometry as any).morphTargetsRelative;
+  const isRelative = (clonedGeo as any).morphTargetsRelative;
 
   // I. VERTEX PROCESSING LOOP: Calculate final positions based on active morph targets
   for (let i = 0; i < vertexCount; i++) {
@@ -521,12 +515,10 @@ export function bakeMorphTargets(mesh: THREE.Mesh): void {
   positionAttr.needsUpdate = true;
 
   // III. NORMALS RECOMPUTATION: Re-generate normals to ensure lighting matches the new shape
-  geometry.computeVertexNormals();
+  clonedGeo.computeVertexNormals();
 
-  // IV. CLEANUP: Clear morph data since they are now permanently baked into the base geometry
-  geometry.morphAttributes = {};
-  mesh.morphTargetDictionary = {};
-  mesh.morphTargetInfluences = [];
+  // IV. UPDATE MESH GEOMETRY
+  mesh.geometry = clonedGeo;
 }
 
 /**

@@ -53,14 +53,14 @@ const FixedCutHeadHeightThreshold4OralCavity =
   FixedNormalSmallHeightGap * FixedInterpolationFactor;
 
 // LOGS
-console.log("\n -- NormalHeadLowestHeight ->", FixedNormalHeadLowestHeight);
-console.log("\n -- SmallHeadHighestHeight ->", FixedSmallHeadHighestHeight);
-console.log("\n -- NormalSmallHeightGap ->", FixedNormalSmallHeightGap);
-console.log("\n -- InterpolationFactor ->", FixedInterpolationFactor);
-console.log(
-  "\n -- CutHeadHeightThreshold4OralCavity ->",
-  FixedCutHeadHeightThreshold4OralCavity
-);
+// console.log("\n -- NormalHeadLowestHeight ->", FixedNormalHeadLowestHeight);
+// console.log("\n -- SmallHeadHighestHeight ->", FixedSmallHeadHighestHeight);
+// console.log("\n -- NormalSmallHeightGap ->", FixedNormalSmallHeightGap);
+// console.log("\n -- InterpolationFactor ->", FixedInterpolationFactor);
+// console.log(
+//   "\n -- CutHeadHeightThreshold4OralCavity ->",
+//   FixedCutHeadHeightThreshold4OralCavity
+// );
 
 /**
  * Types

@@ -100,8 +100,8 @@ const updateEyeNodes = () => {
     return;
   }
 
-  console.log("\n -- updateEyeNodes -- eyeLNode ->", nodeL);
-  console.log("\n -- updateEyeNodes -- eyeRNode ->", nodeR);
+  // console.log("\n -- updateEyeNodes -- eyeLNode ->", nodeL);
+  // console.log("\n -- updateEyeNodes -- eyeRNode ->", nodeR);
 
   if (nodeL instanceof THREE.Mesh && nodeR instanceof THREE.Mesh) {
     eyeLNode.value = nodeL;
