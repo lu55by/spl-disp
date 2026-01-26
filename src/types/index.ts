@@ -1,4 +1,5 @@
 import type { Group, Object3DEventMap, Vector3 } from "three";
+import type { UniformNode } from "three/webgpu";
 
 export interface FilesValidatorReturnType {
   isValid: boolean;
@@ -39,4 +40,14 @@ export interface FacialMorphsVisualizers {
   visualizerByEyeBrowMorph: Vector3[];
   visualizerByMouseCornersWidthMorph: Vector3[];
   visualizerByEarMorph: Vector3[];
+}
+
+/*
+  Cut Head Eyes Node Combined Grp UserData
+ */
+export interface CutHeadEyesNodeCombinedGrpUserData {
+  minYSphCutHead: number;
+  maxYSphCutHead: number;
+  sphCutHeadHeight: number;
+  uLocalToggleOutline: UniformNode<number>;
 }

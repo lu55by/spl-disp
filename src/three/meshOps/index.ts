@@ -17,7 +17,10 @@ import { csgSubtract, getCutHead } from "../utils/csgCutHeadV3";
 
 import initManifold, { type Mesh as IManifoldMesh } from "manifold-3d";
 import manifoldWasm from "manifold-3d/manifold.wasm?url";
-import type { FacialMorphsVisualizers } from "../../types";
+import type {
+  CutHeadEyesNodeCombinedGrpUserData,
+  FacialMorphsVisualizers,
+} from "../../types";
 import { LoadedCuttersModel } from "../../stores/useModelsStore";
 
 /**
@@ -70,24 +73,10 @@ export function generateFacialMorphs(
     centerEyeRNode,
   );
 
-  // Get the sphere cut head height to measure the Y coordinate of the mouse tips
-  const sphereCutter = LoadedCuttersModel.getObjectByName(
-    "cutting02",
-  ) as THREE.Mesh;
-  console.log("\n -- generateFacialMorphs -- sphereCutter ->", sphereCutter);
-  const sphCutHead = csgSubtract(
-    headNode,
-    sphereCutter,
-    true,
-    ["position"],
-    null,
-  );
-  const sphCutHeadBoudingBox = new THREE.Box3().setFromObject(sphCutHead);
-  const minYSphCutHead = sphCutHeadBoudingBox.min.y;
-  const maxYSphCutHead = sphCutHeadBoudingBox.max.y;
-  const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
+  // Get the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight from the headNode.parent userData
+  const { minYSphCutHead, maxYSphCutHead, sphCutHeadHeight } = headNode.parent
+    ?.userData as CutHeadEyesNodeCombinedGrpUserData;
   const mouseTipY = minYSphCutHead + sphCutHeadHeight * 0.215;
-  console.log("\n -- generateFacialMorphs -- sphCutHead ->", sphCutHead);
   console.log(
     "\n -- generateFacialMorphs -- minYSphCutHead ->",
     minYSphCutHead,

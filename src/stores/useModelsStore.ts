@@ -26,6 +26,7 @@ import {
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
 import type { UploadModelInputFields } from "../types/index.ts";
+import { csgSubtract } from "../three/utils/csgCutHeadV3.ts";
 
 /*
   Loaded Cutters Model
@@ -35,6 +36,18 @@ export const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
     ModelPaths.Cutters.OralSphereCylinderCombined,
     // ModelPaths.Cutters.OralMod01
   );
+
+/*
+  Sphere Cutter
+ */
+const SphereCutter = LoadedCuttersModel.getObjectByName(
+  "cutting02",
+) as THREE.Mesh;
+
+/*
+  Box3 instance for calculating the sph cut head height
+ */
+const SphCutHeadBox3 = new THREE.Box3();
 
 /*
   Load Default Cut Head
@@ -56,7 +69,29 @@ const loadDefaultCutHeadAsync = async (isFemale: boolean) => {
   // THE ORIGINAL LOADED HEAD MODEL
   const headModel = loadedHeadModel;
   // THE CUT HEAD MODEL
-  // const headModel = getCutHead(loadedHeadModel, LoadedCuttersModel);
+  // const headModel = await getCutHead(loadedHeadModel, LoadedCuttersModel);
+
+  // Calculate the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight and store it to the userData of the loadedHeadModel
+  const headNode = (headModel.getObjectByName(NodeNames.HeadNames.Head) ||
+    headModel.getObjectByName("CutHeadNode")) as THREE.Mesh;
+  const sphCutHead = csgSubtract(
+    headNode,
+    SphereCutter,
+    true,
+    ["position"],
+    null,
+  );
+  const sphCutHeadBoundingBox = SphCutHeadBox3.setFromObject(sphCutHead);
+  const minYSphCutHead = sphCutHeadBoundingBox.min.y;
+  const maxYSphCutHead = sphCutHeadBoundingBox.max.y;
+  const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
+  console.log(
+    "\n -- loadDefaultCutHeadAsync -- sphCutHeadHeight ->",
+    sphCutHeadHeight,
+  );
+  loadedHeadModel.userData.minYSphCutHead = minYSphCutHead;
+  loadedHeadModel.userData.maxYSphCutHead = maxYSphCutHead;
+  loadedHeadModel.userData.sphCutHeadHeight = sphCutHeadHeight;
 
   // Get the eye nodes
   const eyeLNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeL) ||
