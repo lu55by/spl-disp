@@ -26,8 +26,8 @@ import {
   removeAndAddModelWithNodeNames,
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
-import type { UploadModelInputFields } from "../types/index.ts";
 import { csgSubtract } from "../three/utils/csgCutHeadV3.ts";
+import type { UploadModelInputFields } from "../types/index.ts";
 
 /*
   Loaded Cutters Model
@@ -57,8 +57,7 @@ export const AvailableHeadModels = {
     { name: "女头模-01", subPath: "/default/prev" },
     { name: "女头模-02", subPath: "/default/new" },
     { name: "女头模-03", subPath: "/ellie01" },
-    { name: "女头模-04", subPath: "/ukn01-issue01" },
-    { name: "女头模-05", subPath: "/ukn02-issue01" },
+    { name: "女头模-04", subPath: "/ukn02-issue01" },
   ],
   male: [
     { name: "男头模-01", subPath: "/isspd-01" },
@@ -85,20 +84,12 @@ const HeadModelsCache = new Map<string, THREE.Group<THREE.Object3DEventMap>>();
 const loadHeadModelAsync = async (isFemale: boolean, subPath?: string) => {
   const cacheKey = `${isFemale ? "female" : "male"}_${subPath || "default"}`;
   if (HeadModelsCache.has(cacheKey)) {
-    console.log(
-      `\n -- loadHeadModelAsync -- Returning cached model for ${cacheKey}`,
-    );
     return HeadModelsCache.get(cacheKey)!;
   }
 
   const paths = getHeadModelPaths(isFemale, subPath);
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(paths.Model);
-
-  console.log(
-    `\n -- loadHeadModelAsync -- loadedHeadModel (${cacheKey}) ->`,
-    loadedHeadModel,
-  );
 
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(
@@ -220,10 +211,6 @@ export const useModelsStore = defineStore("models", {
      * @param subPath string
      */
     async setHeadModel(isFemale: boolean, subPath: string) {
-      console.log(
-        `\n -- setHeadModel -- isFemale -> ${isFemale}, subPath -> ${subPath}`,
-      );
-
       const headModel = await loadHeadModelAsync(isFemale, subPath);
 
       this.defaultOriginalHead = headModel;

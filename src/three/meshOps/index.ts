@@ -626,7 +626,8 @@ function applyMorph(
       const influenceZ = Math.pow(Math.sin(1 - dz / zRange), 2);
 
       // Lateral Falloff (X) -> ensure we affect the sides more than the center to avoid tearing the center line (X=0)
-      const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
+      // const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
+      const influenceX = Math.pow(Math.sin(1 - dx / xRange), 2);
 
       const totalInfluence =
         influenceY * influenceZ * influenceX * totalInfluenceStrength;
