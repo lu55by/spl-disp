@@ -32,7 +32,7 @@ const eyeRNode = ref<THREE.Mesh | null>(null);
 const eyeScale = ref(1);
 
 const minEyeScale = 0.9;
-const maxEyeScale = 1.2;
+const maxEyeScale = 1;
 
 /**
  * Check if the controller should be visible.

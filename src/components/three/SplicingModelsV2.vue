@@ -132,7 +132,9 @@ let camera: THREE.PerspectiveCamera,
   uOutlineColor: THREE.UniformNode<THREE.Color>,
   // uToggleOutline: THREE.UniformNode<number>,
   // raycaster intersection object
-  raycasterIntersectionObject: THREE.Object3D | null;
+  raycasterIntersectionObject: THREE.Object3D | null,
+  // Group for the facial morph visualizers
+  visualizerGroup: THREE.Group;
 
 let postProcessing: THREE.PostProcessing;
 
@@ -220,6 +222,13 @@ const init = async () => {
   // Add the gizmo of the transform controls to the scene
   const transformGizmo = transform.getHelper();
   scene.add(transformGizmo);
+
+  /**
+   * Visualizer Group
+   */
+  visualizerGroup = new THREE.Group();
+  visualizerGroup.name = "visualizerGroup";
+  scene.add(visualizerGroup);
 
   /**
    * Axes Helper
@@ -395,6 +404,8 @@ const init = async () => {
     isVisualizerDisabled: boolean = false,
     visualizer: string = "all",
   ) => {
+    // console.log("\ngenerateFacialMorphsAndVisualizers called...");
+
     const {
       visualizerNoseTip, // Vector3
       visualizerNostrilTipL, // Vector3
@@ -423,9 +434,23 @@ const init = async () => {
       noseRadius: 7,
     });
 
-    if (isVisualizerDisabled) return;
+    if (isVisualizerDisabled) {
+      visualizerGroup.clear(); // Clear the visualizers if disabled
+      return;
+    }
 
-    // TODO: Remove the previous visualizers
+    // Remove the previous visualizers -> Clear the visualizerGroup
+    visualizerGroup.clear();
+    visualizerGroup.children.forEach((child: any) => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m: any) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
+    });
 
     /**
      * Tips Visualizers
@@ -527,28 +552,28 @@ const init = async () => {
         Add to scene
       */
       if (selection === "all") {
-        scene.add(noseTipVisMesh);
-        scene.add(nostrilLTipVisMesh);
-        scene.add(nostrilRTipVisMesh);
-        scene.add(jawLTipVisMesh);
-        scene.add(jawRTipVisMesh);
+        visualizerGroup.add(noseTipVisMesh);
+        visualizerGroup.add(nostrilLTipVisMesh);
+        visualizerGroup.add(nostrilRTipVisMesh);
+        visualizerGroup.add(jawLTipVisMesh);
+        visualizerGroup.add(jawRTipVisMesh);
       } else if (selection === "nose") {
-        scene.add(noseTipVisMesh);
+        visualizerGroup.add(noseTipVisMesh);
       } else if (selection === "nostril") {
-        scene.add(nostrilLTipVisMesh);
-        scene.add(nostrilRTipVisMesh);
+        visualizerGroup.add(nostrilLTipVisMesh);
+        visualizerGroup.add(nostrilRTipVisMesh);
       } else if (selection === "jaw") {
-        scene.add(jawLTipVisMesh);
-        scene.add(jawRTipVisMesh);
+        visualizerGroup.add(jawLTipVisMesh);
+        visualizerGroup.add(jawRTipVisMesh);
       } else if (selection === "eyeBrow") {
-        scene.add(eyeBrowLTipVisMesh);
-        scene.add(eyeBrowRTipVisMesh);
+        visualizerGroup.add(eyeBrowLTipVisMesh);
+        visualizerGroup.add(eyeBrowRTipVisMesh);
       } else if (selection === "mouseCornersWidth") {
-        scene.add(mouseTipLVisMesh);
-        scene.add(mouseTipRVisMesh);
+        visualizerGroup.add(mouseTipLVisMesh);
+        visualizerGroup.add(mouseTipRVisMesh);
       } else if (selection === "ear") {
-        scene.add(earTipLVisMesh);
-        scene.add(earTipRVisMesh);
+        visualizerGroup.add(earTipLVisMesh);
+        visualizerGroup.add(earTipRVisMesh);
       }
     };
     visualizeTips(visualizer);
@@ -636,27 +661,28 @@ const init = async () => {
         Add to scene
       */
       if (selection === "all") {
-        scene.add(noseTipsDetectionPoints);
-        scene.add(nostrilTipsDetectionPoints);
-        scene.add(jawTipsDetectionPoints);
-        eyeBrowTipsDetectionPoints && scene.add(eyeBrowTipsDetectionPoints);
+        visualizerGroup.add(noseTipsDetectionPoints);
+        visualizerGroup.add(nostrilTipsDetectionPoints);
+        visualizerGroup.add(jawTipsDetectionPoints);
+        eyeBrowTipsDetectionPoints &&
+          visualizerGroup.add(eyeBrowTipsDetectionPoints);
         mouseCornerTipsDetectionPoints &&
-          scene.add(mouseCornerTipsDetectionPoints);
+          visualizerGroup.add(mouseCornerTipsDetectionPoints);
       } else if (selection === "nose") {
-        scene.add(noseTipsDetectionPoints);
+        visualizerGroup.add(noseTipsDetectionPoints);
       } else if (selection === "nostril") {
-        scene.add(nostrilTipsDetectionPoints);
+        visualizerGroup.add(nostrilTipsDetectionPoints);
       } else if (selection === "jaw") {
-        scene.add(jawTipsDetectionPoints);
+        visualizerGroup.add(jawTipsDetectionPoints);
       } else if (eyeBrowTipsDetectionPoints && selection === "eyeBrow") {
-        scene.add(eyeBrowTipsDetectionPoints);
+        visualizerGroup.add(eyeBrowTipsDetectionPoints);
       } else if (
         mouseCornerTipsDetectionPoints &&
         selection === "mouseCornersWidth"
       ) {
-        scene.add(mouseCornerTipsDetectionPoints);
+        visualizerGroup.add(mouseCornerTipsDetectionPoints);
       } else if (selection === "ear") {
-        scene.add(earTipsDetectionPoints);
+        visualizerGroup.add(earTipsDetectionPoints);
       }
     };
     // visualizeMorphingDetectionVertices(visualizer);
@@ -728,30 +754,31 @@ const init = async () => {
         Add to scene
       */
       if (selection === "all") {
-        scene.add(noseMorphPoints);
-        scene.add(nostrilMorphPoints);
-        scene.add(jawMorphPoints);
-        scene.add(eyeBrowMorphPoints);
-        scene.add(mouseCornersWidthMorphPoints);
-        scene.add(earMorphPoints);
+        visualizerGroup.add(noseMorphPoints);
+        visualizerGroup.add(nostrilMorphPoints);
+        visualizerGroup.add(jawMorphPoints);
+        visualizerGroup.add(eyeBrowMorphPoints);
+        visualizerGroup.add(mouseCornersWidthMorphPoints);
+        visualizerGroup.add(earMorphPoints);
       } else if (selection === "nose") {
-        scene.add(noseMorphPoints);
+        visualizerGroup.add(noseMorphPoints);
       } else if (selection === "nostril") {
-        scene.add(nostrilMorphPoints);
+        visualizerGroup.add(nostrilMorphPoints);
       } else if (selection === "jaw") {
-        scene.add(jawMorphPoints);
+        visualizerGroup.add(jawMorphPoints);
       } else if (selection === "eyeBrow") {
-        scene.add(eyeBrowMorphPoints);
+        visualizerGroup.add(eyeBrowMorphPoints);
       } else if (selection === "mouseCornersWidth") {
-        scene.add(mouseCornersWidthMorphPoints);
+        visualizerGroup.add(mouseCornersWidthMorphPoints);
       } else if (selection === "ear") {
-        scene.add(earMorphPoints);
+        visualizerGroup.add(earMorphPoints);
       }
     };
     visualizeMorphingVertices(visualizer);
   };
+  const isVisualizerDisabled = false;
   const selectedVisualizer = "mouseCornersWidth";
-  generateFacialMorphsAndVisualizers(true, selectedVisualizer);
+  generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
    * Add the global group
@@ -792,7 +819,10 @@ const init = async () => {
   // Reapply the mixed colorNode and regenerate the facial morphs and visualizers if head model changes (gender or subpath)
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
-    generateFacialMorphsAndVisualizers(true, selectedVisualizer);
+    generateFacialMorphsAndVisualizers(
+      isVisualizerDisabled,
+      selectedVisualizer,
+    );
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
