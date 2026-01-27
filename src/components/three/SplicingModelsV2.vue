@@ -779,7 +779,7 @@ const init = async () => {
   // Disable the visualizers if it is for production
   const isVisualizerDisabled = import.meta.env.PROD;
   const selectedVisualizer = "mouseCornersWidth";
-  generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
+  // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
    * Add the global group
@@ -820,10 +820,10 @@ const init = async () => {
   // Reapply the mixed colorNode and regenerate the facial morphs and visualizers if head model changes (gender or subpath)
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
-    generateFacialMorphsAndVisualizers(
-      isVisualizerDisabled,
-      selectedVisualizer,
-    );
+    // generateFacialMorphsAndVisualizers(
+    //   isVisualizerDisabled,
+    //   selectedVisualizer,
+    // );
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
@@ -1036,6 +1036,42 @@ const onMouseClick = (e: MouseEvent) => {
 
     // Check if the first intersected object is valid
     if (firstIntersection && firstIntersection.object) {
+      console.log(
+        "\n -- onMouseClick -- firstIntersection ->",
+        firstIntersection,
+      );
+
+      const intersectionPoint = firstIntersection.point;
+      const intersectionPointXInvert = new THREE.Vector3(
+        intersectionPoint.x * -1,
+        intersectionPoint.y,
+        intersectionPoint.z,
+      );
+      console.log(
+        "\n -- onMouseClick -- intersection point ->",
+        intersectionPoint,
+      );
+
+      console.log(
+        "\n -- onMouseClick -- intersection point x invert ->",
+        intersectionPointXInvert,
+      );
+
+      const pointTstMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(),
+        new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+      );
+      const pointTstXInvert = new THREE.Mesh(
+        new THREE.BoxGeometry(),
+        new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
+      );
+      pointTstMesh.position.copy(intersectionPoint);
+      pointTstXInvert.position.copy(intersectionPointXInvert);
+      pointTstMesh.scale.set(0.1, 0.1, 0.1);
+      pointTstXInvert.scale.set(0.1, 0.1, 0.1);
+      scene.add(pointTstMesh);
+      scene.add(pointTstXInvert);
+
       // Get the Parent Group of the first intersected object
       const intersectionParent = firstIntersection.object
         .parent as THREE.Group<THREE.Object3DEventMap>;
