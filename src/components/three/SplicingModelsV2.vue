@@ -776,7 +776,8 @@ const init = async () => {
     };
     visualizeMorphingVertices(visualizer);
   };
-  const isVisualizerDisabled = false;
+  // Disable the visualizers if it is for production
+  const isVisualizerDisabled = import.meta.env.PROD;
   const selectedVisualizer = "mouseCornersWidth";
   generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
