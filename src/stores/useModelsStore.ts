@@ -54,20 +54,20 @@ const SphCutHeadBox3 = new THREE.Box3();
  */
 export const AvailableHeadModels = {
   female: [
-    { name: "头模-01", subPath: "/default/prev" },
-    { name: "头模-02", subPath: "/default/new" },
-    { name: "头模-03", subPath: "/ellie01" },
-    { name: "头模-04", subPath: "/ukn01-issue01" },
-    { name: "头模-05", subPath: "/ukn02-issue01" },
+    { name: "女头模-01", subPath: "/default/prev" },
+    { name: "女头模-02", subPath: "/default/new" },
+    { name: "女头模-03", subPath: "/ellie01" },
+    { name: "女头模-04", subPath: "/ukn01-issue01" },
+    { name: "女头模-05", subPath: "/ukn02-issue01" },
   ],
   male: [
-    { name: "头模-01", subPath: "/isspd-01" },
-    { name: "头模-02", subPath: "/big-one-01" },
-    { name: "头模-03", subPath: "/sasha-01" },
-    { name: "头模-04", subPath: "/seki-01" },
-    { name: "头模-05", subPath: "/ukn-01" },
-    { name: "头模-06", subPath: "/ukn-02" },
-    { name: "头模-07", subPath: "/default" },
+    { name: "男头模-01", subPath: "/isspd-01" },
+    { name: "男头模-02", subPath: "/big-one-01" },
+    { name: "男头模-03", subPath: "/sasha-01" },
+    { name: "男头模-04", subPath: "/seki-01" },
+    { name: "男头模-05", subPath: "/ukn-01" },
+    { name: "男头模-06", subPath: "/ukn-02" },
+    { name: "男头模-07", subPath: "/default" },
   ],
 };
 

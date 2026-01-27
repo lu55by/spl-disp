@@ -11,7 +11,7 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps, NodeNames } from "../../three/constants";
+import { CameraProps } from "../../three/constants";
 import {
   adjustPivotPointsForMesh,
   generateFacialMorphs,
