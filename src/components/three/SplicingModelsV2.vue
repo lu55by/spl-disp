@@ -11,7 +11,7 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps, NodeNames } from "../../three/constants";
+import { CameraProps } from "../../three/constants";
 import {
   adjustPivotPointsForMesh,
   generateFacialMorphs,
@@ -143,7 +143,7 @@ let camera: THREE.PerspectiveCamera,
   // raycaster intersection object
   raycasterIntersectionObject: THREE.Object3D | null,
   // Group for the facial morph visualizers
-  visualizerGroup: THREE.Group;
+  visualizerGroup: THREE.Group | null;
 
 let postProcessing: THREE.PostProcessing;
 
@@ -410,8 +410,9 @@ const init = async () => {
    * Normal Fns
    */
   function clearVisualizerGroup() {
-    visualizerGroup.clear();
-    visualizerGroup.children.forEach((child: any) => {
+    if (!visualizerGroup) return;
+    // Iterate over a copy of the children array and dispose before removing -> solves the issue of children not being disposed and ensures proper cleanup.
+    [...visualizerGroup.children].forEach((child: any) => {
       if (child.geometry) child.geometry.dispose();
       if (child.material) {
         if (Array.isArray(child.material)) {
@@ -420,6 +421,7 @@ const init = async () => {
           child.material.dispose();
         }
       }
+      visualizerGroup.remove(child);
     });
   }
 
@@ -856,6 +858,8 @@ const init = async () => {
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
     clearVisualizerGroup();
+    modelsStore.setIsManualMorphGenerationMode(false);
+    modelsStore.setManualMorphSelectionStage(null);
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
@@ -1037,6 +1041,36 @@ const onWindowDragOver = (e: DragEvent) => {
 };
 
 /**
+ * Top Level Normal Fns
+ */
+const clearMorphVisualizerByStage = (stage: string) => {
+  if (!visualizerGroup) return;
+  console.log(
+    "\n -- clearMorphVisualizerByStage -- visualizerGroup ->",
+    visualizerGroup,
+  );
+  // Iterate over a copy of the children array to avoid skipping elements while removing them from the group -> fixes the issue where meshes with the same stage prefix were not removed properly.
+  [...visualizerGroup.children].forEach((child) => {
+    console.log("\n -- clearMorphVisualizerByStage -- child ->", child);
+    if (child instanceof THREE.Mesh && child.name.startsWith(stage)) {
+      console.log(
+        "\n -- clearMorphVisualizerByStage -- child same stage ->",
+        child,
+      );
+      child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m: any) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
+      visualizerGroup.remove(child);
+    }
+  });
+};
+
+/**
  * On mouse click fn, handle the event of object been intersected by the raycaster.
  * Including:
  * 1. Attach the transform control to the parent group of the casted mesh by the ray.
@@ -1099,6 +1133,7 @@ const onMouseClick = (e: MouseEvent) => {
         console.log(
           "\n ---- onMouseClick -- Ready to do manual morph tip selection ---- ",
         );
+
         const intersectionPoint = firstIntersection.point;
 
         // Mirrored point calculation
@@ -1122,23 +1157,29 @@ const onMouseClick = (e: MouseEvent) => {
           pointR,
         );
 
+        // Clear the previous visualizer with the same stage
+        clearMorphVisualizerByStage(manualMorphSelectionStage.value + "_");
+
         // Visual feedback (optional: we can add small temporary spheres or boxes)
-        const pointTstMesh = new THREE.Mesh(
+        const pointVisualizer = new THREE.Mesh(
           new THREE.BoxGeometry(0.2, 0.2, 0.2),
-          new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+          new THREE.MeshBasicMaterial({ color: "#ff0" }),
         );
-        const pointTstMirrored = new THREE.Mesh(
+        const pointVisualizerMirrored = new THREE.Mesh(
           new THREE.BoxGeometry(0.2, 0.2, 0.2),
-          new THREE.MeshBasicMaterial({ color: 0x0000ff }),
+          new THREE.MeshBasicMaterial({ color: "#00f" }),
         );
-        pointTstMesh.position.copy(pointL);
-        pointTstMirrored.position.copy(pointR);
-        visualizerGroup.add(pointTstMesh);
-        visualizerGroup.add(pointTstMirrored);
+        pointVisualizer.name = `${manualMorphSelectionStage.value}_pointVisualizer`;
+        pointVisualizerMirrored.name = `${manualMorphSelectionStage.value}_pointVisualizerMirrored`;
+        pointVisualizer.position.copy(pointL);
+        pointVisualizerMirrored.position.copy(pointR);
+        visualizerGroup.add(pointVisualizer);
+        visualizerGroup.add(pointVisualizerMirrored);
 
         console.log(
           `\n -- onMouseClick -- Specified tips for ${manualMorphSelectionStage.value} -> \nL:`,
           pointL,
+          "\n",
           "R:",
           pointR,
         );

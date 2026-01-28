@@ -31,7 +31,7 @@
             class="text-cyan-400 font-futuristic tracking-widest text-sm uppercase"
           >
             <!-- Manual Morph Selection -->
-            变形目标选择
+            点位选择
           </h3>
           <div
             class="h-px w-32 bg-linear-to-r from-transparent via-cyan-500/50 to-transparent"
@@ -46,8 +46,7 @@
                 manualMorphSelectionStage === 'jaw',
             }"
           >
-            <!-- {{ manualJawTipL ? "✅ Jaw" : "Select Jaw" }} -->
-            {{ manualJawTipL ? "✅ 下颌" : "下颌点选择" }}
+            {{ manualJawTipL ? "✅ 下颌" : "下颌" }}
           </Button>
           <Button
             @click="setStage('eyeBrow')"
@@ -56,8 +55,7 @@
                 manualMorphSelectionStage === 'eyeBrow',
             }"
           >
-            <!-- {{ manualEyeBrowTipL ? "✅ Eyebrow" : "Select Eyebrow" }} -->
-            {{ manualEyeBrowTipL ? "✅ 眉毛" : "眉毛点选择" }}
+            {{ manualEyeBrowTipL ? "✅ 眉毛" : "眉毛" }}
           </Button>
           <Button
             @click="setStage('mouseCornersWidth')"
@@ -66,8 +64,7 @@
                 manualMorphSelectionStage === 'mouseCornersWidth',
             }"
           >
-            <!-- {{ manualMouseCornerTipL ? "✅ Mouse Corners" : "Select Mouse Corners" }} -->
-            {{ manualMouseCornerTipL ? "✅ 嘴角" : "嘴角点选择" }}
+            {{ manualMouseCornerTipL ? "✅ 嘴角" : "嘴角" }}
           </Button>
         </div>
 
@@ -76,13 +73,9 @@
             @click="cancel"
             class="px-6 py-2 border border-cyan-500/20 text-cyan-500/50 hover:border-cyan-500/50 hover:text-cyan-400 transition-all text-xs uppercase tracking-widest font-futuristic cursor-pointer"
           >
-            <!-- Cancel -->
             取消
           </button>
-          <Button v-if="isSelectionComplete" @click="finish">
-            <!-- Finish & Generate -->
-            完成
-          </Button>
+          <Button v-if="isSelectionComplete" @click="finish"> 完成 </Button>
         </div>
       </div>
     </Transition>

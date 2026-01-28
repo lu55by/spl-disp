@@ -355,6 +355,10 @@ export function generateFacialMorphs(
       { xRange: 2, yRange: 1, zRange: 1 },
       nostrilTarget,
       "widening",
+      {
+        powerVal: 1,
+        isInfXFixed: false,
+      },
       visualizerByNostrilMorph,
       0.8,
     );
@@ -368,6 +372,10 @@ export function generateFacialMorphs(
       { xRange: 5, yRange: 6.0, zRange: 4.0 },
       jawTarget,
       "widening",
+      {
+        powerVal: 2,
+        isInfXFixed: false,
+      },
       visualizerByJawMorph,
       1.25,
     );
@@ -381,9 +389,12 @@ export function generateFacialMorphs(
       { xRange: 3.0, yRange: 1.0, zRange: 2 },
       eyeBrowTarget,
       "height",
+      {
+        powerVal: 2,
+        isInfXFixed: true,
+      },
       visualizerByEyeBrowMorph,
       0.7,
-      true,
     );
 
     // --- E. GENERATE MOUSE CORNERS WIDTH MORPH (Widen) ---
@@ -395,6 +406,10 @@ export function generateFacialMorphs(
       { xRange: 2, yRange: 2.2, zRange: 1 },
       mouseCornersWidthTarget,
       "widening",
+      {
+        powerVal: 2,
+        isInfXFixed: false,
+      },
       visualizerByMouseCornersWidthMorph,
       1.7,
     );
@@ -408,6 +423,10 @@ export function generateFacialMorphs(
       { xRange: 6, yRange: 3, zRange: 2.5 },
       earTarget,
       ["widening", "height"],
+      {
+        powerVal: 2,
+        isInfXFixed: false,
+      },
       visualizerByEarMorph,
       0.7,
     );
@@ -648,10 +667,15 @@ function applyMorph(
   ranges: { xRange: number; yRange: number; zRange: number },
   targetArray: Float32Array,
   type: "widening" | "height" | "depth" | ("widening" | "height" | "depth")[],
+  infConfig: {
+    powerVal: number;
+    isInfXFixed: boolean;
+  },
   visualizer?: THREE.Vector3[],
   totalInfluenceStrength: number = 1.25,
-  isInfXFixed: boolean = false,
 ): void {
+  const { powerVal, isInfXFixed } = infConfig;
+
   // Use the detected tips as anchors for the morph
   const targetTip = vertex.x < 0 ? tipL : tipR;
 
@@ -680,13 +704,13 @@ function applyMorph(
   if (dx < xRange && dy < yRange && dz < zRange) {
     if (isWidening) {
       // Vertical Falloff (Y) -> the power of 2 ensures a smoother falloff
-      const influenceY = Math.pow(Math.sin(1 - dy / yRange), 2);
+      const influenceY = Math.pow(Math.sin(1 - dy / yRange), powerVal);
       // Depth Falloff (Z)
-      const influenceZ = Math.pow(Math.sin(1 - dz / zRange), 2);
+      const influenceZ = Math.pow(Math.sin(1 - dz / zRange), powerVal);
 
       // Lateral Falloff (X) -> ensure we affect the sides more than the center to avoid tearing the center line (X=0)
       // const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
-      const influenceX = Math.pow(Math.sin(1 - dx / xRange), 2);
+      const influenceX = Math.pow(Math.sin(1 - dx / xRange), 1);
 
       const totalInfluence =
         influenceY * influenceZ * influenceX * totalInfluenceStrength;
