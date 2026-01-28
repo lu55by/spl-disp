@@ -407,6 +407,23 @@ const init = async () => {
   //   });
 
   /**
+   * Normal Fns
+   */
+  function clearVisualizerGroup() {
+    visualizerGroup.clear();
+    visualizerGroup.children.forEach((child: any) => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m: any) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
+    });
+  }
+
+  /**
    * Generate Facial Morphs
    */
   const generateFacialMorphsAndVisualizers = (
@@ -455,22 +472,12 @@ const init = async () => {
     );
 
     if (isVisualizerDisabled) {
-      visualizerGroup.clear(); // Clear the visualizers if disabled
+      clearVisualizerGroup();
       return;
     }
 
     // Remove the previous visualizers -> Clear the visualizerGroup
-    visualizerGroup.clear();
-    visualizerGroup.children.forEach((child: any) => {
-      if (child.geometry) child.geometry.dispose();
-      if (child.material) {
-        if (Array.isArray(child.material)) {
-          child.material.forEach((m: any) => m.dispose());
-        } else {
-          child.material.dispose();
-        }
-      }
-    });
+    clearVisualizerGroup();
 
     /**
      * Tips Visualizers
@@ -845,14 +852,10 @@ const init = async () => {
     applyMixedColorNode(splicingGroupGlobal);
   });
 
-  // TODO: Fix the issue of stuttering on the head model after the it is changed by user's interaction and click on it or outside of it.
-  // Reapply the mixed colorNode and regenerate the facial morphs and visualizers if head model changes (gender or subpath)
+  // Reapply the mixed colorNode and the visualizers if head model changes (gender or subpath)
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
-    // generateFacialMorphsAndVisualizers(
-    //   isVisualizerDisabled,
-    //   selectedVisualizer,
-    // );
+    clearVisualizerGroup();
   });
 
   // Update the uniformIsShowMap based on the global isShowMap boolean
@@ -874,7 +877,7 @@ const init = async () => {
       );
 
       // Auto disable manual mode after success
-      modelsStore.setManualMorphGenerationMode(false);
+      modelsStore.setIsManualMorphGenerationMode(false);
     }
   });
 };

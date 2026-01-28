@@ -141,9 +141,9 @@ const loadHeadModelAsync = async (isFemale: boolean, subPath?: string) => {
     CutHeadEyesNodeCombinedGroupName + (isFemale ? "Female" : "Male");
 
   // Cache it
-  HeadModelsCache.set(cacheKey, headModel);
+  HeadModelsCache.set(cacheKey, markRaw(headModel));
 
-  return headModel;
+  return markRaw(headModel);
 };
 
 /*
@@ -246,7 +246,7 @@ export const useModelsStore = defineStore("models", {
      * @param object The object being selected by mouse click
      */
     setSelectedObject(object: THREE.Object3D | null) {
-      this.selectedObject = object;
+      this.selectedObject = object ? markRaw(object) : null;
     },
 
     /**
@@ -254,7 +254,7 @@ export const useModelsStore = defineStore("models", {
      * @param object The object being hovered
      */
     setDragHoveredObject(object: THREE.Mesh | null) {
-      this.dragHoveredObject = object;
+      this.dragHoveredObject = object ? markRaw(object) : null;
     },
 
     /**
@@ -405,7 +405,7 @@ export const useModelsStore = defineStore("models", {
 
       // ! OBJ File Import
       const text = await objFile.text();
-      const importedParsedObj = OBJLoaderInstance.parse(text);
+      const importedParsedObj = markRaw(OBJLoaderInstance.parse(text));
 
       // If texture file exists, load and apply it
       if (texFile) {
@@ -554,7 +554,9 @@ export const useModelsStore = defineStore("models", {
       if (!parsedObjGroup) {
         const text = await objFile.text();
         // Parse the .obj file text content with the OBJLoaderInstance
-        parsedObjGroup = OBJLoaderInstance.parse(text);
+        parsedObjGroup = markRaw(OBJLoaderInstance.parse(text));
+      } else {
+        parsedObjGroup = markRaw(parsedObjGroup);
       }
 
       // Cache the original obj file to userData for later upload reuse
@@ -667,7 +669,7 @@ export const useModelsStore = defineStore("models", {
      * Set the manual morph generation mode.
      * @param active boolean
      */
-    setManualMorphGenerationMode(active: boolean) {
+    setIsManualMorphGenerationMode(active: boolean) {
       this.isManualMorphGenerationMode = active;
       if (!active) {
         this.resetManualMorphTips();

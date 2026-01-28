@@ -197,6 +197,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  console.log("\n-- MorphTargetController -- onUnmounted --");
   if (syncInterval) clearInterval(syncInterval);
 });
 </script>
