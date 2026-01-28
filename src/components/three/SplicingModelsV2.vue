@@ -11,7 +11,7 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps } from "../../three/constants";
+import { CameraProps, NodeNames } from "../../three/constants";
 import {
   adjustPivotPointsForMesh,
   generateFacialMorphs,
@@ -34,6 +34,15 @@ const {
   isShowMap,
   isDefaultHeadFemale,
   currentHeadModelSubPath,
+  isManualMorphGenerationMode,
+  manualMorphSelectionStage,
+  manualJawTipL,
+  manualJawTipR,
+  manualEyeBrowTipL,
+  manualEyeBrowTipR,
+  manualMouseCornerTipL,
+  manualMouseCornerTipR,
+  manualMorphReadyTimestamp,
 } = storeToRefs(modelsStore);
 
 /*
@@ -430,9 +439,20 @@ const init = async () => {
       visualizerByEyeBrowMorph, // Vector3[]
       visualizerByMouseCornersWidthMorph, // Vector3[]
       visualizerByEarMorph, // Vector3[]
-    } = generateFacialMorphs(splicingGroupGlobal, {
-      noseRadius: 7,
-    });
+    } = generateFacialMorphs(
+      splicingGroupGlobal,
+      {
+        noseRadius: 7,
+      },
+      {
+        jawTipL: manualJawTipL.value || undefined,
+        jawTipR: manualJawTipR.value || undefined,
+        eyeBrowTipL: manualEyeBrowTipL.value || undefined,
+        eyeBrowTipR: manualEyeBrowTipR.value || undefined,
+        mouseCornerTipL: manualMouseCornerTipL.value || undefined,
+        mouseCornerTipR: manualMouseCornerTipR.value || undefined,
+      },
+    );
 
     if (isVisualizerDisabled) {
       visualizerGroup.clear(); // Clear the visualizers if disabled
@@ -778,7 +798,15 @@ const init = async () => {
   };
   // Disable the visualizers if it is for production
   const isVisualizerDisabled = import.meta.env.PROD;
-  const selectedVisualizer = "mouseCornersWidth";
+  /*
+    nose
+    nostril
+    jaw
+    eyeBrow
+    mouseCornersWidth
+    ear
+   */
+  const selectedVisualizer = "eyeBrow";
   // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
@@ -817,6 +845,7 @@ const init = async () => {
     applyMixedColorNode(splicingGroupGlobal);
   });
 
+  // TODO: Fix the issue of stuttering on the head model after the it is changed by user's interaction and click on it or outside of it.
   // Reapply the mixed colorNode and regenerate the facial morphs and visualizers if head model changes (gender or subpath)
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
@@ -829,6 +858,24 @@ const init = async () => {
   // Update the uniformIsShowMap based on the global isShowMap boolean
   watch(isShowMap, (newVal) => {
     uIsShowMap.value = newVal ? 1 : 0;
+  });
+
+  /*
+    Manual Morph Generation Trigger Watcher
+   */
+  watch(manualMorphReadyTimestamp, (newVal) => {
+    if (newVal > 0) {
+      console.log(
+        "\nmanualMorphReadyTimestamp changed -> triggering facial morph generation...",
+      );
+      generateFacialMorphsAndVisualizers(
+        isVisualizerDisabled,
+        selectedVisualizer,
+      );
+
+      // Auto disable manual mode after success
+      modelsStore.setManualMorphGenerationMode(false);
+    }
   });
 };
 
@@ -1041,36 +1088,59 @@ const onMouseClick = (e: MouseEvent) => {
         firstIntersection,
       );
 
-      const intersectionPoint = firstIntersection.point;
-      const intersectionPointXInvert = new THREE.Vector3(
-        intersectionPoint.x * -1,
-        intersectionPoint.y,
-        intersectionPoint.z,
-      );
-      console.log(
-        "\n -- onMouseClick -- intersection point ->",
-        intersectionPoint,
-      );
+      // Handle Manual Morph Tip Selection
+      if (
+        isManualMorphGenerationMode.value &&
+        manualMorphSelectionStage.value
+      ) {
+        console.log(
+          "\n ---- onMouseClick -- Ready to do manual morph tip selection ---- ",
+        );
+        const intersectionPoint = firstIntersection.point;
 
-      console.log(
-        "\n -- onMouseClick -- intersection point x invert ->",
-        intersectionPointXInvert,
-      );
+        // Mirrored point calculation
+        const mirroredPoint = new THREE.Vector3(
+          intersectionPoint.x * -1,
+          intersectionPoint.y,
+          intersectionPoint.z,
+        );
 
-      const pointTstMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(),
-        new THREE.MeshBasicMaterial({ color: 0xff0000 }),
-      );
-      const pointTstXInvert = new THREE.Mesh(
-        new THREE.BoxGeometry(),
-        new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
-      );
-      pointTstMesh.position.copy(intersectionPoint);
-      pointTstXInvert.position.copy(intersectionPointXInvert);
-      pointTstMesh.scale.set(0.1, 0.1, 0.1);
-      pointTstXInvert.scale.set(0.1, 0.1, 0.1);
-      scene.add(pointTstMesh);
-      scene.add(pointTstXInvert);
+        // Determine L and R tips based on X value
+        // User stated: "The corresponding L tip is the intersected point with the negative value on the X axis, and positive value for the R tip."
+        const pointL =
+          intersectionPoint.x < 0 ? intersectionPoint.clone() : mirroredPoint;
+        const pointR =
+          intersectionPoint.x >= 0 ? intersectionPoint.clone() : mirroredPoint;
+
+        // Set the tips in the store
+        modelsStore.setManualMorphTips(
+          manualMorphSelectionStage.value,
+          pointL,
+          pointR,
+        );
+
+        // Visual feedback (optional: we can add small temporary spheres or boxes)
+        const pointTstMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.2, 0.2),
+          new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+        );
+        const pointTstMirrored = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.2, 0.2),
+          new THREE.MeshBasicMaterial({ color: 0x0000ff }),
+        );
+        pointTstMesh.position.copy(pointL);
+        pointTstMirrored.position.copy(pointR);
+        visualizerGroup.add(pointTstMesh);
+        visualizerGroup.add(pointTstMirrored);
+
+        console.log(
+          `\n -- onMouseClick -- Specified tips for ${manualMorphSelectionStage.value} -> \nL:`,
+          pointL,
+          "R:",
+          pointR,
+        );
+        return; // Skip normal selection if in tip selection mode
+      }
 
       // Get the Parent Group of the first intersected object
       const intersectionParent = firstIntersection.object

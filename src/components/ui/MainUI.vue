@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import ButtonContainer from "./ButtonContainer.vue";
-import Selected3dObjectPropsIndicator from "./Selected3dObjectPropsIndicator.vue";
+// import Selected3dObjectPropsIndicator from "./Selected3dObjectPropsIndicator.vue";
 import ThumbnailVisualizer from "./ThumbnailVisualizer.vue";
 import UploadManager from "./UploadManager.vue";
+import ManualMorphUI from "./ManualMorphUI.vue";
 </script>
 
 <template>
@@ -13,5 +14,6 @@ import UploadManager from "./UploadManager.vue";
     <!-- <Selected3dObjectPropsIndicator /> -->
     <ThumbnailVisualizer />
     <UploadManager />
+    <ManualMorphUI />
   </div>
 </template>

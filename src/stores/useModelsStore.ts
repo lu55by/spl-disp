@@ -187,6 +187,23 @@ export const useModelsStore = defineStore("models", {
     isShowMap: true,
     // isUploadModalVisible state to toggle the visibility of the upload modal
     isUploadModalVisible: false,
+    // isManualMorphGenerationMode state to toggle the manual morph generation mode
+    isManualMorphGenerationMode: false,
+    // manualMorphSelectionStage state to track the current selection stage (jaw, eyebrow, mouse)
+    manualMorphSelectionStage: null as
+      | "jaw"
+      | "eyeBrow"
+      | "mouseCornersWidth"
+      | null,
+    // Manual tips vectors
+    manualJawTipL: null as THREE.Vector3 | null,
+    manualJawTipR: null as THREE.Vector3 | null,
+    manualEyeBrowTipL: null as THREE.Vector3 | null,
+    manualEyeBrowTipR: null as THREE.Vector3 | null,
+    manualMouseCornerTipL: null as THREE.Vector3 | null,
+    manualMouseCornerTipR: null as THREE.Vector3 | null,
+    // manualMorphReadyTimestamp state to trigger the manual morph generation in SplicingModelsV2
+    manualMorphReadyTimestamp: 0,
   }),
 
   getters: {
@@ -644,6 +661,63 @@ export const useModelsStore = defineStore("models", {
      */
     setUploadModalVisible(visible: boolean) {
       this.isUploadModalVisible = visible;
+    },
+
+    /**
+     * Set the manual morph generation mode.
+     * @param active boolean
+     */
+    setManualMorphGenerationMode(active: boolean) {
+      this.isManualMorphGenerationMode = active;
+      if (!active) {
+        this.resetManualMorphTips();
+      }
+    },
+
+    /**
+     * Set the current manual morph selection stage.
+     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth' | null
+     */
+    setManualMorphSelectionStage(
+      stage: "jaw" | "eyeBrow" | "mouseCornersWidth" | null,
+    ) {
+      this.manualMorphSelectionStage = stage;
+    },
+
+    /**
+     * Set the manual tips for a specific stage.
+     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth'
+     * @param pointL THREE.Vector3
+     * @param pointR THREE.Vector3
+     */
+    setManualMorphTips(
+      stage: "jaw" | "eyeBrow" | "mouseCornersWidth",
+      pointL: THREE.Vector3,
+      pointR: THREE.Vector3,
+    ) {
+      if (stage === "jaw") {
+        this.manualJawTipL = pointL;
+        this.manualJawTipR = pointR;
+      } else if (stage === "eyeBrow") {
+        this.manualEyeBrowTipL = pointL;
+        this.manualEyeBrowTipR = pointR;
+      } else if (stage === "mouseCornersWidth") {
+        this.manualMouseCornerTipL = pointL;
+        this.manualMouseCornerTipR = pointR;
+      }
+    },
+
+    /**
+     * Reset all manual morph tips and selection stage.
+     */
+    resetManualMorphTips() {
+      this.manualMorphSelectionStage = null;
+      this.manualJawTipL = null;
+      this.manualJawTipR = null;
+      this.manualEyeBrowTipL = null;
+      this.manualEyeBrowTipR = null;
+      this.manualMouseCornerTipL = null;
+      this.manualMouseCornerTipR = null;
     },
 
     /**

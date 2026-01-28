@@ -30,6 +30,14 @@ import type {
 export function generateFacialMorphs(
   model: THREE.Group,
   brushParams: { noseRadius: number },
+  manualTips?: {
+    jawTipL?: THREE.Vector3;
+    jawTipR?: THREE.Vector3;
+    eyeBrowTipL?: THREE.Vector3;
+    eyeBrowTipR?: THREE.Vector3;
+    mouseCornerTipL?: THREE.Vector3;
+    mouseCornerTipR?: THREE.Vector3;
+  },
 ): FacialMorphsVisualizers {
   console.log(
     `\n---- Ready to generate facial morphs for [${model.name}] ----\n`,
@@ -43,9 +51,8 @@ export function generateFacialMorphs(
   // Check if the geometry has morph attributes
   if (headNode.geometry.morphAttributes.position) {
     console.warn(
-      "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists",
+      "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists, overwriting...",
     );
-    return;
   }
 
   // Get the eye nodes
@@ -203,20 +210,27 @@ export function generateFacialMorphs(
   /**
    * Ⅰ.Ⅲ JAW TIPS DETECTION
    */
-  // Find the lateral extremes (min X and max X) within a target bounding box relative to a reference point
-  findLateralTips(
-    noseTip,
-    {
-      yMinOffset: -7,
-      yMaxOffset: -6,
-      zMinOffset: -7,
-      zMaxOffset: -5,
-    },
-    positions,
-    jawTipL,
-    jawTipR,
-    visualizerByJawTipsDetection,
-  );
+  // Use manual jaw tips if provided, otherwise detect them
+  if (manualTips?.jawTipL && manualTips?.jawTipR) {
+    jawTipL.copy(manualTips.jawTipL);
+    jawTipR.copy(manualTips.jawTipR);
+    console.log("\n -- generateFacialMorphs -- using manual jaw tips");
+  } else {
+    // Find the lateral extremes (min X and max X) within a target bounding box relative to a reference point
+    findLateralTips(
+      noseTip,
+      {
+        yMinOffset: -7,
+        yMaxOffset: -6,
+        zMinOffset: -7,
+        zMaxOffset: -5,
+      },
+      positions,
+      jawTipL,
+      jawTipR,
+      visualizerByJawTipsDetection,
+    );
+  }
   console.log(
     "\n -- generateFacialMorphs -- jawTipL calculated ->",
     jawTipL.x === Infinity ? "Not Found" : jawTipL,
@@ -230,18 +244,50 @@ export function generateFacialMorphs(
    * Ⅰ.Ⅳ EYE BROW TIPS DETECTION
    */
   // Update the eye brow tips relative to the center of the eye nodes with some offsets
-  eyeBrowTipL.copy(centerEyeRNode.clone().add(new THREE.Vector3(0, 1.6, 2.3)));
-  eyeBrowTipR.copy(centerEyeLNode.clone().add(new THREE.Vector3(0, 1.6, 2.3)));
+  if (manualTips?.eyeBrowTipL && manualTips?.eyeBrowTipR) {
+    eyeBrowTipL.copy(manualTips.eyeBrowTipL);
+    eyeBrowTipR.copy(manualTips.eyeBrowTipR);
+    console.log("\n -- generateFacialMorphs -- using manual eye brow tips");
+  } else {
+    eyeBrowTipL.copy(
+      centerEyeRNode.clone().add(new THREE.Vector3(0, 1.6, 2.3)),
+    );
+    eyeBrowTipR.copy(
+      centerEyeLNode.clone().add(new THREE.Vector3(0, 1.6, 2.3)),
+    );
+  }
+  console.log(
+    "\n -- generateFacialMorphs -- eyeBrowTipL calculated ->",
+    eyeBrowTipL.x === Infinity ? "Not Found" : eyeBrowTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- eyeBrowTipR calculated ->",
+    eyeBrowTipR.x === -Infinity ? "Not Found" : eyeBrowTipR,
+  );
 
   /**
    * Ⅰ.Ⅴ MOUSE CORNER TIPS DETECTION
    */
   // Updat the mouse tips relative to the coordinate of X and Z (with some offset) of the centerEyeLNode and centerEyeRNode, and the calculated mouseTipY
-  mouseCornerTipL.copy(
-    new THREE.Vector3(centerEyeRNode.x, mouseTipY, centerEyeRNode.z + 1.2),
+  if (manualTips?.mouseCornerTipL && manualTips?.mouseCornerTipR) {
+    mouseCornerTipL.copy(manualTips.mouseCornerTipL);
+    mouseCornerTipR.copy(manualTips.mouseCornerTipR);
+    console.log("\n -- generateFacialMorphs -- using manual mouse corner tips");
+  } else {
+    mouseCornerTipL.copy(
+      new THREE.Vector3(centerEyeRNode.x, mouseTipY, centerEyeRNode.z + 1.2),
+    );
+    mouseCornerTipR.copy(
+      new THREE.Vector3(centerEyeLNode.x, mouseTipY, centerEyeLNode.z + 1.2),
+    );
+  }
+  console.log(
+    "\n -- generateFacialMorphs -- mouseCornerTipL calculated ->",
+    mouseCornerTipL.x === Infinity ? "Not Found" : mouseCornerTipL,
   );
-  mouseCornerTipR.copy(
-    new THREE.Vector3(centerEyeLNode.x, mouseTipY, centerEyeLNode.z + 1.2),
+  console.log(
+    "\n -- generateFacialMorphs -- mouseCornerTipR calculated ->",
+    mouseCornerTipR.x === -Infinity ? "Not Found" : mouseCornerTipR,
   );
 
   /**
@@ -310,7 +356,7 @@ export function generateFacialMorphs(
       nostrilTarget,
       "widening",
       visualizerByNostrilMorph,
-      1.5,
+      0.8,
     );
 
     // --- C. GENERATE JAW WIDTH MORPH (Widen) ---
@@ -417,6 +463,19 @@ export function generateFacialMorphs(
 
   // 3.7 Initialize at 0 of the morph targets on the mesh
   headNode.morphTargetInfluences = [0, 0, 0, 0, 0, 0];
+
+  // 3.8 Inform the renderer that the material needs to be recompiled to include morphing logic
+  if (headNode.material) {
+    console.log(
+      `\n -- generateFacialMorphs -- setting material.needsUpdate to true for [${headNode.name}] to enable morphing support ->`,
+      headNode.material,
+    );
+    if (Array.isArray(headNode.material)) {
+      headNode.material.forEach((mat) => (mat.needsUpdate = true));
+    } else {
+      headNode.material.needsUpdate = true;
+    }
+  }
 
   /**
    * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
@@ -715,7 +774,7 @@ export function remap01(value: number, factor: number) {
 export function adjustPivotPointsForMesh(mesh: THREE.Mesh): void {
   const meshName = mesh.name;
 
-  console.log(`\n---- Ready to adjust the pivots of mesh ${meshName} ----\n`);
+  // console.log(`\n---- Ready to adjust the pivots of mesh ${meshName} ----\n`);
 
   if (mesh.geometry.boundingBox === null) mesh.geometry.computeBoundingBox();
   const center = mesh.geometry.boundingBox!.getCenter(new THREE.Vector3());
