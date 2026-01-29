@@ -11,16 +11,48 @@
           selectedObject.name
             .toLocaleLowerCase()
             .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()) &&
-          !isManualMorphGenerationMode
+          !isManualMorphGenerationMode &&
+          !isModeSelectionActive
         "
         class="mb-4 pointer-events-auto"
       >
-        <!-- <Button @click="startManualMorph"> Generate Morph Target </Button> -->
-        <Button @click="startManualMorph"> 生成变形目标 </Button>
+        <!-- Open the mode selection container -->
+        <Button @click="openModeSelection"> 生成变形目标 </Button>
       </div>
     </Transition>
 
-    <!-- Selection Controls -->
+    <!-- Mode Selection Container -->
+    <Transition name="slide-up">
+      <div
+        v-if="isModeSelectionActive"
+        class="flex flex-col items-center gap-4 p-6 bg-slate-950/80 border border-cyan-500/50 backdrop-blur-md pointer-events-auto shadow-[0_0_30px_rgba(0,0,0,0.5)] mb-4"
+      >
+        <div class="flex flex-col gap-2 items-center mb-2">
+          <h3
+            class="text-cyan-400 font-futuristic tracking-widest text-sm uppercase"
+          >
+            变形目标生成模式
+          </h3>
+          <div
+            class="h-px w-32 bg-linear-to-r from-transparent via-cyan-500/50 to-transparent"
+          ></div>
+        </div>
+
+        <div class="flex gap-4">
+          <Button @click="startManualMode"> 手动点位确定 </Button>
+          <Button @click="startAutomaticMode"> 自动识别点位 </Button>
+        </div>
+
+        <button
+          @click="isModeSelectionActive = false"
+          class="text-cyan-500/60 hover:text-cyan-400 transition-all text-[10px] uppercase tracking-widest font-futuristic cursor-pointer mt-1"
+        >
+          取消
+        </button>
+      </div>
+    </Transition>
+
+    <!-- Manual Morph Tips Selection Controls -->
     <Transition name="slide-up">
       <div
         v-if="isManualMorphGenerationMode"
@@ -30,7 +62,7 @@
           <h3
             class="text-cyan-400 font-futuristic tracking-widest text-sm uppercase"
           >
-            <!-- Manual Morph Selection -->
+            <!-- Manual Morph Tips Selection -->
             点位选择
           </h3>
           <div
@@ -84,7 +116,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 import Button from "./Button.vue";
@@ -107,8 +139,35 @@ const isSelectionComplete = computed(() => {
   );
 });
 
-const startManualMorph = () => {
+const isModeSelectionActive = ref(false);
+
+/**
+ * Open the mode selection container.
+ */
+const openModeSelection = () => {
+  isModeSelectionActive.value = true;
+};
+
+/**
+ * Start the manual morph generation mode.
+ */
+const startManualMode = () => {
+  isModeSelectionActive.value = false;
   modelsStore.setIsManualMorphGenerationMode(true);
+};
+
+/**
+ * Trigger the automatic morph generation.
+ * This will reset manual tips and set the manualMorphReadyTimestamp to trigger the generation in SplicingModelsV2.
+ */
+const startAutomaticMode = () => {
+  isModeSelectionActive.value = false;
+  // Reset manual tips to ensure automatic detection is used
+  modelsStore.resetManualMorphTips();
+  // Trigger generation
+  modelsStore.$patch({
+    manualMorphReadyTimestamp: Date.now(),
+  });
 };
 
 const setStage = (stage: "jaw" | "eyeBrow" | "mouseCornersWidth") => {

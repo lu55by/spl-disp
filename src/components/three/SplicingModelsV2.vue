@@ -434,6 +434,14 @@ const init = async () => {
   ) => {
     // console.log("\ngenerateFacialMorphsAndVisualizers called...");
 
+    const hasManualTips =
+      manualJawTipL.value ||
+      manualJawTipR.value ||
+      manualEyeBrowTipL.value ||
+      manualEyeBrowTipR.value ||
+      manualMouseCornerTipL.value ||
+      manualMouseCornerTipR.value;
+
     const {
       visualizerNoseTip, // Vector3
       visualizerNostrilTipL, // Vector3
@@ -463,14 +471,16 @@ const init = async () => {
       {
         noseRadius: 7,
       },
-      {
-        jawTipL: manualJawTipL.value || undefined,
-        jawTipR: manualJawTipR.value || undefined,
-        eyeBrowTipL: manualEyeBrowTipL.value || undefined,
-        eyeBrowTipR: manualEyeBrowTipR.value || undefined,
-        mouseCornerTipL: manualMouseCornerTipL.value || undefined,
-        mouseCornerTipR: manualMouseCornerTipR.value || undefined,
-      },
+      hasManualTips
+        ? {
+            jawTipL: manualJawTipL.value || undefined,
+            jawTipR: manualJawTipR.value || undefined,
+            eyeBrowTipL: manualEyeBrowTipL.value || undefined,
+            eyeBrowTipR: manualEyeBrowTipR.value || undefined,
+            mouseCornerTipL: manualMouseCornerTipL.value || undefined,
+            mouseCornerTipR: manualMouseCornerTipR.value || undefined,
+          }
+        : undefined,
     );
 
     if (isVisualizerDisabled) {
