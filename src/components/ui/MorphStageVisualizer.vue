@@ -41,7 +41,7 @@ const stageLabel = computed(() => {
         isManualMorphGenerationMode &&
         manualMorphSelectionStage
       "
-      class="fixed top-24 right-4 md:top-24 md:right-8 pointer-events-auto flex flex-col gap-2 md:gap-4 p-3 md:p-5 bg-slate-900/60 backdrop-blur-md border border-cyan-500/40 rounded-sm w-48 md:w-96 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all duration-300 z-50"
+      class="fixed bottom-4 left-4 md:bottom-4 md:left-4 pointer-events-auto flex flex-col gap-2 md:gap-4 p-3 md:p-5 bg-slate-900/60 backdrop-blur-md border border-cyan-500/40 rounded-sm w-48 md:w-96 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all duration-300 z-50"
     >
       <div class="flex flex-col gap-1 w-full">
         <div class="flex justify-between items-center">
