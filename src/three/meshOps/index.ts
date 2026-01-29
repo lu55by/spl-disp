@@ -1612,5 +1612,5 @@ export async function replaceCurrentHeadWithCutHead(
   // Add the new cut head to the splicing group global
   splicingGroupGlobal.add(newCutHead);
   // Generate the facial morphs
-  generateFacialMorphs(splicingGroupGlobal, { noseRadius: 7 });
+  // generateFacialMorphs(splicingGroupGlobal, { noseRadius: 7 });
 }

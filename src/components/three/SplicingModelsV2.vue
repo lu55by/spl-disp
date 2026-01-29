@@ -362,7 +362,7 @@ const init = async () => {
   uIsShowMap = uniform(isShowMap.value ? 1 : 0);
   uOutlineColor = uniform(color("#0ff"));
   // Increase the value to make the outline thinner
-  uOutlinePatternFactor = uniform(vec2(0.91, 0.92));
+  uOutlinePatternFactor = uniform(vec2(0.88, 0.9));
 
   // Toggle the map by using TSL.
   const applyMixedColorNode = (splicingGroupGlobal: THREE.Group) => {

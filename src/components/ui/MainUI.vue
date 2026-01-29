@@ -2,6 +2,7 @@
 import ButtonContainer from "./ButtonContainer.vue";
 // import Selected3dObjectPropsIndicator from "./Selected3dObjectPropsIndicator.vue";
 import ThumbnailVisualizer from "./ThumbnailVisualizer.vue";
+import MorphStageVisualizer from "./MorphStageVisualizer.vue";
 import UploadManager from "./UploadManager.vue";
 import ManualMorphUI from "./ManualMorphUI.vue";
 </script>
@@ -13,6 +14,7 @@ import ManualMorphUI from "./ManualMorphUI.vue";
     <ButtonContainer />
     <!-- <Selected3dObjectPropsIndicator /> -->
     <ThumbnailVisualizer />
+    <MorphStageVisualizer />
     <UploadManager />
     <ManualMorphUI />
   </div>
