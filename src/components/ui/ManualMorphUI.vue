@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 import Button from "./Button.vue";
@@ -190,6 +190,13 @@ const finish = () => {
     manualMorphReadyTimestamp: Date.now(),
   });
 };
+
+/**
+ * Deactivate the isModeSelectionActive local state when the selectedObject is null.
+ */
+watch(selectedObject, (v) => {
+  if (!v) isModeSelectionActive.value = false;
+});
 </script>
 
 <style scoped>
