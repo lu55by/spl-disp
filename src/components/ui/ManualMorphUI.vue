@@ -1,19 +1,18 @@
 <template>
   <div
+    v-if="
+      selectedObject &&
+      selectedObject.name
+        .toLocaleLowerCase()
+        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase())
+    "
     class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none"
     @click.stop
   >
     <!-- Entry Button -->
     <Transition name="slide-up">
       <div
-        v-if="
-          selectedObject &&
-          selectedObject.name
-            .toLocaleLowerCase()
-            .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()) &&
-          !isManualMorphGenerationMode &&
-          !isModeSelectionActive
-        "
+        v-if="!isManualMorphGenerationMode && !isModeSelectionActive"
         class="mb-4 pointer-events-auto"
       >
         <!-- Open the mode selection container -->
@@ -154,6 +153,7 @@ const openModeSelection = () => {
  */
 const startManualMode = () => {
   isModeSelectionActive.value = false;
+  modelsStore.resetManualMorphTips();
   modelsStore.setIsManualMorphGenerationMode(true);
 };
 

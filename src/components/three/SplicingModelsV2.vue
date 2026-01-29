@@ -11,7 +11,7 @@ import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps } from "../../three/constants";
+import { CameraProps, CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 import {
   adjustPivotPointsForMesh,
   generateFacialMorphs,
@@ -1145,10 +1145,24 @@ const onMouseClick = (e: MouseEvent) => {
         firstIntersection,
       );
 
+      // Get the Parent Group of the first intersected object
+      const intersectionParent = firstIntersection.object
+        .parent as THREE.Group<THREE.Object3DEventMap>;
+
+      // Clicked outside of head model? -> exit manual morph mode
+      const isHeadModel = intersectionParent.name
+        .toLocaleLowerCase()
+        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase());
+
+      if (isManualMorphGenerationMode.value && !isHeadModel) {
+        modelsStore.setIsManualMorphGenerationMode(false);
+      }
+
       // Handle Manual Morph Tip Selection
       if (
         isManualMorphGenerationMode.value &&
-        manualMorphSelectionStage.value
+        manualMorphSelectionStage.value &&
+        isHeadModel
       ) {
         console.log(
           "\n ---- onMouseClick -- Ready to do manual morph tip selection ---- ",
@@ -1181,12 +1195,13 @@ const onMouseClick = (e: MouseEvent) => {
         clearMorphVisualizerByStage(manualMorphSelectionStage.value + "_");
 
         // Visual feedback (optional: we can add small temporary spheres or boxes)
+        const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
         const pointVisualizer = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.2, 0.2),
+          sphereGeometry,
           new THREE.MeshBasicMaterial({ color: "#ff0" }),
         );
         const pointVisualizerMirrored = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.2, 0.2),
+          sphereGeometry,
           new THREE.MeshBasicMaterial({ color: "#00f" }),
         );
         pointVisualizer.name = `${manualMorphSelectionStage.value}_pointVisualizer`;
@@ -1205,10 +1220,6 @@ const onMouseClick = (e: MouseEvent) => {
         );
         // return; // Skip normal selection if in tip selection mode
       }
-
-      // Get the Parent Group of the first intersected object
-      const intersectionParent = firstIntersection.object
-        .parent as THREE.Group<THREE.Object3DEventMap>;
 
       /*
         Attach the transform to the intersectedParentGroup
@@ -1229,6 +1240,11 @@ const onMouseClick = (e: MouseEvent) => {
         Set the outline effect to be visible
        */
       setOutlineEffectVisibility(intersectionParent, true);
+    }
+  } else {
+    // If the user clicked outside of the head model (background)
+    if (isManualMorphGenerationMode.value) {
+      modelsStore.setIsManualMorphGenerationMode(false);
     }
   }
 };

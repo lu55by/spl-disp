@@ -2,10 +2,14 @@
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
+import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 
 const modelsStore = useModelsStore();
-const { manualMorphSelectionStage, isManualMorphGenerationMode } =
-  storeToRefs(modelsStore);
+const {
+  selectedObject,
+  manualMorphSelectionStage,
+  isManualMorphGenerationMode,
+} = storeToRefs(modelsStore);
 
 const currentRefImg = computed(() => {
   if (!manualMorphSelectionStage.value) return null;
@@ -29,7 +33,14 @@ const stageLabel = computed(() => {
 <template>
   <Transition name="slide-fade-right">
     <div
-      v-if="isManualMorphGenerationMode && manualMorphSelectionStage"
+      v-if="
+        selectedObject &&
+        selectedObject.name
+          .toLocaleLowerCase()
+          .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()) &&
+        isManualMorphGenerationMode &&
+        manualMorphSelectionStage
+      "
       class="fixed top-24 right-4 md:top-24 md:right-8 pointer-events-auto flex flex-col gap-2 md:gap-4 p-3 md:p-5 bg-slate-900/60 backdrop-blur-md border border-cyan-500/40 rounded-sm w-48 md:w-96 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all duration-300 z-50"
     >
       <div class="flex flex-col gap-1 w-full">
