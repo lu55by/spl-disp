@@ -204,6 +204,8 @@ export const useModelsStore = defineStore("models", {
     manualMouseCornerTipR: null as THREE.Vector3 | null,
     // manualMorphReadyTimestamp state to trigger the manual morph generation in SplicingModelsV2
     manualMorphReadyTimestamp: 0,
+    // isMorphTargetReady state to trigger the SplicingModelsV2 to update the head node
+    isMorphTargetReady: false,
   }),
 
   getters: {
@@ -211,6 +213,14 @@ export const useModelsStore = defineStore("models", {
   },
 
   actions: {
+    /**
+     * Set the isMorphTargetReady state.
+     * @param isReady The isMorphTargetReady state
+     */
+    setIsMorphTargetReady(isReady: boolean) {
+      this.isMorphTargetReady = isReady;
+    },
+
     /**
      * Set the default original head (shorthand for gender toggle).
      * @param isFemale The gender of the default original head

@@ -145,6 +145,7 @@ const isModeSelectionActive = ref(false);
  * Open the mode selection container.
  */
 const openModeSelection = () => {
+  modelsStore.setIsMorphTargetReady(false);
   isModeSelectionActive.value = true;
 };
 

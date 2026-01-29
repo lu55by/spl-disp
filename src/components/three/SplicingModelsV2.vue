@@ -150,6 +150,54 @@ let postProcessing: THREE.PostProcessing;
 const width = window.innerWidth;
 const height = window.innerHeight;
 
+/**
+ * Top Level Normal Fns
+ */
+// Clear the visualizers by stage prefix in the visualizer group
+const clearMorphVisualizerByStage = (stage: string) => {
+  if (!visualizerGroup) return;
+  console.log(
+    "\n -- clearMorphVisualizerByStage -- visualizerGroup ->",
+    visualizerGroup,
+  );
+  // Iterate over a copy of the children array to avoid skipping elements while removing them from the group -> fixes the issue where meshes with the same stage prefix were not removed properly.
+  [...visualizerGroup.children].forEach((child) => {
+    console.log("\n -- clearMorphVisualizerByStage -- child ->", child);
+    if (child instanceof THREE.Mesh && child.name.startsWith(stage)) {
+      console.log(
+        "\n -- clearMorphVisualizerByStage -- child same stage ->",
+        child,
+      );
+      child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m: any) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
+      visualizerGroup.remove(child);
+    }
+  });
+};
+
+// Clear all the visualizers in the visualizer group
+const clearVisualizerGroup = () => {
+  if (!visualizerGroup) return;
+  // Iterate over a copy of the children array and dispose before removing -> solves the issue of children not being disposed and ensures proper cleanup.
+  [...visualizerGroup.children].forEach((child: any) => {
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) {
+      if (Array.isArray(child.material)) {
+        child.material.forEach((m: any) => m.dispose());
+      } else {
+        child.material.dispose();
+      }
+    }
+    visualizerGroup.remove(child);
+  });
+};
+
 // Init scene fn
 const init = async () => {
   /**
@@ -407,25 +455,6 @@ const init = async () => {
   //   });
 
   /**
-   * Normal Fns
-   */
-  function clearVisualizerGroup() {
-    if (!visualizerGroup) return;
-    // Iterate over a copy of the children array and dispose before removing -> solves the issue of children not being disposed and ensures proper cleanup.
-    [...visualizerGroup.children].forEach((child: any) => {
-      if (child.geometry) child.geometry.dispose();
-      if (child.material) {
-        if (Array.isArray(child.material)) {
-          child.material.forEach((m: any) => m.dispose());
-        } else {
-          child.material.dispose();
-        }
-      }
-      visualizerGroup.remove(child);
-    });
-  }
-
-  /**
    * Generate Facial Morphs
    */
   const generateFacialMorphsAndVisualizers = (
@@ -483,7 +512,7 @@ const init = async () => {
         : undefined,
     );
 
-    if (isVisualizerDisabled) {
+    if (isVisualizerDisabled || visualizer === "none") {
       clearVisualizerGroup();
       return;
     }
@@ -825,7 +854,7 @@ const init = async () => {
     mouseCornersWidth
     ear
    */
-  const selectedVisualizer = "eyeBrow";
+  const selectedVisualizer = "none";
   // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
@@ -890,9 +919,20 @@ const init = async () => {
         selectedVisualizer,
       );
 
+      // Set the isMorphTargetReady state to true
+      modelsStore.setIsMorphTargetReady(true);
+
       // Auto disable manual mode after success
       modelsStore.setIsManualMorphGenerationMode(false);
     }
+  });
+
+  /**
+   * Clear All the Visualizers Watcher
+   */
+  watch(isManualMorphGenerationMode, (newVal) => {
+    // Clear the visualizers if manual morph generation mode is disabled
+    if (!newVal) clearVisualizerGroup();
   });
 };
 
@@ -1051,36 +1091,6 @@ const onWindowDragOver = (e: DragEvent) => {
 };
 
 /**
- * Top Level Normal Fns
- */
-const clearMorphVisualizerByStage = (stage: string) => {
-  if (!visualizerGroup) return;
-  console.log(
-    "\n -- clearMorphVisualizerByStage -- visualizerGroup ->",
-    visualizerGroup,
-  );
-  // Iterate over a copy of the children array to avoid skipping elements while removing them from the group -> fixes the issue where meshes with the same stage prefix were not removed properly.
-  [...visualizerGroup.children].forEach((child) => {
-    console.log("\n -- clearMorphVisualizerByStage -- child ->", child);
-    if (child instanceof THREE.Mesh && child.name.startsWith(stage)) {
-      console.log(
-        "\n -- clearMorphVisualizerByStage -- child same stage ->",
-        child,
-      );
-      child.geometry.dispose();
-      if (child.material) {
-        if (Array.isArray(child.material)) {
-          child.material.forEach((m: any) => m.dispose());
-        } else {
-          child.material.dispose();
-        }
-      }
-      visualizerGroup.remove(child);
-    }
-  });
-};
-
-/**
  * On mouse click fn, handle the event of object been intersected by the raycaster.
  * Including:
  * 1. Attach the transform control to the parent group of the casted mesh by the ray.
@@ -1193,7 +1203,7 @@ const onMouseClick = (e: MouseEvent) => {
           "R:",
           pointR,
         );
-        return; // Skip normal selection if in tip selection mode
+        // return; // Skip normal selection if in tip selection mode
       }
 
       // Get the Parent Group of the first intersected object

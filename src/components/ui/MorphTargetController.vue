@@ -7,8 +7,10 @@ import {
   CutHeadEyesNodeCombinedGroupName,
   NodeNames,
 } from "../../three/constants";
+import { storeToRefs } from "pinia";
 
 const modelsStore = useModelsStore();
+const { isMorphTargetReady } = storeToRefs(modelsStore);
 
 /**
  * The head node that contains the morph targets.
@@ -130,6 +132,18 @@ watch(isVisible, (newVal) => {
   } else {
     updateHeadNode();
     updateEyeNodes();
+  }
+});
+
+/*
+  Manual Morph Generation Trigger Watcher
+  */
+watch(isMorphTargetReady, (newVal) => {
+  if (newVal) {
+    console.log(
+      "\nisMorphTargetReady changed -> triggering head node re-updating...",
+    );
+    updateHeadNode();
   }
 });
 
