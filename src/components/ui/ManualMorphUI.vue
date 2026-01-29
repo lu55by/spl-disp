@@ -73,7 +73,7 @@
           <Button
             @click="setStage('jaw')"
             :class="{
-              'border-2 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]':
+              'border-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(34,211,238,0.3)]':
                 manualMorphSelectionStage === 'jaw',
             }"
           >
@@ -82,7 +82,7 @@
           <Button
             @click="setStage('eyeBrow')"
             :class="{
-              'border-2 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]':
+              'border-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(34,211,238,0.3)]':
                 manualMorphSelectionStage === 'eyeBrow',
             }"
           >
@@ -91,7 +91,7 @@
           <Button
             @click="setStage('mouseCornersWidth')"
             :class="{
-              'border-2 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]':
+              'border-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(34,211,238,0.3)]':
                 manualMorphSelectionStage === 'mouseCornersWidth',
             }"
           >
