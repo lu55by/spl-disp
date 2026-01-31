@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
+    "@theatre/core": "^0.7.2",
+    "@theatre/studio": "^0.7.2",
     "axios": "^1.13.2",
     "manifold-3d": "^3.3.2",
     "pinia": "^3.0.4",

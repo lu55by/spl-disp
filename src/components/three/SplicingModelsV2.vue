@@ -6,18 +6,34 @@
 import { storeToRefs } from "pinia";
 import { TransformControls } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
 import { color, materialColor, mix, uniform, vec2 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useModelsStore } from "../../stores/useModelsStore";
-import { CameraProps, CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
+import {
+  CameraProps,
+  CutHeadEyesNodeCombinedGroupName,
+} from "../../three/constants";
 import {
   adjustPivotPointsForMesh,
   generateFacialMorphs,
   getObject3DBoundingBoxCenter,
 } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
+
+import { getProject, types } from "@theatre/core";
+import studio from "@theatre/studio";
+import theatreState from "@/assets/animations/Three x Theatre.theatre-project-state-1.json";
+
+/**
+ * Theatre.js Setup
+ */
+if (import.meta.env.DEV) {
+  studio.initialize();
+}
+
+const theatreProject = getProject("Three x Theatre", { state: theatreState });
+const theatreSheet = theatreProject.sheet("Theatre Sheet 1");
 
 /**
  * Canvas Element
@@ -251,7 +267,7 @@ const init = async () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
-  renderer.inspector = new Inspector();
+  // renderer.inspector = new Inspector();
 
   /**
    * Controls
@@ -862,6 +878,49 @@ const init = async () => {
    */
   // splicingGroupGlobal.add(new THREE.AxesHelper(10));
   scene.add(splicingGroupGlobal);
+
+  /**
+   * Theatre Animation Setup
+   */
+  const splicingGroupGlobalSheetObj = theatreSheet.object(
+    "Splicing Group Global / Transformation",
+    {
+      rotation: types.compound({
+        x: types.number(splicingGroupGlobal.rotation.x, {
+          range: [-2 * Math.PI, 2 * Math.PI],
+        }),
+        y: types.number(splicingGroupGlobal.rotation.y, {
+          range: [-2 * Math.PI, 2 * Math.PI],
+        }),
+        z: types.number(splicingGroupGlobal.rotation.z, {
+          range: [-2 * Math.PI, 2 * Math.PI],
+        }),
+      }),
+      position: types.compound({
+        x: types.number(splicingGroupGlobal.position.x, { range: [-10, 10] }),
+        y: types.number(splicingGroupGlobal.position.y, { range: [-10, 10] }),
+        z: types.number(splicingGroupGlobal.position.z, { range: [-10, 10] }),
+      }),
+      scale: types.compound({
+        x: types.number(splicingGroupGlobal.scale.x, { range: [0, 10] }),
+        y: types.number(splicingGroupGlobal.scale.y, { range: [0, 10] }),
+        z: types.number(splicingGroupGlobal.scale.z, { range: [0, 10] }),
+      }),
+    },
+  );
+
+  splicingGroupGlobalSheetObj.onValuesChange((values) => {
+    const { x: rotX, y: rotY, z: rotZ } = values.rotation;
+    const { x: posX, y: posY, z: posZ } = values.position;
+    const { x: scaleX, y: scaleY, z: scaleZ } = values.scale;
+    splicingGroupGlobal.rotation.set(rotX, rotY, rotZ);
+    splicingGroupGlobal.position.set(posX, posY, posZ);
+    splicingGroupGlobal.scale.set(scaleX, scaleY, scaleZ);
+  });
+
+  // theatreProject.ready.then(() =>
+  //   theatreSheet.sequence.play({ iterationCount: Infinity }),
+  // );
 
   /**
    * Water based on THREE.WaterMesh

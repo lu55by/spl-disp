@@ -1,0 +1,78 @@
+{
+  "sheetsById": {
+    "Theatre Sheet 1": {
+      "staticOverrides": {
+        "byObject": {
+          "Splicing Group Global Theatre": {
+            "rotation": {
+              "x": 0
+            }
+          }
+        }
+      },
+      "sequence": {
+        "subUnitsPerUnit": 30,
+        "length": 10,
+        "type": "PositionalSequence",
+        "tracksByObject": {
+          "Splicing Group Global Theatre": {
+            "trackData": {
+              "s8lKBzG9sW": {
+                "type": "BasicKeyframedTrack",
+                "__debugName": "Splicing Group Global Theatre:[\"rotation\",\"y\"]",
+                "keyframes": [
+                  {
+                    "id": "5CwkWOD6K1",
+                    "position": 0,
+                    "connectedRight": true,
+                    "handles": [
+                      0.5,
+                      1,
+                      0.6,
+                      -0.28
+                    ],
+                    "type": "bezier",
+                    "value": 0
+                  },
+                  {
+                    "id": "ZrH-WHM5uL",
+                    "position": 4.933,
+                    "connectedRight": true,
+                    "handles": [
+                      0.735,
+                      0.045,
+                      0.5,
+                      0
+                    ],
+                    "type": "bezier",
+                    "value": 6.851063829787234
+                  },
+                  {
+                    "id": "0uneEYRL5M",
+                    "position": 5,
+                    "connectedRight": true,
+                    "handles": [
+                      0.5,
+                      1,
+                      0.5,
+                      0
+                    ],
+                    "type": "bezier",
+                    "value": 6.283185307179586
+                  }
+                ]
+              }
+            },
+            "trackIdByPropPath": {
+              "[\"rotation\",\"y\"]": "s8lKBzG9sW"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitionVersion": "0.4.0",
+  "revisionHistory": [
+    "_yV1SCS2pseC0wGI"
+  ]
+}
