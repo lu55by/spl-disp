@@ -1,6 +1,68 @@
 <template>
-  <canvas class="h-full w-full relative" ref="canvasEle"></canvas>
+  <div class="relative h-full w-full overflow-hidden">
+    <canvas class="h-full w-full relative" ref="canvasEle"></canvas>
+
+    <!-- Focus Indicator -->
+    <Transition name="fade">
+      <div
+        v-if="showFocusIndicator && !isFocusedOnPoint"
+        class="absolute pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-full shadow-2xl flex items-center gap-2 group transition-all duration-300"
+        :style="{ left: indicatorPos.x + 'px', top: indicatorPos.y + 'px' }"
+      >
+        <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+        <span class="text-white text-xs font-medium tracking-wide whitespace-nowrap">
+          Press <span class="bg-white/20 px-1.5 py-0.5 rounded text-[10px] border border-white/30 font-mono">.</span> to focus
+        </span>
+      </div>
+    </Transition>
+
+    <!-- Reset Focus Button -->
+    <Transition name="slide-up">
+      <button
+        v-if="isFocusedOnPoint"
+        @click="resetFocusToCenter"
+        class="absolute bottom-10 right-10 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 hover:border-white/30 rounded-2xl shadow-2xl group flex items-center gap-3 transition-all duration-500 hover:scale-105 active:scale-95"
+      >
+        <div class="p-2 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/40 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6"></path>
+            <path d="M9 21H3v-6"></path>
+            <path d="M21 3l-7 7"></path>
+            <path d="M3 21l7-7"></path>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="text-[10px] text-white/40 uppercase tracking-widest font-bold">Viewport</div>
+          <div class="text-sm text-white font-semibold">Reset Focus</div>
+        </div>
+      </button>
+    </Transition>
+  </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -80%) scale(0.9);
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+</style>
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
@@ -61,6 +123,21 @@ const {
   manualMorphReadyTimestamp,
 } = storeToRefs(modelsStore);
 
+/**
+ * Focus Point State
+ */
+const clickedPoint = ref<THREE.Vector3 | null>(null);
+const showFocusIndicator = ref(false);
+const indicatorPos = ref({ x: 0, y: 0 });
+const isFocusedOnPoint = ref(false);
+
+const resetFocusToCenter = () => {
+  updateOrbitControlsTargetCenter();
+  isFocusedOnPoint.value = false;
+  showFocusIndicator.value = false;
+  clickedPoint.value = null;
+};
+
 /*
   Orbit Controls Target Center Update Logic
  */
@@ -109,12 +186,6 @@ const updateOrbitControlsTargetCenter = () => {
 
   // Adjust the pivot point of each object in the group to its bounding box center
   adjustPivots(splicingGroupGlobal);
-
-  // Move all 3D Objects in splicingGroupGlobal to the world original position vec3(0)
-  // splicingGroupGlobal.children.forEach((child) => {
-  //   child.position.set(0, 0, 0);
-  // });
-  // splicingGroupGlobal.position.set(0, 0, 0);
 
   const boundingBoxCenter = getObject3DBoundingBoxCenter(splicingGroupGlobal);
   orbitControlsTargetCenter.copy(boundingBoxCenter);
@@ -475,7 +546,7 @@ const init = async () => {
    */
   const generateFacialMorphsAndVisualizers = (
     isVisualizerDisabled: boolean = false,
-    visualizer: string = "all",
+    visualizer: string = "none",
   ) => {
     // console.log("\ngenerateFacialMorphsAndVisualizers called...");
 
@@ -1188,7 +1259,7 @@ const onMouseClick = (e: MouseEvent) => {
   // Updates the ray with camera origin and direction based on the mouse
   raycaster.setFromCamera(mouse, camera);
   // Get the intersected objects that are casted by the ray (closest first)
-  const intersects = raycaster.intersectObject(splicingGroupGlobal);
+  const intersects = raycaster.intersectObject(splicingGroupGlobal, true);
 
   // Check if the intersected objects are the length greater than 0
   if (intersects.length > 0) {
@@ -1299,12 +1370,32 @@ const onMouseClick = (e: MouseEvent) => {
         Set the outline effect to be visible
        */
       setOutlineEffectVisibility(intersectionParent, true);
+
+      // --- Focus Point Implementation ---
+      const intersectionPoint = firstIntersection.point;
+      clickedPoint.value = intersectionPoint.clone();
+
+      // Update screen position for the UI indicator
+      const vector = intersectionPoint.clone().project(camera);
+      indicatorPos.value = {
+        x: (vector.x * 0.5 + 0.5) * window.innerWidth,
+        y: (-(vector.y * 0.5) + 0.5) * window.innerHeight,
+      };
+
+      showFocusIndicator.value = true;
+      // We don't reset isFocusedOnPoint here yet, 
+      // because we might just be clicking a new point while already focused.
+      // But if we click a new point, we want the "Press . to focus" to reappear.
+      isFocusedOnPoint.value = false;
     }
   } else {
     // If the user clicked outside of the head model (background)
     if (isManualMorphGenerationMode.value) {
       modelsStore.setIsManualMorphGenerationMode(false);
     }
+    // Hide focus indicator when clicking background? Blender usually keeps it until next click.
+    // Let's hide it for clarity if we miss.
+    showFocusIndicator.value = false;
   }
 };
 
@@ -1353,6 +1444,14 @@ const onKeyDown = (event: KeyboardEvent) => {
     case "keyz":
       transform && (transform.showZ = !transform.showZ);
       break;
+    case "numpaddecimal":
+    case "period":
+      if (clickedPoint.value) {
+        orbitControlsTargetCenter.copy(clickedPoint.value);
+        isFocusedOnPoint.value = true;
+        showFocusIndicator.value = false;
+      }
+      break;
     default:
       break;
   }
@@ -1393,6 +1492,17 @@ const animate = async () => {
    */
   orbit.target.lerp(orbitControlsTargetCenter, 0.1);
   orbit.update();
+
+  /*
+    Update focus indicator position (keep it pinned to the 3D point)
+   */
+  if (showFocusIndicator.value && clickedPoint.value) {
+    const vector = clickedPoint.value.clone().project(camera);
+    indicatorPos.value = {
+      x: (vector.x * 0.5 + 0.5) * window.innerWidth,
+      y: (-(vector.y * 0.5) + 0.5) * window.innerHeight,
+    };
+  }
 
   /*
     Update Light
