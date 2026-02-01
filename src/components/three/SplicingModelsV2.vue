@@ -5,13 +5,25 @@
     <!-- Focus Indicator -->
     <Transition name="fade">
       <div
-        v-if="showFocusIndicator && !isFocusedOnPoint"
+        v-if="
+          selectedObject &&
+          !selectedObject.name.includes(CutHeadEyesNodeCombinedGroupName) &&
+          showFocusIndicator &&
+          !isFocusedOnPoint
+        "
         class="absolute pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-full shadow-2xl flex items-center gap-2 group transition-all duration-300"
         :style="{ left: indicatorPos.x + 'px', top: indicatorPos.y + 'px' }"
       >
         <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-        <span class="text-white text-xs font-medium tracking-wide whitespace-nowrap">
-          Press <span class="bg-white/20 px-1.5 py-0.5 rounded text-[10px] border border-white/30 font-mono">.</span> to focus
+        <span
+          class="text-white text-xs font-medium tracking-wide whitespace-nowrap"
+        >
+          按下
+          <span
+            class="bg-white/20 px-1.5 py-0.5 rounded text-[10px] border border-white/30 font-mono"
+            >.</span
+          >
+          以聚焦
         </span>
       </div>
     </Transition>
@@ -21,10 +33,21 @@
       <button
         v-if="isFocusedOnPoint"
         @click="resetFocusToCenter"
-        class="absolute bottom-10 right-10 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 hover:border-white/30 rounded-2xl shadow-2xl group flex items-center gap-3 transition-all duration-500 hover:scale-105 active:scale-95"
+        class="absolute bottom-10 right-10 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 hover:border-white/30 rounded-2xl shadow-2xl group flex items-center gap-3 transition-all duration-500 hover:scale-105 active:scale-95 cursor-pointer"
       >
-        <div class="p-2 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/40 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div
+          class="p-2 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/40 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5 text-cyan-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M15 3h6v6"></path>
             <path d="M9 21H3v-6"></path>
             <path d="M21 3l-7 7"></path>
@@ -32,8 +55,12 @@
           </svg>
         </div>
         <div class="text-left">
-          <div class="text-[10px] text-white/40 uppercase tracking-widest font-bold">Viewport</div>
-          <div class="text-sm text-white font-semibold">Reset Focus</div>
+          <div
+            class="text-[10px] text-white/40 uppercase tracking-widest font-bold"
+          >
+            视口
+          </div>
+          <div class="text-sm text-white font-semibold">重置聚焦</div>
         </div>
       </button>
     </Transition>
@@ -43,7 +70,9 @@
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .fade-enter-from,
@@ -109,6 +138,7 @@ const modelsStore = useModelsStore();
 const { splicingGroupGlobal } = modelsStore;
 const {
   splicingGroupLen,
+  selectedObject,
   isShowMap,
   isDefaultHeadFemale,
   currentHeadModelSubPath,
@@ -1383,7 +1413,7 @@ const onMouseClick = (e: MouseEvent) => {
       };
 
       showFocusIndicator.value = true;
-      // We don't reset isFocusedOnPoint here yet, 
+      // We don't reset isFocusedOnPoint here yet,
       // because we might just be clicking a new point while already focused.
       // But if we click a new point, we want the "Press . to focus" to reappear.
       isFocusedOnPoint.value = false;
