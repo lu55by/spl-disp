@@ -25,11 +25,10 @@ import type {
 /**
  * Generates facial morphs for a given model.
  * @param model The model to generate facial morphs for.
- * @param brushParams The brush parameters.
+ * @param manualTips The manual selected tips.
  */
 export function generateFacialMorphs(
   model: THREE.Group,
-  brushParams: { noseRadius: number },
   manualTips?: {
     jawTipL?: THREE.Vector3;
     jawTipR?: THREE.Vector3;
@@ -323,7 +322,7 @@ export function generateFacialMorphs(
   const earTarget = new Float32Array(positions.array);
 
   // Parameters for the procedural brushes
-  const { noseRadius } = brushParams;
+  const noseRadius = 7;
 
   // 2.2 Traverse through the vertex count to get the morphs
 

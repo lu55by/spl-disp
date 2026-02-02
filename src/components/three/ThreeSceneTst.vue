@@ -989,7 +989,7 @@ const init = async () => {
 
     applyDebugTransformation(cutHeadNode, new THREE.Vector3(0.4, 0, 0));
 
-    generateFacialMorphs(cutHeadDefault, { noseRadius: 7 });
+    generateFacialMorphs(cutHeadDefault);
 
     if (cutHeadNode.morphTargetInfluences?.length > 0) {
       // Set the morphTargetInfluences values

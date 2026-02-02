@@ -614,9 +614,6 @@ const init = async () => {
       visualizerByEarMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
-      {
-        noseRadius: 7,
-      },
       hasManualTips
         ? {
             jawTipL: manualJawTipL.value || undefined,
@@ -1093,6 +1090,18 @@ const init = async () => {
   watch(isManualMorphGenerationMode, (newVal) => {
     // Clear the visualizers if manual morph generation mode is disabled
     if (!newVal) clearVisualizerGroup();
+    else {
+      // console.log(
+      //   "\nisManualMorphGenerationMode changed to true, selectedObject -> ",
+      //   selectedObject.value,
+      // );
+      /*
+        We get the head node from the selected object with the index 0 as the selectedObject is currently the Head Group only, and we can get the head mesh from the children of the head group
+       */
+      const headNode = selectedObject.value?.children[0] as THREE.Mesh;
+      // Updates the morphTargets to have no influence on the head model
+      headNode.updateMorphTargets();
+    }
   });
 };
 
