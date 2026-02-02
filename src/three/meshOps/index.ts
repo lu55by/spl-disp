@@ -445,13 +445,13 @@ export function generateFacialMorphs(
   );
   const earAttr = new THREE.BufferAttribute(earTarget, 3);
 
-  // 3.2 Assign names to the BufferAttributes
-  noseAttr.name = "nose-morph-target-attr";
-  nostrilAttr.name = "nostril-morph-target-attr";
-  jawAttr.name = "jaw-morph-target-attr";
-  eyeBrowAttr.name = "eyeBrow-morph-target-attr";
-  mouseCornersWidthAttr.name = "mouseCornersWidth-morph-target-attr";
-  earAttr.name = "ear-morph-target-attr";
+  // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
+  noseAttr.name = "nose";
+  nostrilAttr.name = "nostril";
+  jawAttr.name = "jaw";
+  eyeBrowAttr.name = "eyeBrow";
+  mouseCornersWidthAttr.name = "mouseCornersWidth";
+  earAttr.name = "ear";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -466,21 +466,11 @@ export function generateFacialMorphs(
   // 3.4 Required for lighting to update correctly when morphed
   geo.computeVertexNormals();
 
-  // 3.5 Updates the morphTargets to have no influence on the object
+  // 3.5 Updates the morphTargets to have no influence on the object, and automatically build the morphTargetDictionary based on the attribute names
   headNode.updateMorphTargets();
 
-  // 3.6 Explicitly set the dictionary for UI labeling
-  headNode.morphTargetDictionary = {
-    nose: 0,
-    nostril: 1,
-    jaw: 2,
-    eyeBrow: 3,
-    mouseCornersWidth: 4,
-    ear: 5,
-  };
-
   // 3.7 Initialize at 0 of the morph targets on the mesh
-  headNode.morphTargetInfluences = [0, 0, 0, 0, 0, 0];
+  // headNode.morphTargetInfluences = [0, 0, 0, 0, 0, 0];
 
   // 3.8 Inform the renderer that the material needs to be recompiled to include morphing logic
   if (headNode.material) {
@@ -494,6 +484,11 @@ export function generateFacialMorphs(
       headNode.material.needsUpdate = true;
     }
   }
+
+  console.log(
+    "\n-- generateFacialMorphs -- morph target generation complete, headNode -> ",
+    headNode,
+  );
 
   /**
    * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
