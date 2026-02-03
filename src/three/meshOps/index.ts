@@ -313,13 +313,13 @@ export function generateFacialMorphs(
   /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
-  // 2.1 Define the distinct arrays for each "shape" we want
-  const noseTarget = new Float32Array(positions.array);
-  const nostrilTarget = new Float32Array(positions.array);
-  const jawTarget = new Float32Array(positions.array);
-  const eyeBrowTarget = new Float32Array(positions.array);
-  const mouseCornersWidthTarget = new Float32Array(positions.array);
-  const earTarget = new Float32Array(positions.array);
+  // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
+  const noseTarget = new Float32Array(positions.count * 3);
+  const nostrilTarget = new Float32Array(positions.count * 3);
+  const jawTarget = new Float32Array(positions.count * 3);
+  const eyeBrowTarget = new Float32Array(positions.count * 3);
+  const mouseCornersWidthTarget = new Float32Array(positions.count * 3);
+  const earTarget = new Float32Array(positions.count * 3);
 
   // Parameters for the procedural brushes
   const noseRadius = 7;
@@ -466,7 +466,10 @@ export function generateFacialMorphs(
   // 3.4 Required for lighting to update correctly when morphed
   geo.computeVertexNormals();
 
-  // 3.5 Updates the morphTargets to have no influence on the object, and automatically build the morphTargetDictionary based on the attribute names
+  // 3.5 Enable relative morph targets to optimize memory and performance
+  geo.morphTargetsRelative = true;
+
+  // 3.6 Updates the morphTargets to have no influence on the object, and automatically build the morphTargetDictionary based on the attribute names
   headNode.updateMorphTargets();
 
   // 3.7 Initialize at 0 of the morph targets on the mesh

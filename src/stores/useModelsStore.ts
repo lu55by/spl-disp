@@ -90,6 +90,10 @@ const loadHeadModelAsync = async (isFemale: boolean, subPath?: string) => {
   const paths = getHeadModelPaths(isFemale, subPath);
   const loadedHeadModel: THREE.Group<THREE.Object3DEventMap> =
     await OBJLoaderInstance.loadAsync(paths.Model);
+  console.log(
+    "\n -- loadHeadModelAsync -- loadedHeadModel ->",
+    loadedHeadModel,
+  );
 
   // Apply textures
   await applyTextures2LoadedHeadModelAsync(
@@ -100,6 +104,16 @@ const loadHeadModelAsync = async (isFemale: boolean, subPath?: string) => {
 
   // THE ORIGINAL LOADED HEAD MODEL
   const headModel = loadedHeadModel;
+
+  /*
+    !!! DEBUG FOR NEW HEAD MODEL
+   */
+  // Set name
+  // headModel.name =
+  //   CutHeadEyesNodeCombinedGroupName + (isFemale ? "Female" : "Male");
+  // // Cache it
+  // HeadModelsCache.set(cacheKey, markRaw(headModel));
+  // return markRaw(headModel);
 
   // Calculate the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight and store it to the userData of the loadedHeadModel
   const headNode = (headModel.getObjectByName(NodeNames.HeadNames.Head) ||
@@ -155,6 +169,9 @@ const DefaultOriginalHeadFemale = await loadHeadModelAsync(true);
   Default Original Head Male
  */
 const DefaultOriginalHeadMale = await loadHeadModelAsync(false);
+// !!! PROPS CHANGE TST FOR NEW HEAD MODEL
+// DefaultOriginalHeadMale.position.y = 148.05;
+// DefaultOriginalHeadMale.scale.setScalar(9.5);
 
 /*
   Splicing Group

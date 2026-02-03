@@ -968,7 +968,7 @@ const init = async () => {
     mouseCornersWidth
     ear
    */
-  const selectedVisualizer = "none";
+  const selectedVisualizer = "ear";
   // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**

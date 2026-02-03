@@ -213,6 +213,7 @@ export const HeadMalePathPrefix = `${HeadPathPrefix}/male`;
   seki-01
   ukn-01
   ukn-02
+  ukn-03
  */
 export const DefaultHeadMaleSubPath = `/isspd-01`;
 
