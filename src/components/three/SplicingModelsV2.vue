@@ -112,19 +112,19 @@ import {
 } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
 
-import { getProject, types } from "@theatre/core";
-import studio from "@theatre/studio";
-import theatreState from "@/assets/animations/Three x Theatre.theatre-project-state-1.json";
+// import { getProject, types } from "@theatre/core";
+// import studio from "@theatre/studio";
+// import theatreState from "@/assets/animations/Three x Theatre.theatre-project-state-1.json";
 
 /**
  * Theatre.js Setup
  */
-if (import.meta.env.DEV) {
-  studio.initialize();
-}
+// if (import.meta.env.DEV) {
+//   studio.initialize();
+// }
 
-const theatreProject = getProject("Three x Theatre", { state: theatreState });
-const theatreSheet = theatreProject.sheet("Theatre Sheet 1");
+// const theatreProject = getProject("Three x Theatre", { state: theatreState });
+// const theatreSheet = theatreProject.sheet("Theatre Sheet 1");
 
 /**
  * Canvas Element
@@ -969,7 +969,7 @@ const init = async () => {
     ear
    */
   const selectedVisualizer = "ear";
-  // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
+  generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
    * Add the global group
@@ -980,41 +980,41 @@ const init = async () => {
   /**
    * Theatre Animation Setup
    */
-  const splicingGroupGlobalSheetObj = theatreSheet.object(
-    "Splicing Group Global / Transformation",
-    {
-      rotation: types.compound({
-        x: types.number(splicingGroupGlobal.rotation.x, {
-          range: [-2 * Math.PI, 2 * Math.PI],
-        }),
-        y: types.number(splicingGroupGlobal.rotation.y, {
-          range: [-2 * Math.PI, 2 * Math.PI],
-        }),
-        z: types.number(splicingGroupGlobal.rotation.z, {
-          range: [-2 * Math.PI, 2 * Math.PI],
-        }),
-      }),
-      position: types.compound({
-        x: types.number(splicingGroupGlobal.position.x, { range: [-10, 10] }),
-        y: types.number(splicingGroupGlobal.position.y, { range: [-10, 10] }),
-        z: types.number(splicingGroupGlobal.position.z, { range: [-10, 10] }),
-      }),
-      scale: types.compound({
-        x: types.number(splicingGroupGlobal.scale.x, { range: [0, 10] }),
-        y: types.number(splicingGroupGlobal.scale.y, { range: [0, 10] }),
-        z: types.number(splicingGroupGlobal.scale.z, { range: [0, 10] }),
-      }),
-    },
-  );
+  // const splicingGroupGlobalSheetObj = theatreSheet.object(
+  //   "Splicing Group Global / Transformation",
+  //   {
+  //     rotation: types.compound({
+  //       x: types.number(splicingGroupGlobal.rotation.x, {
+  //         range: [-2 * Math.PI, 2 * Math.PI],
+  //       }),
+  //       y: types.number(splicingGroupGlobal.rotation.y, {
+  //         range: [-2 * Math.PI, 2 * Math.PI],
+  //       }),
+  //       z: types.number(splicingGroupGlobal.rotation.z, {
+  //         range: [-2 * Math.PI, 2 * Math.PI],
+  //       }),
+  //     }),
+  //     position: types.compound({
+  //       x: types.number(splicingGroupGlobal.position.x, { range: [-10, 10] }),
+  //       y: types.number(splicingGroupGlobal.position.y, { range: [-10, 10] }),
+  //       z: types.number(splicingGroupGlobal.position.z, { range: [-10, 10] }),
+  //     }),
+  //     scale: types.compound({
+  //       x: types.number(splicingGroupGlobal.scale.x, { range: [0, 10] }),
+  //       y: types.number(splicingGroupGlobal.scale.y, { range: [0, 10] }),
+  //       z: types.number(splicingGroupGlobal.scale.z, { range: [0, 10] }),
+  //     }),
+  //   },
+  // );
 
-  splicingGroupGlobalSheetObj.onValuesChange((values) => {
-    const { x: rotX, y: rotY, z: rotZ } = values.rotation;
-    const { x: posX, y: posY, z: posZ } = values.position;
-    const { x: scaleX, y: scaleY, z: scaleZ } = values.scale;
-    splicingGroupGlobal.rotation.set(rotX, rotY, rotZ);
-    splicingGroupGlobal.position.set(posX, posY, posZ);
-    splicingGroupGlobal.scale.set(scaleX, scaleY, scaleZ);
-  });
+  // splicingGroupGlobalSheetObj.onValuesChange((values) => {
+  //   const { x: rotX, y: rotY, z: rotZ } = values.rotation;
+  //   const { x: posX, y: posY, z: posZ } = values.position;
+  //   const { x: scaleX, y: scaleY, z: scaleZ } = values.scale;
+  //   splicingGroupGlobal.rotation.set(rotX, rotY, rotZ);
+  //   splicingGroupGlobal.position.set(posX, posY, posZ);
+  //   splicingGroupGlobal.scale.set(scaleX, scaleY, scaleZ);
+  // });
 
   // theatreProject.ready.then(() =>
   //   theatreSheet.sequence.play({ iterationCount: Infinity }),
