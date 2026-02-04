@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import ButtonContainer from "./ButtonContainer.vue";
 // import Selected3dObjectPropsIndicator from "./Selected3dObjectPropsIndicator.vue";
-import ThumbnailVisualizer from "./ThumbnailVisualizer.vue";
-import MorphStageVisualizer from "./MorphStageVisualizer.vue";
-import UploadManager from "./UploadManager.vue";
+import DragAndDropOverlay from "./DragAndDropOverlay.vue";
+import LoadingOverlay from "./LoadingOverlay.vue";
 import ManualMorphUI from "./ManualMorphUI.vue";
+import MorphStageVisualizer from "./MorphStageVisualizer.vue";
+import MorphTargetController from "./MorphTargetController.vue";
+import ThumbnailVisualizer from "./ThumbnailVisualizer.vue";
+import UploadManager from "./UploadManager.vue";
 </script>
 
 <template>
@@ -13,9 +16,12 @@ import ManualMorphUI from "./ManualMorphUI.vue";
   >
     <ButtonContainer />
     <!-- <Selected3dObjectPropsIndicator /> -->
-    <ThumbnailVisualizer />
-    <MorphStageVisualizer />
-    <UploadManager />
+    <LoadingOverlay />
+    <DragAndDropOverlay />
     <ManualMorphUI />
+    <MorphTargetController />
+    <MorphStageVisualizer />
+    <ThumbnailVisualizer />
+    <UploadManager />
   </div>
 </template>

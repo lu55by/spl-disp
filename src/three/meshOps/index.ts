@@ -106,7 +106,13 @@ export function generateFacialMorphs(
   geoOrg.dispose();
   const geo = headNode.geometry;
   const positions = geo.getAttribute("position");
+  // Check if the geometry has normals, if not, compute it
+  if (!geo.getAttribute("normal")) {
+    geo.computeVertexNormals();
+  }
+  const normalAttr = geo.getAttribute("normal");
   const vertex = new THREE.Vector3();
+  const normal = new THREE.Vector3();
 
   /*
     Tips
@@ -129,10 +135,14 @@ export function generateFacialMorphs(
   let mouseCornerTipL = new THREE.Vector3(Infinity, 0, 0);
   // Mouse Tip R
   let mouseCornerTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Ear Tip L
-  let earTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Ear Tip R
-  let earTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Ear Middle Tip L
+  let earMiddleTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Ear Middle Tip R
+  let earMiddleTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Ear Top Tip L
+  let earTopTipL = new THREE.Vector3(Infinity, 0, 0);
+  // Ear Top Tip R
+  let earTopTipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
@@ -142,13 +152,14 @@ export function generateFacialMorphs(
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
   const visualizerByMouseCornerTipsDetection: THREE.Vector3[] = [];
-  const visualizerByEarTipsDetection: THREE.Vector3[] = [];
+  const visualizerByEarMiddleTipsDetection: THREE.Vector3[] = [];
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
   const visualizerByJawMorph: THREE.Vector3[] = [];
   const visualizerByEyeBrowMorph: THREE.Vector3[] = [];
   const visualizerByMouseCornersWidthMorph: THREE.Vector3[] = [];
-  const visualizerByEarMorph: THREE.Vector3[] = [];
+  const visualizerByEarMiddleMorph: THREE.Vector3[] = [];
+  const visualizerByEarTopMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -301,14 +312,17 @@ export function generateFacialMorphs(
     vertex.fromBufferAttribute(positions, i);
     if (vertex.y <= maxYEarTipDetection && vertex.y >= minYEarTipDetection) {
       // Find the ear tips with the max X and min X
-      if (vertex.x < earTipL.x) earTipL.copy(vertex);
-      if (vertex.x > earTipR.x) earTipR.copy(vertex);
-      visualizerByEarTipsDetection.push(vertex.clone());
+      if (vertex.x < earMiddleTipL.x) earMiddleTipL.copy(vertex);
+      if (vertex.x > earMiddleTipR.x) earMiddleTipR.copy(vertex);
+      visualizerByEarMiddleTipsDetection.push(vertex.clone());
     }
   }
+  // Set the top ear tips
+  earTopTipL.copy(earMiddleTipL.clone());
+  earTopTipR.copy(earMiddleTipR.clone());
   // Offset the ear tips on the Y axis
-  earTipL.sub(new THREE.Vector3(0, 1.5, 0));
-  earTipR.sub(new THREE.Vector3(0, 1.5, 0));
+  earMiddleTipL.sub(new THREE.Vector3(0, 1.5, 0));
+  earMiddleTipR.sub(new THREE.Vector3(0, 1.5, 0));
 
   /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
@@ -319,7 +333,8 @@ export function generateFacialMorphs(
   const jawTarget = new Float32Array(positions.count * 3);
   const eyeBrowTarget = new Float32Array(positions.count * 3);
   const mouseCornersWidthTarget = new Float32Array(positions.count * 3);
-  const earTarget = new Float32Array(positions.count * 3);
+  const earMiddleTarget = new Float32Array(positions.count * 3);
+  const earTopTarget = new Float32Array(positions.count * 3);
 
   // Parameters for the procedural brushes
   const noseRadius = 7;
@@ -329,6 +344,8 @@ export function generateFacialMorphs(
   // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
+    // Update the normal based on the current index
+    if (normalAttr) normal.fromBufferAttribute(normalAttr, i);
     const distToNoseTip = vertex.distanceTo(noseTip);
     if (distToNoseTip < noseRadius) {
       // Influence based on the distance to the nose tip, the further the vertex is from the nose tip, the less influence it has
@@ -348,6 +365,7 @@ export function generateFacialMorphs(
     // --- B. GENERATE NOSTRIL WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
+      null,
       i,
       nostrilTipL,
       nostrilTipR,
@@ -365,6 +383,7 @@ export function generateFacialMorphs(
     // --- C. GENERATE JAW WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
+      null,
       i,
       jawTipL,
       jawTipR,
@@ -382,6 +401,7 @@ export function generateFacialMorphs(
     // --- D. GENERATE EYE BROW HEIGHT MORPH (Height) ---
     applyMorph(
       vertex,
+      null,
       i,
       eyeBrowTipL,
       eyeBrowTipR,
@@ -399,6 +419,7 @@ export function generateFacialMorphs(
     // --- E. GENERATE MOUSE CORNERS WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
+      null,
       i,
       mouseCornerTipL,
       mouseCornerTipR,
@@ -416,17 +437,36 @@ export function generateFacialMorphs(
     // --- F. GENERATE EAR TIPS WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
+      null,
       i,
-      earTipL,
-      earTipR,
+      earMiddleTipL,
+      earMiddleTipR,
       { xRange: 6, yRange: 3, zRange: 2.5 },
-      earTarget,
+      earMiddleTarget,
       ["widening", "height"],
       {
         powerVal: 2,
         isInfXFixed: false,
       },
-      visualizerByEarMorph,
+      visualizerByEarMiddleMorph,
+      0.7,
+    );
+
+    // --- G. GENERATE EAR TOP MORPH (Widen) ---
+    applyMorph(
+      vertex,
+      normal,
+      i,
+      earTopTipL,
+      earTopTipR,
+      { xRange: 1.5, yRange: 1.0, zRange: 1.0 },
+      earTopTarget,
+      ["widening"],
+      {
+        powerVal: 2,
+        isInfXFixed: false,
+      },
+      visualizerByEarTopMorph,
       0.7,
     );
   }
@@ -443,7 +483,8 @@ export function generateFacialMorphs(
     mouseCornersWidthTarget,
     3,
   );
-  const earAttr = new THREE.BufferAttribute(earTarget, 3);
+  const earMiddleAttr = new THREE.BufferAttribute(earMiddleTarget, 3);
+  const earTopAttr = new THREE.BufferAttribute(earTopTarget, 3);
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseAttr.name = "nose";
@@ -451,7 +492,8 @@ export function generateFacialMorphs(
   jawAttr.name = "jaw";
   eyeBrowAttr.name = "eyeBrow";
   mouseCornersWidthAttr.name = "mouseCornersWidth";
-  earAttr.name = "ear";
+  earMiddleAttr.name = "earMiddle";
+  earTopAttr.name = "earTop";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -460,7 +502,8 @@ export function generateFacialMorphs(
     jawAttr,
     eyeBrowAttr,
     mouseCornersWidthAttr,
-    earAttr,
+    earMiddleAttr,
+    earTopAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -472,10 +515,7 @@ export function generateFacialMorphs(
   // 3.6 Updates the morphTargets to have no influence on the object, and automatically build the morphTargetDictionary based on the attribute names
   headNode.updateMorphTargets();
 
-  // 3.7 Initialize at 0 of the morph targets on the mesh
-  // headNode.morphTargetInfluences = [0, 0, 0, 0, 0, 0];
-
-  // 3.8 Inform the renderer that the material needs to be recompiled to include morphing logic
+  // 3.7 Inform the renderer that the material needs to be recompiled to include morphing logic
   if (headNode.material) {
     console.log(
       `\n -- generateFacialMorphs -- setting material.needsUpdate to true for [${headNode.name}] to enable morphing support ->`,
@@ -506,20 +546,23 @@ export function generateFacialMorphs(
     visualizerEyeBrowTipR: eyeBrowTipR,
     visualizerMouseCornerTipL: mouseCornerTipL,
     visualizerMouseCornerTipR: mouseCornerTipR,
-    visualizerEarTipL: earTipL,
-    visualizerEarTipR: earTipR,
+    visualizerEarMiddleTipL: earMiddleTipL,
+    visualizerEarMiddleTipR: earMiddleTipR,
+    visualizerEarTopTipL: earTopTipL,
+    visualizerEarTopTipR: earTopTipR,
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
     visualizerByEyeBrowTipsDetection,
     visualizerByMouseCornerTipsDetection,
-    visualizerByEarTipsDetection,
+    visualizerByEarMiddleTipsDetection,
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
     visualizerByJawMorph,
     visualizerByEyeBrowMorph,
     visualizerByMouseCornersWidthMorph,
-    visualizerByEarMorph,
+    visualizerByEarMiddleMorph,
+    visualizerByEarTopMorph,
   };
 }
 
@@ -658,6 +701,7 @@ function findLateralTips(
  */
 function applyMorph(
   vertex: THREE.Vector3,
+  normal: THREE.Vector3 | null,
   index: number,
   tipL: THREE.Vector3,
   tipR: THREE.Vector3,
@@ -700,20 +744,36 @@ function applyMorph(
   // This morph type focuses on lateral expansion
   if (dx < xRange && dy < yRange && dz < zRange) {
     if (isWidening) {
-      // Vertical Falloff (Y) -> the power of 2 ensures a smoother falloff
+      /*
+        Inf X
+       */
+      const influenceX = Math.pow(Math.sin(1 - dx / xRange), 1);
+      /*
+        Inf Y
+       */
       const influenceY = Math.pow(Math.sin(1 - dy / yRange), powerVal);
-      // Depth Falloff (Z)
+      /*
+        Inf Z
+       */
       const influenceZ = Math.pow(Math.sin(1 - dz / zRange), powerVal);
 
-      // Lateral Falloff (X) -> ensure we affect the sides more than the center to avoid tearing the center line (X=0)
-      // const influenceX = Math.min(Math.abs(vertex.x) / 5.0, 1.0);
-      const influenceX = Math.pow(Math.sin(1 - dx / xRange), 1);
-
+      /*
+        Total Inf
+       */
       const totalInfluence =
         influenceY * influenceZ * influenceX * totalInfluenceStrength;
 
-      // Apply widening on the X axis -> move lateral extremes further out
-      targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
+      /*
+        Apply
+       */
+      if (normal) {
+        // Update the X component of the vertex position based on the normal
+        // TODO: Fix the issue of vertices being stretched along the normal direction
+        targetArray[index * 3] += normal.x * totalInfluence;
+      } else {
+        // Update the X component of the vertex position based on the sign of the vertex position
+        targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
+      }
       applied = true;
     }
     // --- 2. HEIGHT and DEPTH MORPHS (Y and Z axes) ---

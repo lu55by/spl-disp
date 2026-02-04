@@ -26,20 +26,23 @@ export interface FacialMorphsVisualizers {
   visualizerMouseCornerTipR: Vector3;
   visualizerEyeBrowTipL: Vector3;
   visualizerEyeBrowTipR: Vector3;
-  visualizerEarTipL: Vector3;
-  visualizerEarTipR: Vector3;
+  visualizerEarMiddleTipL: Vector3;
+  visualizerEarMiddleTipR: Vector3;
+  visualizerEarTopTipL: Vector3;
+  visualizerEarTopTipR: Vector3;
   visualizerByNoseTipDetection: Vector3[];
   visualizerByNostrilTipsDetection: Vector3[];
   visualizerByJawTipsDetection: Vector3[];
   visualizerByEyeBrowTipsDetection: Vector3[];
   visualizerByMouseCornerTipsDetection: Vector3[];
-  visualizerByEarTipsDetection: Vector3[];
+  visualizerByEarMiddleTipsDetection: Vector3[];
   visualizerByNoseMorph: Vector3[];
   visualizerByNostrilMorph: Vector3[];
   visualizerByJawMorph: Vector3[];
   visualizerByEyeBrowMorph: Vector3[];
   visualizerByMouseCornersWidthMorph: Vector3[];
-  visualizerByEarMorph: Vector3[];
+  visualizerByEarMiddleMorph: Vector3[];
+  visualizerByEarTopMorph: Vector3[];
 }
 
 /*

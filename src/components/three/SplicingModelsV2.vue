@@ -598,20 +598,23 @@ const init = async () => {
       visualizerEyeBrowTipR, // Vector3
       visualizerMouseCornerTipL, // Vector3
       visualizerMouseCornerTipR, // Vector3
-      visualizerEarTipL, // Vector3
-      visualizerEarTipR, // Vector3
+      visualizerEarMiddleTipL, // Vector3
+      visualizerEarMiddleTipR, // Vector3
+      visualizerEarTopTipL, // Vector3
+      visualizerEarTopTipR, // Vector3
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
       visualizerByJawTipsDetection, // Vector3[]
       visualizerByEyeBrowTipsDetection, // Vector3[]
       visualizerByMouseCornerTipsDetection, // Vector3[]
-      visualizerByEarTipsDetection, // Vector3[]
+      visualizerByEarMiddleTipsDetection, // Vector3[]
       visualizerByNoseMorph, // Vector3[]
       visualizerByJawMorph, // Vector3[]
       visualizerByNostrilMorph, // Vector3[]
       visualizerByEyeBrowMorph, // Vector3[]
       visualizerByMouseCornersWidthMorph, // Vector3[]
-      visualizerByEarMorph, // Vector3[]
+      visualizerByEarMiddleMorph, // Vector3[]
+      visualizerByEarTopMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -638,82 +641,96 @@ const init = async () => {
      * Tips Visualizers
      */
     const visualizeTips = (selection: string = "all") => {
-      const sharedBoxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+      const sharedSphereGeo = new THREE.SphereGeometry(0.1, 16, 16);
       /*
         Nose Tip Visualizer
       */
       const noseTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#f00", transparent: true }),
       );
       /*
         Nostril Tip Left Visualizer
       */
       const nostrilLTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#00f", transparent: true }),
       );
       /*
         Nostril Tip Right Visualizer
       */
       const nostrilRTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#00f", transparent: true }),
       );
       /*
         Jaw Tip Left Visualizer
       */
       const jawLTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#0ff", transparent: true }),
       );
       /*
         Jaw Tip Right Visualizer
       */
       const jawRTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#0ff", transparent: true }),
       );
       /*
         Eye Brow Tip Left Visualizer
       */
       const eyeBrowLTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#ff0", transparent: true }),
       );
       /*
         Eye Brow Tip Right Visualizer
       */
       const eyeBrowRTipVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#ff0", transparent: true }),
       );
       /*
         Mouse Tip Left Visualizer
       */
       const mouseTipLVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#0f0", transparent: true }),
       );
       /*
         Mouse Tip Right Visualizer
       */
       const mouseTipRVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#0f0", transparent: true }),
       );
       /*
-        Ear Tip Left Visualizer
+        Ear Middle Tip Left Visualizer
       */
-      const earTipLVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+      const earMiddleTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#f0f", transparent: true }),
       );
       /*
-        Ear Tip Right Visualizer
+        Ear Middle Tip Right Visualizer
       */
-      const earTipRVisMesh = new THREE.Mesh(
-        sharedBoxGeo,
+      const earMiddleTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#f0f", transparent: true }),
+      );
+      /*
+        Ear Top Tip Left Visualizer
+      */
+      const earTopTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#f0f", transparent: true }),
+      );
+      /*
+        Ear Top Tip Right Visualizer
+      */
+      const earTopTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#f0f", transparent: true }),
       );
       /*
@@ -728,8 +745,10 @@ const init = async () => {
       eyeBrowRTipVisMesh.position.copy(visualizerEyeBrowTipR);
       mouseTipLVisMesh.position.copy(visualizerMouseCornerTipL);
       mouseTipRVisMesh.position.copy(visualizerMouseCornerTipR);
-      earTipLVisMesh.position.copy(visualizerEarTipL);
-      earTipRVisMesh.position.copy(visualizerEarTipR);
+      earMiddleTipLVisMesh.position.copy(visualizerEarMiddleTipL);
+      earMiddleTipRVisMesh.position.copy(visualizerEarMiddleTipR);
+      earTopTipLVisMesh.position.copy(visualizerEarTopTipL);
+      earTopTipRVisMesh.position.copy(visualizerEarTopTipR);
       /*
         Add to scene
       */
@@ -753,9 +772,12 @@ const init = async () => {
       } else if (selection === "mouseCornersWidth") {
         visualizerGroup.add(mouseTipLVisMesh);
         visualizerGroup.add(mouseTipRVisMesh);
-      } else if (selection === "ear") {
-        visualizerGroup.add(earTipLVisMesh);
-        visualizerGroup.add(earTipRVisMesh);
+      } else if (selection === "earMiddle") {
+        visualizerGroup.add(earMiddleTipLVisMesh);
+        visualizerGroup.add(earMiddleTipRVisMesh);
+      } else if (selection === "earTop") {
+        visualizerGroup.add(earTopTipLVisMesh);
+        visualizerGroup.add(earTopTipRVisMesh);
       }
     };
     visualizeTips(visualizer);
@@ -764,6 +786,7 @@ const init = async () => {
      * Morphing Vertices Detection Visualizers
      */
     const visualizeMorphingDetectionVertices = (selection: string = "all") => {
+      if (selection === "" || selection === "earTop") return;
       /*
         Create geometries from the corresponding vertices
       */
@@ -796,9 +819,11 @@ const init = async () => {
             visualizerByMouseCornerTipsDetection,
           );
       }
-      // Ear tips geometry from detection vertices
-      const visualizerByEarTipsDetectionGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByEarTipsDetection);
+      // Ear middle tips geometry from detection vertices
+      const visualizerByEarMiddleTipsDetectionGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByEarMiddleTipsDetection,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -834,9 +859,9 @@ const init = async () => {
           new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
         );
       }
-      // Ear tip detection points (Purple)
-      const earTipsDetectionPoints = new THREE.Points(
-        visualizerByEarTipsDetectionGeo,
+      // Ear middle tip detection points (Purple)
+      const earMiddleTipsDetectionPoints = new THREE.Points(
+        visualizerByEarMiddleTipsDetectionGeo,
         new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
       );
       /*
@@ -863,8 +888,8 @@ const init = async () => {
         selection === "mouseCornersWidth"
       ) {
         visualizerGroup.add(mouseCornerTipsDetectionPoints);
-      } else if (selection === "ear") {
-        visualizerGroup.add(earTipsDetectionPoints);
+      } else if (selection === "earMiddle") {
+        visualizerGroup.add(earMiddleTipsDetectionPoints);
       }
     };
     // visualizeMorphingDetectionVertices(visualizer);
@@ -895,10 +920,12 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByMouseCornersWidthMorph,
         );
-      // Ear morph geometry from morph vertices
-      const visualizerByEarMorphGeo = new THREE.BufferGeometry().setFromPoints(
-        visualizerByEarMorph,
-      );
+      // Ear middle morph geometry from morph vertices
+      const visualizerByEarMiddleMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByEarMiddleMorph);
+      // Ear top morph geometry from morph vertices
+      const visualizerByEarTopMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByEarTopMorph);
       /*
         Create points from the corresponding geometries
       */
@@ -927,9 +954,14 @@ const init = async () => {
         visualizerByMouseCornersWidthMorphGeo,
         new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
       );
-      // Ear morph points (Purple)
-      const earMorphPoints = new THREE.Points(
-        visualizerByEarMorphGeo,
+      // Ear middle morph points (Purple)
+      const earMiddleMorphPoints = new THREE.Points(
+        visualizerByEarMiddleMorphGeo,
+        new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
+      );
+      // Ear top morph points (Purple)
+      const earTopMorphPoints = new THREE.Points(
+        visualizerByEarTopMorphGeo,
         new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
       );
       /*
@@ -941,7 +973,7 @@ const init = async () => {
         visualizerGroup.add(jawMorphPoints);
         visualizerGroup.add(eyeBrowMorphPoints);
         visualizerGroup.add(mouseCornersWidthMorphPoints);
-        visualizerGroup.add(earMorphPoints);
+        visualizerGroup.add(earMiddleMorphPoints);
       } else if (selection === "nose") {
         visualizerGroup.add(noseMorphPoints);
       } else if (selection === "nostril") {
@@ -952,8 +984,10 @@ const init = async () => {
         visualizerGroup.add(eyeBrowMorphPoints);
       } else if (selection === "mouseCornersWidth") {
         visualizerGroup.add(mouseCornersWidthMorphPoints);
-      } else if (selection === "ear") {
-        visualizerGroup.add(earMorphPoints);
+      } else if (selection === "earMiddle") {
+        visualizerGroup.add(earMiddleMorphPoints);
+      } else if (selection === "earTop") {
+        visualizerGroup.add(earTopMorphPoints);
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -968,7 +1002,7 @@ const init = async () => {
     mouseCornersWidth
     ear
    */
-  const selectedVisualizer = "ear";
+  const selectedVisualizer = "earTop";
   generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**

@@ -135,7 +135,8 @@ export const MorphTargetLabelMapping = {
   Jaw: "下颌宽度",
   EyeBrow: "眉毛高度",
   MouseCornersWidth: "嘴角宽度",
-  Ear: "耳朵",
+  EarMiddle: "耳朵宽度",
+  EarTop: "耳朵厚度",
 };
 
 // Global Model
