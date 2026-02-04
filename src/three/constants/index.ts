@@ -78,7 +78,7 @@ export const UVCoordinateMod = new Vector2(0, 0.2);
 /**
  * HDR Path
  */
-export const HDRPath = "hdrs/royal_esplanade_2k.hdr.jpg";
+export const HDRPath = "/hdrs/royal_esplanade_2k.hdr.jpg";
 // export const HDRPath = "hdrs/moon_lab_2k.jpg";
 
 /**
@@ -194,7 +194,7 @@ export const ValidNodeNames = ["hair", "body", "cutting"];
  */
 
 // --- Models Prefix ---
-const ModelsPathPrefix = "./models";
+const ModelsPathPrefix = "/models";
 
 // --- Hair Prefix ---
 const HairPathPrefix = `${ModelsPathPrefix}/hair`;

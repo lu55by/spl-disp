@@ -21,7 +21,8 @@
     "three-mesh-bvh": "^0.9.2",
     "tsl-textures": "^2.5.1",
     "tweakpane": "^4.0.5",
-    "vue": "^3.5.24"
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@tweakpane/core": "^2.0.5",
