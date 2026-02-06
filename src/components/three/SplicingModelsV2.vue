@@ -327,12 +327,12 @@ const init = async () => {
     CameraProps.Far,
   );
   // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
-  camera.position.set(
-    CameraProps.PosEarTopDebug.x,
-    CameraProps.PosEarTopDebug.y,
-    CameraProps.PosEarTopDebug.z,
-  );
+  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  // camera.position.set(
+  //   CameraProps.PosEarTopDebug.x,
+  //   CameraProps.PosEarTopDebug.y,
+  //   CameraProps.PosEarTopDebug.z,
+  // );
   // camera.position.set(
   //   CameraProps.PosNormal.x,
   //   CameraProps.PosNormal.y,
@@ -898,7 +898,7 @@ const init = async () => {
         visualizerGroup.add(earMiddleTipsDetectionPoints);
       }
     };
-    // visualizeMorphingDetectionVertices(visualizer);
+    visualizeMorphingDetectionVertices(visualizer);
 
     /**
      * Morphing Vertices Visualizers
@@ -996,7 +996,7 @@ const init = async () => {
         visualizerGroup.add(earTopMorphPoints);
       }
     };
-    visualizeMorphingVertices(visualizer);
+    // visualizeMorphingVertices(visualizer);
   };
   // Disable the visualizers if it is for production
   const isVisualizerDisabled = import.meta.env.PROD;
@@ -1008,7 +1008,7 @@ const init = async () => {
     mouseCornersWidth
     ear
    */
-  const selectedVisualizer = "earTop";
+  const selectedVisualizer = "nostril";
   generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**

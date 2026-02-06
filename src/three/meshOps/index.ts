@@ -117,15 +117,7 @@ export function generateFacialMorphs(
     Get the positions attribute from the head node geometry
    */
   const positions = geo.getAttribute("position");
-  /*
-    Check if the geometry has normals, if not, compute it (we use the normals to calculate the direction of the morph, but currently it is not satisfying)
-   */
-  if (!geo.getAttribute("normal")) {
-    geo.computeVertexNormals();
-  }
-  const normalAttr = geo.getAttribute("normal");
   const vertex = new THREE.Vector3();
-  const normal = new THREE.Vector3();
 
   /*
     Tips for the morphs
@@ -174,7 +166,6 @@ export function generateFacialMorphs(
    * Ⅰ.Ⅰ NOSE TIP DETECTION
    */
   // 1.1.1 Look for the vertex with the max Z value within a narrow vertical strip in the center
-
   /*
     Variables for excluding the vertices that the y coordinate is outside the
     offset boundingBox on the Y axis for nose tip detection
@@ -198,25 +189,77 @@ export function generateFacialMorphs(
       visualizerByNoseTipDetection.push(vertex.clone());
     }
   }
-  console.log("\n -- generateFacialMorphs -- noseTip calculated ->", noseTip);
+  console.log("\n -- generateFacialMorphs -- noseTip detected ->", noseTip);
 
   /**
-   * Ⅰ.Ⅱ NOSTRIL TIPS DETECTION
+   * Ⅰ.Ⅱ CONSOLIDATED DETECTION (Nostrils, Jaw, and Ears)
+   * Optimization: Combined multiple lateral tip detection loops into a single pass over the geometry.
    */
-  // Find the lateral extremes (min X and max X) within a target bounding box relative to a reference point
-  findLateralTips(
-    noseTip,
-    {
-      yMinOffset: 0,
-      yMaxOffset: 1,
-      zMinOffset: -2,
-      zMaxOffset: 0,
-    },
-    positions,
-    nostrilTipL,
-    nostrilTipR,
-    visualizerByNostrilTipsDetection,
-  );
+
+  // 1.2.1 Ranges for Nostrils (relative to noseTip)
+  const minY_Nostril = noseTip.y + 0;
+  const maxY_Nostril = noseTip.y + 1;
+  const minZ_Nostril = noseTip.z - 2;
+  const maxZ_Nostril = noseTip.z + 0;
+
+  // 1.2.2 Ranges for Jaw (relative to noseTip)
+  const minY_Jaw = noseTip.y - 7;
+  const maxY_Jaw = noseTip.y - 6;
+  const minZ_Jaw = noseTip.z - 7;
+  const maxZ_Jaw = noseTip.z - 5;
+
+  // 1.2.3 Range for Ears (Reuse the bounding box on the Y axis based on the sph cut head)
+  const maxPerc = 0.3;
+  const minPerc = 0.25;
+  const maxYEarTipDetection = maxYSphCutHead - sphCutHeadHeight * maxPerc;
+  const minYEarTipDetection = minYSphCutHead + sphCutHeadHeight * minPerc;
+
+  // 1.2.4 optimized combined loop
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+
+    // A. NOSTRIL TIPS DETECTION
+    if (
+      vertex.y > minY_Nostril &&
+      vertex.y < maxY_Nostril &&
+      vertex.z > minZ_Nostril &&
+      vertex.z < maxZ_Nostril
+    ) {
+      if (vertex.x < nostrilTipL.x) nostrilTipL.copy(vertex);
+      if (vertex.x > nostrilTipR.x) nostrilTipR.copy(vertex);
+      visualizerByNostrilTipsDetection.push(vertex.clone());
+    }
+
+    // B. JAW TIPS DETECTION (Only if not manual)
+    if (!(manualTips?.jawTipL && manualTips?.jawTipR)) {
+      if (
+        vertex.y > minY_Jaw &&
+        vertex.y < maxY_Jaw &&
+        vertex.z > minZ_Jaw &&
+        vertex.z < maxZ_Jaw
+      ) {
+        if (vertex.x < jawTipL.x) jawTipL.copy(vertex);
+        if (vertex.x > jawTipR.x) jawTipR.copy(vertex);
+        visualizerByJawTipsDetection.push(vertex.clone());
+      }
+    }
+
+    // C. EAR TIPS DETECTION
+    if (vertex.y <= maxYEarTipDetection && vertex.y >= minYEarTipDetection) {
+      // Find the ear tips with the max X and min X
+      if (vertex.x < earMiddleTipL.x) earMiddleTipL.copy(vertex);
+      if (vertex.x > earMiddleTipR.x) earMiddleTipR.copy(vertex);
+      visualizerByEarMiddleTipsDetection.push(vertex.clone());
+    }
+  }
+
+  // 1.2.5 Post-loop manual jaw setup
+  if (manualTips?.jawTipL && manualTips?.jawTipR) {
+    jawTipL.copy(manualTips.jawTipL);
+    jawTipR.copy(manualTips.jawTipR);
+    console.log("\n -- generateFacialMorphs -- using manual jaw tips");
+  }
+
   console.log(
     "\n -- generateFacialMorphs -- nostrilTipL calculated ->",
     nostrilTipL.x === Infinity ? "Not Found" : nostrilTipL,
@@ -225,31 +268,6 @@ export function generateFacialMorphs(
     "\n -- generateFacialMorphs -- nostrilTipR calculated ->",
     nostrilTipR.x === -Infinity ? "Not Found" : nostrilTipR,
   );
-
-  /**
-   * Ⅰ.Ⅲ JAW TIPS DETECTION
-   */
-  // Use manual jaw tips if provided, otherwise detect them
-  if (manualTips?.jawTipL && manualTips?.jawTipR) {
-    jawTipL.copy(manualTips.jawTipL);
-    jawTipR.copy(manualTips.jawTipR);
-    console.log("\n -- generateFacialMorphs -- using manual jaw tips");
-  } else {
-    // Find the lateral extremes (min X and max X) within a target bounding box relative to a reference point
-    findLateralTips(
-      noseTip,
-      {
-        yMinOffset: -7,
-        yMaxOffset: -6,
-        zMinOffset: -7,
-        zMaxOffset: -5,
-      },
-      positions,
-      jawTipL,
-      jawTipR,
-      visualizerByJawTipsDetection,
-    );
-  }
   console.log(
     "\n -- generateFacialMorphs -- jawTipL calculated ->",
     jawTipL.x === Infinity ? "Not Found" : jawTipL,
@@ -257,6 +275,32 @@ export function generateFacialMorphs(
   console.log(
     "\n -- generateFacialMorphs -- jawTipR calculated ->",
     jawTipR.x === -Infinity ? "Not Found" : jawTipR,
+  );
+
+  /**
+   * Ⅰ.Ⅲ EAR TIPS SETUP
+   */
+  // Set the top ear tips
+  earTopTipL.copy(earMiddleTipL.clone());
+  earTopTipR.copy(earMiddleTipR.clone());
+  // Offset the ear tips on the Y axis
+  earMiddleTipL.sub(new THREE.Vector3(0, 1.5, 0));
+  earMiddleTipR.sub(new THREE.Vector3(0, 1.5, 0));
+  console.log(
+    "\n -- generateFacialMorphs -- earTopTipL calculated ->",
+    earTopTipL.x === Infinity ? "Not Found" : earTopTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- earTopTipR calculated ->",
+    earTopTipR.x === -Infinity ? "Not Found" : earTopTipR,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- earMiddleTipL calculated ->",
+    earMiddleTipL.x === Infinity ? "Not Found" : earMiddleTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- earMiddleTipR calculated ->",
+    earMiddleTipR.x === -Infinity ? "Not Found" : earMiddleTipR,
   );
 
   /**
@@ -310,30 +354,6 @@ export function generateFacialMorphs(
   );
 
   /**
-   * Ⅰ.Ⅵ EAR TIPS DETECTION (Reuse the bounding box on the Y axis based on the sph cut head)
-   */
-  const maxPerc = 0.3;
-  const minPerc = 0.25;
-  const maxYEarTipDetection = maxYSphCutHead - sphCutHeadHeight * maxPerc;
-  const minYEarTipDetection = minYSphCutHead + sphCutHeadHeight * minPerc;
-
-  for (let i = 0; i < positions.count; i++) {
-    vertex.fromBufferAttribute(positions, i);
-    if (vertex.y <= maxYEarTipDetection && vertex.y >= minYEarTipDetection) {
-      // Find the ear tips with the max X and min X
-      if (vertex.x < earMiddleTipL.x) earMiddleTipL.copy(vertex);
-      if (vertex.x > earMiddleTipR.x) earMiddleTipR.copy(vertex);
-      visualizerByEarMiddleTipsDetection.push(vertex.clone());
-    }
-  }
-  // Set the top ear tips
-  earTopTipL.copy(earMiddleTipL.clone());
-  earTopTipR.copy(earMiddleTipR.clone());
-  // Offset the ear tips on the Y axis
-  earMiddleTipL.sub(new THREE.Vector3(0, 1.5, 0));
-  earMiddleTipR.sub(new THREE.Vector3(0, 1.5, 0));
-
-  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
@@ -352,8 +372,6 @@ export function generateFacialMorphs(
 
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
-    // Update the normal based on the current index
-    if (normalAttr) normal.fromBufferAttribute(normalAttr, i);
 
     // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
     const distToNoseTip = vertex.distanceTo(noseTip);
@@ -375,7 +393,6 @@ export function generateFacialMorphs(
     // --- B. GENERATE NOSTRIL WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
-      null,
       i,
       nostrilTipL,
       nostrilTipR,
@@ -393,7 +410,6 @@ export function generateFacialMorphs(
     // --- C. GENERATE JAW WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
-      null,
       i,
       jawTipL,
       jawTipR,
@@ -411,7 +427,6 @@ export function generateFacialMorphs(
     // --- D. GENERATE EYE BROW HEIGHT MORPH (Height) ---
     applyMorph(
       vertex,
-      null,
       i,
       eyeBrowTipL,
       eyeBrowTipR,
@@ -429,7 +444,6 @@ export function generateFacialMorphs(
     // --- E. GENERATE MOUSE CORNERS WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
-      null,
       i,
       mouseCornerTipL,
       mouseCornerTipR,
@@ -447,7 +461,6 @@ export function generateFacialMorphs(
     // --- F. GENERATE EAR TIPS WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
-      null,
       i,
       earMiddleTipL,
       earMiddleTipR,
@@ -465,7 +478,6 @@ export function generateFacialMorphs(
     // --- G. GENERATE EAR TOP MORPH (Widen) ---
     applyMorph(
       vertex,
-      normal,
       i,
       earTopTipL,
       earTopTipR,
@@ -477,7 +489,7 @@ export function generateFacialMorphs(
         isInfXFixed: false,
       },
       visualizerByEarTopMorph,
-      0.7,
+      0.4,
     );
   }
 
@@ -711,7 +723,6 @@ function findLateralTips(
  */
 function applyMorph(
   vertex: THREE.Vector3,
-  normal: THREE.Vector3 | null,
   index: number,
   tipL: THREE.Vector3,
   tipR: THREE.Vector3,
@@ -776,14 +787,8 @@ function applyMorph(
       /*
         Apply
        */
-      if (normal) {
-        // Update the X component of the vertex position based on the normal
-        // TODO: Fix the issue of vertices being stretched along the normal direction
-        targetArray[index * 3] += influenceX;
-      } else {
-        // Update the X component of the vertex position based on the sign of the vertex position
-        targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
-      }
+      // Update the X component of the vertex position based on the sign of the vertex position
+      targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
       applied = true;
     }
     // --- 2. HEIGHT and DEPTH MORPHS (Y and Z axes) ---
