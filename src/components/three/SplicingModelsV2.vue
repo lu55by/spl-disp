@@ -327,7 +327,12 @@ const init = async () => {
     CameraProps.Far,
   );
   // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  camera.position.set(
+    CameraProps.PosEarTopDebug.x,
+    CameraProps.PosEarTopDebug.y,
+    CameraProps.PosEarTopDebug.z,
+  );
   // camera.position.set(
   //   CameraProps.PosNormal.x,
   //   CameraProps.PosNormal.y,
@@ -369,6 +374,7 @@ const init = async () => {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   // renderer.inspector = new Inspector();
+  await renderer.init();
 
   /**
    * Controls
@@ -1570,8 +1576,10 @@ const animate = async () => {
   /*
     Update controls
    */
-  orbit.target.lerp(orbitControlsTargetCenter, 0.1);
-  orbit.update();
+  if (orbit) {
+    orbit.target.lerp(orbitControlsTargetCenter, 0.1);
+    orbit.update();
+  }
 
   /*
     Update focus indicator position (keep it pinned to the 3D point)
@@ -1596,8 +1604,8 @@ const animate = async () => {
   /*
     Update renderer
    */
-  await renderer.init();
-  renderer.render(scene, camera);
+  // await renderer.init();
+  if (renderer.initialized) renderer.render(scene, camera);
 
   /*
     Post-Processing

@@ -99,6 +99,7 @@ export const Colors = {
  */
 export const CameraProps = {
   Pos: { x: -39.13, y: 221.74, z: 52.17 },
+  PosEarTopDebug: { x: -13.966, y: 158.38, z: -20.76 },
   PosNormal: { x: 1, y: 1, z: 1 },
   Fov: 45,
   Near: 0.1,

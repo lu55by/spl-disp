@@ -38,75 +38,88 @@ export function generateFacialMorphs(
     mouseCornerTipR?: THREE.Vector3;
   },
 ): FacialMorphsVisualizers {
+  /*
+    PRE-LOGS
+   */
   console.log(
     `\n---- Ready to generate facial morphs for [${model.name}] ----\n`,
   );
   console.log("\n -- generateFacialMorphs -- model ->", model);
 
-  // Get the head node
+  /*
+    Get the head node based on the node name
+   */
   const headNode = (model.getObjectByName(NodeNames.HeadNames.Head) ||
     model.getObjectByName("CutHeadNode")) as THREE.Mesh;
 
-  // Check if the geometry has morph attributes
+  /*
+    Check if the geometry has morph attributes
+  */
   if (headNode.geometry.morphAttributes.position) {
     console.warn(
       "\n -- generateFacialMorphs -- mesh.geometry.morphAttributes.position exists, overwriting...",
     );
   }
 
-  // Get the eye nodes
+  /*
+    Get the eye nodes
+  */
   const eyeLNode = (model.getObjectByName(NodeNames.HeadNames.EyeL) ||
     model.getObjectByName("EyeLNode")) as THREE.Mesh;
   const eyeRNode = (model.getObjectByName(NodeNames.HeadNames.EyeR) ||
     model.getObjectByName("EyeRNode")) as THREE.Mesh;
-  // Get the center of the eye nodes
+
+  /*
+    Get the center of the eye nodes (we use it to find the tips of the eyebrows and mouse corners with some offset set on the Y coordinate, currently the solution is not precise enough on the autodetecting based on the different head models)
+  */
   const centerEyeLNode = new THREE.Box3()
     .setFromObject(eyeLNode)
     .getCenter(new THREE.Vector3());
   const centerEyeRNode = new THREE.Box3()
     .setFromObject(eyeRNode)
     .getCenter(new THREE.Vector3());
-  console.log("\n -- generateFacialMorphs -- headNode ->", headNode);
-  console.log("\n -- generateFacialMorphs -- eyeLNode ->", eyeLNode);
-  console.log("\n -- generateFacialMorphs -- eyeRNode ->", eyeRNode);
+  console.log("\n -- generateFacialMorphs -- headNode retrieved ->", headNode);
+  console.log("\n -- generateFacialMorphs -- eyeLNode retrieved ->", eyeLNode);
+  console.log("\n -- generateFacialMorphs -- eyeRNode retrieved ->", eyeRNode);
   console.log(
-    "\n -- generateFacialMorphs -- centerEyeLNode ->",
+    "\n -- generateFacialMorphs -- centerEyeLNode calculated ->",
     centerEyeLNode,
   );
   console.log(
-    "\n -- generateFacialMorphs -- centerEyeRNode ->",
+    "\n -- generateFacialMorphs -- centerEyeRNode calculated ->",
     centerEyeRNode,
   );
 
-  // Get the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight from the headNode.parent userData
+  /*
+    Get the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight from the headNode.parent userData
+  */
   const { minYSphCutHead, maxYSphCutHead, sphCutHeadHeight } = headNode.parent
     ?.userData as CutHeadEyesNodeCombinedGrpUserData;
+  /*
+    The fixed mouse tip Y coordinate calculated by 21.5% of the sphCutHeadHeight (may differ from different head models)
+   */
   const mouseTipY = minYSphCutHead + sphCutHeadHeight * 0.215;
-  // console.log(
-  //   "\n -- generateFacialMorphs -- minYSphCutHead ->",
-  //   minYSphCutHead,
-  // );
-  // console.log(
-  //   "\n -- generateFacialMorphs -- maxYSphCutHead ->",
-  //   maxYSphCutHead,
-  // );
-  // console.log(
-  //   "\n -- generateFacialMorphs -- sphCutHeadHeight ->",
-  //   sphCutHeadHeight,
-  // );
-  // console.log(
-  //   "\n -- generateFacialMorphs -- mouseTipY calculated ->",
-  //   mouseTipY,
-  // );
 
+  /*
+    Get the original geometry of the head node
+   */
   const geoOrg = headNode.geometry;
-  // Clone geometry to ensure we don't affect other meshes sharing the same geometry
+  /*
+    Clone the head node geometry to ensure we don't affect other meshes sharing the same geometry
+   */
   headNode.geometry = headNode.geometry.clone();
-  // Dispose the original geometry before cloning
+  /*
+    Dispose the original geometry
+   */
   geoOrg.dispose();
   const geo = headNode.geometry;
+  /*
+    Get the positions attribute from the head node geometry
+   */
   const positions = geo.getAttribute("position");
-  // Check if the geometry has normals, if not, compute it
+  /*
+    Check if the geometry has normals, if not, compute it (we use the normals to calculate the direction of the morph, but currently it is not satisfying)
+   */
   if (!geo.getAttribute("normal")) {
     geo.computeVertexNormals();
   }
@@ -115,44 +128,40 @@ export function generateFacialMorphs(
   const normal = new THREE.Vector3();
 
   /*
-    Tips
+    Tips for the morphs
    */
   // Nose Tip
   let noseTip = new THREE.Vector3(0, 0, -Infinity);
-  // Nostril Tip L
+  // Nostril Tips
   let nostrilTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Nostril Tip R
   let nostrilTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Jaw Tip L
+  // Jaw Tips
   let jawTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Jaw Tip R
   let jawTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Eye Brow Tip L
+  // Eye Brow Tips
   let eyeBrowTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Eye Brow Tip R
   let eyeBrowTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Mouse Tip L
+  // Mouse Tips
   let mouseCornerTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Mouse Tip R
   let mouseCornerTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Ear Middle Tip L
+  // Ear Middle Tips
   let earMiddleTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Ear Middle Tip R
   let earMiddleTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Ear Top Tip L
+  // Ear Top Tips
   let earTopTipL = new THREE.Vector3(Infinity, 0, 0);
-  // Ear Top Tip R
   let earTopTipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
    */
+  // Vertices for detecting the tips
   const visualizerByNoseTipDetection: THREE.Vector3[] = [];
   const visualizerByNostrilTipsDetection: THREE.Vector3[] = [];
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
   const visualizerByMouseCornerTipsDetection: THREE.Vector3[] = [];
   const visualizerByEarMiddleTipsDetection: THREE.Vector3[] = [];
+  // Vertices for morphs based on the tips
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
   const visualizerByJawMorph: THREE.Vector3[] = [];
@@ -278,7 +287,7 @@ export function generateFacialMorphs(
   /**
    * Ⅰ.Ⅴ MOUSE CORNER TIPS DETECTION
    */
-  // Updat the mouse tips relative to the coordinate of X and Z (with some offset) of the centerEyeLNode and centerEyeRNode, and the calculated mouseTipY
+  // Update the mouse tips relative to the coordinate of X and Z (with some offset) of the centerEyeLNode and centerEyeRNode, and the calculated mouseTipY
   if (manualTips?.mouseCornerTipL && manualTips?.mouseCornerTipR) {
     mouseCornerTipL.copy(manualTips.mouseCornerTipL);
     mouseCornerTipR.copy(manualTips.mouseCornerTipR);
@@ -341,11 +350,12 @@ export function generateFacialMorphs(
 
   // 2.2 Traverse through the vertex count to get the morphs
 
-  // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
     // Update the normal based on the current index
     if (normalAttr) normal.fromBufferAttribute(normalAttr, i);
+
+    // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
     const distToNoseTip = vertex.distanceTo(noseTip);
     if (distToNoseTip < noseRadius) {
       // Influence based on the distance to the nose tip, the further the vertex is from the nose tip, the less influence it has
@@ -761,7 +771,7 @@ function applyMorph(
         Total Inf
        */
       const totalInfluence =
-        influenceY * influenceZ * influenceX * totalInfluenceStrength;
+        influenceX * influenceY * influenceZ * totalInfluenceStrength;
 
       /*
         Apply
@@ -769,7 +779,7 @@ function applyMorph(
       if (normal) {
         // Update the X component of the vertex position based on the normal
         // TODO: Fix the issue of vertices being stretched along the normal direction
-        targetArray[index * 3] += normal.x * totalInfluence;
+        targetArray[index * 3] += influenceX;
       } else {
         // Update the X component of the vertex position based on the sign of the vertex position
         targetArray[index * 3] += Math.sign(vertex.x) * totalInfluence;
