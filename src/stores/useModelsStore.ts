@@ -732,18 +732,23 @@ export const useModelsStore = defineStore("models", {
       pointL: THREE.Vector3,
       pointR: THREE.Vector3,
     ) {
-      if (stage === "jaw") {
-        this.manualJawTipL = pointL;
-        this.manualJawTipR = pointR;
-      } else if (stage === "eyeBrow") {
-        this.manualEyeBrowTipL = pointL;
-        this.manualEyeBrowTipR = pointR;
-      } else if (stage === "mouseCornersWidth") {
-        this.manualMouseCornerTipL = pointL;
-        this.manualMouseCornerTipR = pointR;
-      } else if (stage === "zygomaticArchWidth") {
-        this.manualZygomaticArchTipL = pointL;
-        this.manualZygomaticArchTipR = pointR;
+      switch (stage) {
+        case "jaw":
+          this.manualJawTipL = pointL;
+          this.manualJawTipR = pointR;
+          break;
+        case "eyeBrow":
+          this.manualEyeBrowTipL = pointL;
+          this.manualEyeBrowTipR = pointR;
+          break;
+        case "mouseCornersWidth":
+          this.manualMouseCornerTipL = pointL;
+          this.manualMouseCornerTipR = pointR;
+          break;
+        case "zygomaticArchWidth":
+          this.manualZygomaticArchTipL = pointL;
+          this.manualZygomaticArchTipR = pointR;
+          break;
       }
     },
 

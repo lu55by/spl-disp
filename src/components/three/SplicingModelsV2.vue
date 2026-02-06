@@ -783,47 +783,57 @@ const init = async () => {
       /*
         Add to scene
       */
-      if (selection === "all") {
-        visualizerGroup.add(
-          noseTipVisMesh,
-          nostrilTipLVisMesh,
-          nostrilTipRVisMesh,
-          jawTipLVisMesh,
-          jawTipRVisMesh,
-          eyeBrowTipLVisMesh,
-          eyeBrowTipRVisMesh,
-          mouseTipLVisMesh,
-          mouseTipRVisMesh,
-          earMiddleTipLVisMesh,
-          earMiddleTipRVisMesh,
-          earTopTipLVisMesh,
-          earTopTipRVisMesh,
-          zygomaticArchTipLVisMesh,
-          zygomaticArchTipRVisMesh,
-        );
-      } else if (selection === "nose") {
-        visualizerGroup.add(noseTipVisMesh);
-      } else if (selection === "nostril") {
-        visualizerGroup.add(nostrilTipLVisMesh);
-        visualizerGroup.add(nostrilTipRVisMesh);
-      } else if (selection === "jaw") {
-        visualizerGroup.add(jawTipLVisMesh);
-        visualizerGroup.add(jawTipRVisMesh);
-      } else if (selection === "eyeBrow") {
-        visualizerGroup.add(eyeBrowTipLVisMesh);
-        visualizerGroup.add(eyeBrowTipRVisMesh);
-      } else if (selection === "mouseCornersWidth") {
-        visualizerGroup.add(mouseTipLVisMesh);
-        visualizerGroup.add(mouseTipRVisMesh);
-      } else if (selection === "earMiddle") {
-        visualizerGroup.add(earMiddleTipLVisMesh);
-        visualizerGroup.add(earMiddleTipRVisMesh);
-      } else if (selection === "earTop") {
-        visualizerGroup.add(earTopTipLVisMesh);
-        visualizerGroup.add(earTopTipRVisMesh);
-      } else if (selection === "zygomaticArch") {
-        visualizerGroup.add(zygomaticArchTipLVisMesh);
-        visualizerGroup.add(zygomaticArchTipRVisMesh);
+      switch (selection) {
+        case "all":
+          visualizerGroup.add(
+            noseTipVisMesh,
+            nostrilTipLVisMesh,
+            nostrilTipRVisMesh,
+            jawTipLVisMesh,
+            jawTipRVisMesh,
+            eyeBrowTipLVisMesh,
+            eyeBrowTipRVisMesh,
+            mouseTipLVisMesh,
+            mouseTipRVisMesh,
+            earMiddleTipLVisMesh,
+            earMiddleTipRVisMesh,
+            earTopTipLVisMesh,
+            earTopTipRVisMesh,
+            zygomaticArchTipLVisMesh,
+            zygomaticArchTipRVisMesh,
+          );
+          break;
+        case "nose":
+          visualizerGroup.add(noseTipVisMesh);
+          break;
+        case "nostril":
+          visualizerGroup.add(nostrilTipLVisMesh);
+          visualizerGroup.add(nostrilTipRVisMesh);
+          break;
+        case "jaw":
+          visualizerGroup.add(jawTipLVisMesh);
+          visualizerGroup.add(jawTipRVisMesh);
+          break;
+        case "eyeBrow":
+          visualizerGroup.add(eyeBrowTipLVisMesh);
+          visualizerGroup.add(eyeBrowTipRVisMesh);
+          break;
+        case "mouseCornersWidth":
+          visualizerGroup.add(mouseTipLVisMesh);
+          visualizerGroup.add(mouseTipRVisMesh);
+          break;
+        case "earMiddle":
+          visualizerGroup.add(earMiddleTipLVisMesh);
+          visualizerGroup.add(earMiddleTipRVisMesh);
+          break;
+        case "earTop":
+          visualizerGroup.add(earTopTipLVisMesh);
+          visualizerGroup.add(earTopTipRVisMesh);
+          break;
+        case "zygomaticArch":
+          visualizerGroup.add(zygomaticArchTipLVisMesh);
+          visualizerGroup.add(zygomaticArchTipRVisMesh);
+          break;
       }
     };
     visualizeTips(visualizer);
@@ -913,29 +923,35 @@ const init = async () => {
       /*
         Add to scene
       */
-      if (selection === "all") {
-        visualizerGroup.add(noseTipsDetectionPoints);
-        visualizerGroup.add(nostrilTipsDetectionPoints);
-        visualizerGroup.add(jawTipsDetectionPoints);
-        eyeBrowTipsDetectionPoints &&
+      switch (selection) {
+        case "all":
+          visualizerGroup.add(
+            noseTipsDetectionPoints,
+            nostrilTipsDetectionPoints,
+            jawTipsDetectionPoints,
+            eyeBrowTipsDetectionPoints,
+            mouseCornerTipsDetectionPoints,
+            earMiddleTipsDetectionPoints,
+          );
+          break;
+        case "nose":
+          visualizerGroup.add(noseTipsDetectionPoints);
+          break;
+        case "nostril":
+          visualizerGroup.add(nostrilTipsDetectionPoints);
+          break;
+        case "jaw":
+          visualizerGroup.add(jawTipsDetectionPoints);
+          break;
+        case "eyeBrow":
           visualizerGroup.add(eyeBrowTipsDetectionPoints);
-        mouseCornerTipsDetectionPoints &&
+          break;
+        case "mouseCornersWidth":
           visualizerGroup.add(mouseCornerTipsDetectionPoints);
-      } else if (selection === "nose") {
-        visualizerGroup.add(noseTipsDetectionPoints);
-      } else if (selection === "nostril") {
-        visualizerGroup.add(nostrilTipsDetectionPoints);
-      } else if (selection === "jaw") {
-        visualizerGroup.add(jawTipsDetectionPoints);
-      } else if (eyeBrowTipsDetectionPoints && selection === "eyeBrow") {
-        visualizerGroup.add(eyeBrowTipsDetectionPoints);
-      } else if (
-        mouseCornerTipsDetectionPoints &&
-        selection === "mouseCornersWidth"
-      ) {
-        visualizerGroup.add(mouseCornerTipsDetectionPoints);
-      } else if (selection === "earMiddle") {
-        visualizerGroup.add(earMiddleTipsDetectionPoints);
+          break;
+        case "earMiddle":
+          visualizerGroup.add(earMiddleTipsDetectionPoints);
+          break;
       }
     };
     // visualizeMorphingDetectionVertices(visualizer);
@@ -1023,33 +1039,43 @@ const init = async () => {
       /*
         Add to scene
       */
-      if (selection === "all") {
-        visualizerGroup.add(
-          noseMorphPoints,
-          nostrilMorphPoints,
-          jawMorphPoints,
-          eyeBrowMorphPoints,
-          mouseCornersWidthMorphPoints,
-          earMiddleMorphPoints,
-          earTopMorphPoints,
-          zygomaticArchMorphPoints,
-        );
-      } else if (selection === "nose") {
-        visualizerGroup.add(noseMorphPoints);
-      } else if (selection === "nostril") {
-        visualizerGroup.add(nostrilMorphPoints);
-      } else if (selection === "jaw") {
-        visualizerGroup.add(jawMorphPoints);
-      } else if (selection === "eyeBrow") {
-        visualizerGroup.add(eyeBrowMorphPoints);
-      } else if (selection === "mouseCornersWidth") {
-        visualizerGroup.add(mouseCornersWidthMorphPoints);
-      } else if (selection === "earMiddle") {
-        visualizerGroup.add(earMiddleMorphPoints);
-      } else if (selection === "earTop") {
-        visualizerGroup.add(earTopMorphPoints);
-      } else if (selection === "zygomaticArch") {
-        visualizerGroup.add(zygomaticArchMorphPoints);
+      switch (selection) {
+        case "all":
+          visualizerGroup.add(
+            noseMorphPoints,
+            nostrilMorphPoints,
+            jawMorphPoints,
+            eyeBrowMorphPoints,
+            mouseCornersWidthMorphPoints,
+            earMiddleMorphPoints,
+            earTopMorphPoints,
+            zygomaticArchMorphPoints,
+          );
+          break;
+        case "nose":
+          visualizerGroup.add(noseMorphPoints);
+          break;
+        case "nostril":
+          visualizerGroup.add(nostrilMorphPoints);
+          break;
+        case "jaw":
+          visualizerGroup.add(jawMorphPoints);
+          break;
+        case "eyeBrow":
+          visualizerGroup.add(eyeBrowMorphPoints);
+          break;
+        case "mouseCornersWidth":
+          visualizerGroup.add(mouseCornersWidthMorphPoints);
+          break;
+        case "earMiddle":
+          visualizerGroup.add(earMiddleMorphPoints);
+          break;
+        case "earTop":
+          visualizerGroup.add(earTopMorphPoints);
+          break;
+        case "zygomaticArch":
+          visualizerGroup.add(zygomaticArchMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
