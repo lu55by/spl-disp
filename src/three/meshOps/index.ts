@@ -36,6 +36,8 @@ export function generateFacialMorphs(
     eyeBrowTipR?: THREE.Vector3;
     mouseCornerTipL?: THREE.Vector3;
     mouseCornerTipR?: THREE.Vector3;
+    zygomaticArchTipL?: THREE.Vector3;
+    zygomaticArchTipR?: THREE.Vector3;
   },
 ): FacialMorphsVisualizers {
   /*
@@ -142,6 +144,9 @@ export function generateFacialMorphs(
   // Ear Top Tips
   let earTopTipL = new THREE.Vector3(Infinity, 0, 0);
   let earTopTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Zygomatic Arch Tips
+  let zygomaticArchTipL = new THREE.Vector3(Infinity, 0, 0);
+  let zygomaticArchTipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
@@ -161,6 +166,7 @@ export function generateFacialMorphs(
   const visualizerByMouseCornersWidthMorph: THREE.Vector3[] = [];
   const visualizerByEarMiddleMorph: THREE.Vector3[] = [];
   const visualizerByEarTopMorph: THREE.Vector3[] = [];
+  const visualizerByZygomaticArchWidthMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -304,7 +310,35 @@ export function generateFacialMorphs(
   );
 
   /**
-   * Ⅰ.Ⅳ EYE BROW TIPS DETECTION
+   * Ⅰ.Ⅳ ZYGOMATIC ARCH TIPS DETECTION (Based on the Ear Middle Tips with some offsets)
+   */
+  if (manualTips?.zygomaticArchTipL && manualTips?.zygomaticArchTipR) {
+    zygomaticArchTipL.copy(manualTips.zygomaticArchTipL);
+    zygomaticArchTipR.copy(manualTips.zygomaticArchTipR);
+  } else {
+    const zygomaticArchTipOffsetZ = 6;
+    zygomaticArchTipL.copy(
+      earMiddleTipL
+        .clone()
+        .add(new THREE.Vector3(0, 0, zygomaticArchTipOffsetZ)),
+    );
+    zygomaticArchTipR.copy(
+      earMiddleTipR
+        .clone()
+        .add(new THREE.Vector3(0, 0, zygomaticArchTipOffsetZ)),
+    );
+  }
+  console.log(
+    "\n -- generateFacialMorphs -- zygomaticArchTipL calculated ->",
+    zygomaticArchTipL.x === Infinity ? "Not Found" : zygomaticArchTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- zygomaticArchTipR calculated ->",
+    zygomaticArchTipR.x === -Infinity ? "Not Found" : zygomaticArchTipR,
+  );
+
+  /**
+   * Ⅰ.Ⅴ EYE BROW TIPS DETECTION
    */
   // Update the eye brow tips relative to the center of the eye nodes with some offsets
   if (manualTips?.eyeBrowTipL && manualTips?.eyeBrowTipR) {
@@ -329,7 +363,7 @@ export function generateFacialMorphs(
   );
 
   /**
-   * Ⅰ.Ⅴ MOUSE CORNER TIPS DETECTION
+   * Ⅰ.Ⅵ MOUSE CORNER TIPS DETECTION
    */
   // Update the mouse tips relative to the coordinate of X and Z (with some offset) of the centerEyeLNode and centerEyeRNode, and the calculated mouseTipY
   if (manualTips?.mouseCornerTipL && manualTips?.mouseCornerTipR) {
@@ -364,6 +398,7 @@ export function generateFacialMorphs(
   const mouseCornersWidthTarget = new Float32Array(positions.count * 3);
   const earMiddleTarget = new Float32Array(positions.count * 3);
   const earTopTarget = new Float32Array(positions.count * 3);
+  const zygomaticArchWidthTarget = new Float32Array(positions.count * 3);
 
   // Parameters for the procedural brushes
   const noseRadius = 7;
@@ -402,6 +437,7 @@ export function generateFacialMorphs(
       {
         powerVal: 1,
         isInfXFixed: false,
+        infHeightApplyMode: "normal",
       },
       visualizerByNostrilMorph,
       0.8,
@@ -419,6 +455,7 @@ export function generateFacialMorphs(
       {
         powerVal: 2,
         isInfXFixed: false,
+        infHeightApplyMode: "normal",
       },
       visualizerByJawMorph,
       1.25,
@@ -436,6 +473,7 @@ export function generateFacialMorphs(
       {
         powerVal: 2,
         isInfXFixed: true,
+        infHeightApplyMode: "normal",
       },
       visualizerByEyeBrowMorph,
       0.7,
@@ -453,6 +491,7 @@ export function generateFacialMorphs(
       {
         powerVal: 2,
         isInfXFixed: false,
+        infHeightApplyMode: "normal",
       },
       visualizerByMouseCornersWidthMorph,
       1.7,
@@ -470,6 +509,7 @@ export function generateFacialMorphs(
       {
         powerVal: 2,
         isInfXFixed: false,
+        infHeightApplyMode: "normal",
       },
       visualizerByEarMiddleMorph,
       0.7,
@@ -487,9 +527,28 @@ export function generateFacialMorphs(
       {
         powerVal: 2,
         isInfXFixed: false,
+        infHeightApplyMode: "normal",
       },
       visualizerByEarTopMorph,
       0.4,
+    );
+
+    // --- H. GENERATE ZYGOMATIC ARCH TIPS MORPH (Width, actually it is Height) ---
+    applyMorph(
+      vertex,
+      i,
+      zygomaticArchTipL,
+      zygomaticArchTipR,
+      { xRange: 6, yRange: 6.5, zRange: 4 },
+      zygomaticArchWidthTarget,
+      "height",
+      {
+        powerVal: 2,
+        isInfXFixed: false,
+        infHeightApplyMode: "tip-y-based",
+      },
+      visualizerByZygomaticArchWidthMorph,
+      1.4,
     );
   }
 
@@ -507,6 +566,10 @@ export function generateFacialMorphs(
   );
   const earMiddleAttr = new THREE.BufferAttribute(earMiddleTarget, 3);
   const earTopAttr = new THREE.BufferAttribute(earTopTarget, 3);
+  const zygomaticArchWidthAttr = new THREE.BufferAttribute(
+    zygomaticArchWidthTarget,
+    3,
+  );
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseAttr.name = "nose";
@@ -516,6 +579,7 @@ export function generateFacialMorphs(
   mouseCornersWidthAttr.name = "mouseCornersWidth";
   earMiddleAttr.name = "earMiddle";
   earTopAttr.name = "earTop";
+  zygomaticArchWidthAttr.name = "zygomaticArchWidth";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -526,6 +590,7 @@ export function generateFacialMorphs(
     mouseCornersWidthAttr,
     earMiddleAttr,
     earTopAttr,
+    zygomaticArchWidthAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -562,8 +627,8 @@ export function generateFacialMorphs(
     visualizerNoseTip: noseTip,
     visualizerNostrilTipL: nostrilTipL,
     visualizerNostrilTipR: nostrilTipR,
-    visualizerjawTipL: jawTipL,
-    visualizerjawTipR: jawTipR,
+    visualizerJawTipL: jawTipL,
+    visualizerJawTipR: jawTipR,
     visualizerEyeBrowTipL: eyeBrowTipL,
     visualizerEyeBrowTipR: eyeBrowTipR,
     visualizerMouseCornerTipL: mouseCornerTipL,
@@ -572,6 +637,8 @@ export function generateFacialMorphs(
     visualizerEarMiddleTipR: earMiddleTipR,
     visualizerEarTopTipL: earTopTipL,
     visualizerEarTopTipR: earTopTipR,
+    visualizerZygomaticArchTipL: zygomaticArchTipL,
+    visualizerZygomaticArchTipR: zygomaticArchTipR,
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
@@ -585,6 +652,7 @@ export function generateFacialMorphs(
     visualizerByMouseCornersWidthMorph,
     visualizerByEarMiddleMorph,
     visualizerByEarTopMorph,
+    visualizerByZygomaticArchMorph: visualizerByZygomaticArchWidthMorph,
   };
 }
 
@@ -732,11 +800,12 @@ function applyMorph(
   infConfig: {
     powerVal: number;
     isInfXFixed: boolean;
+    infHeightApplyMode: "normal" | "tip-y-based";
   },
   visualizer?: THREE.Vector3[],
   totalInfluenceStrength: number = 1.25,
 ): void {
-  const { powerVal, isInfXFixed } = infConfig;
+  const { powerVal, isInfXFixed, infHeightApplyMode } = infConfig;
 
   // Use the detected tips as anchors for the morph
   const targetTip = vertex.x < 0 ? tipL : tipR;
@@ -794,18 +863,18 @@ function applyMorph(
     // --- 2. HEIGHT and DEPTH MORPHS (Y and Z axes) ---
     // These morph types share similar logic for lateral (X) and vertical (Y) falloff
     if (isHeight || isDepth) {
+      const isInverted01 = true;
       /*
         Inf X
        */
+      const x01 = isInverted01 ? 1 - dx / xRange : dx / xRange;
       // X -> 0 ~ 1 >> Y -> 0 ~ 1
-      const influenceX = isInfXFixed
-        ? 1
-        : Math.sin((1 - dx / xRange) * Math.PI * 0.5);
+      const influenceX = isInfXFixed ? 1 : Math.sin(x01 * Math.PI * 0.5);
 
       /*
         Inf Y
        */
-      const y01 = 1 - dy / yRange;
+      const y01 = isInverted01 ? 1 - dy / yRange : dy / yRange;
       // const influenceX = 1 - Math.cos(1 - dx / xRange);
       // const influenceY =
       //   vertex.y < targetTip.y
@@ -817,7 +886,7 @@ function applyMorph(
       /*
         Inf Z
        */
-      const z01 = 1 - dz / zRange;
+      const z01 = isInverted01 ? 1 - dz / zRange : dz / zRange;
       // const influenceZ = Math.pow(Math.sin(z01), 2);
       // const influenceZ = Math.pow(z01, 2);
       const influenceZ = z01;
@@ -830,9 +899,20 @@ function applyMorph(
       // influenceY * influenceZ * totalInfluenceStrength;
 
       /*
+        Total Height Inf Mode Based
+      */
+      const totalHeightInfModeBased =
+        infHeightApplyMode === "normal"
+          ? totalInfluence
+          : vertex.y < targetTip.y
+            ? -totalInfluence
+            : totalInfluence;
+
+      /*
         Apply
        */
-      if (isHeight) targetArray[index * 3 + 1] += totalInfluence;
+      // if (isHeight) targetArray[index * 3 + 1] += totalInfluence;
+      if (isHeight) targetArray[index * 3 + 1] += totalHeightInfModeBased;
 
       if (isDepth) targetArray[index * 3 + 2] -= totalInfluence;
 

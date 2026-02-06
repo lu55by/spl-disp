@@ -17,32 +17,66 @@ export interface UploadModelInputFields {
   Facial Morphs Visualizers
  */
 export interface FacialMorphsVisualizers {
+  /*
+    Tips
+  */
+  // Nose Tip
   visualizerNoseTip: Vector3;
+  // Nostril Tips
   visualizerNostrilTipL: Vector3;
   visualizerNostrilTipR: Vector3;
-  visualizerjawTipL: Vector3;
-  visualizerjawTipR: Vector3;
+  // Jaw Tips
+  visualizerJawTipL: Vector3;
+  visualizerJawTipR: Vector3;
+  // Mouse Corner Tips
   visualizerMouseCornerTipL: Vector3;
   visualizerMouseCornerTipR: Vector3;
+  // Eye Brow Tips
   visualizerEyeBrowTipL: Vector3;
   visualizerEyeBrowTipR: Vector3;
+  // Ear Middle Tips
   visualizerEarMiddleTipL: Vector3;
   visualizerEarMiddleTipR: Vector3;
+  // Ear Top Tips
   visualizerEarTopTipL: Vector3;
   visualizerEarTopTipR: Vector3;
+  // Zygomatic Arch Tips
+  visualizerZygomaticArchTipL: Vector3;
+  visualizerZygomaticArchTipR: Vector3;
+  /*
+    Detection
+  */
+  // Nose Tip Detection
   visualizerByNoseTipDetection: Vector3[];
+  // Nostril Tips Detection
   visualizerByNostrilTipsDetection: Vector3[];
+  // Jaw Tips Detection
   visualizerByJawTipsDetection: Vector3[];
+  // Eye Brow Tips Detection
   visualizerByEyeBrowTipsDetection: Vector3[];
+  // Mouse Corner Tips Detection
   visualizerByMouseCornerTipsDetection: Vector3[];
+  // Ear Middle Tips Detection
   visualizerByEarMiddleTipsDetection: Vector3[];
+  /*
+    Morph
+  */
+  // Nose Morph
   visualizerByNoseMorph: Vector3[];
+  // Nostril Morph
   visualizerByNostrilMorph: Vector3[];
+  // Jaw Morph
   visualizerByJawMorph: Vector3[];
+  // Eye Brow Morph
   visualizerByEyeBrowMorph: Vector3[];
+  // Mouse Corners Width Morph
   visualizerByMouseCornersWidthMorph: Vector3[];
+  // Ear Middle Morph
   visualizerByEarMiddleMorph: Vector3[];
+  // Ear Top Morph
   visualizerByEarTopMorph: Vector3[];
+  // Zygomatic Arch Morph
+  visualizerByZygomaticArchMorph: Vector3[];
 }
 
 /*

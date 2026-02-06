@@ -97,6 +97,15 @@
           >
             {{ manualMouseCornerTipL ? "✅ 嘴角" : "嘴角" }}
           </Button>
+          <Button
+            @click="setStage('zygomaticArchWidth')"
+            :class="{
+              'border-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(34,211,238,0.3)]':
+                manualMorphSelectionStage === 'zygomaticArchWidth',
+            }"
+          >
+            {{ manualZygomaticArchTipL ? "✅ 颧骨" : "颧骨" }}
+          </Button>
         </div>
 
         <div class="flex gap-4 mt-2">
@@ -128,13 +137,15 @@ const {
   manualJawTipL,
   manualEyeBrowTipL,
   manualMouseCornerTipL,
+  manualZygomaticArchTipL,
 } = storeToRefs(modelsStore);
 
 const isSelectionComplete = computed(() => {
   return (
     manualJawTipL.value !== null &&
     manualEyeBrowTipL.value !== null &&
-    manualMouseCornerTipL.value !== null
+    manualMouseCornerTipL.value !== null &&
+    manualZygomaticArchTipL.value !== null
   );
 });
 
@@ -171,7 +182,7 @@ const startAutomaticMode = () => {
   });
 };
 
-const setStage = (stage: "jaw" | "eyeBrow" | "mouseCornersWidth") => {
+const setStage = (stage: "jaw" | "eyeBrow" | "mouseCornersWidth" | "zygomaticArchWidth") => {
   modelsStore.setManualMorphSelectionStage(stage);
 };
 

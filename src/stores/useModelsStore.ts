@@ -211,6 +211,7 @@ export const useModelsStore = defineStore("models", {
       | "jaw"
       | "eyeBrow"
       | "mouseCornersWidth"
+      | "zygomaticArchWidth"
       | null,
     // Manual tips vectors
     manualJawTipL: null as THREE.Vector3 | null,
@@ -219,6 +220,8 @@ export const useModelsStore = defineStore("models", {
     manualEyeBrowTipR: null as THREE.Vector3 | null,
     manualMouseCornerTipL: null as THREE.Vector3 | null,
     manualMouseCornerTipR: null as THREE.Vector3 | null,
+    manualZygomaticArchTipL: null as THREE.Vector3 | null,
+    manualZygomaticArchTipR: null as THREE.Vector3 | null,
     // manualMorphReadyTimestamp state to trigger the manual morph generation in SplicingModelsV2
     manualMorphReadyTimestamp: 0,
     // isMorphTargetReady state to trigger the SplicingModelsV2 to update the head node
@@ -705,22 +708,27 @@ export const useModelsStore = defineStore("models", {
 
     /**
      * Set the current manual morph selection stage.
-     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth' | null
+     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth' | 'zygomaticArchWidth' | null
      */
     setManualMorphSelectionStage(
-      stage: "jaw" | "eyeBrow" | "mouseCornersWidth" | null,
+      stage:
+        | "jaw"
+        | "eyeBrow"
+        | "mouseCornersWidth"
+        | "zygomaticArchWidth"
+        | null,
     ) {
       this.manualMorphSelectionStage = stage;
     },
 
     /**
      * Set the manual tips for a specific stage.
-     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth'
+     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth' | 'zygomaticArchWidth'
      * @param pointL THREE.Vector3
      * @param pointR THREE.Vector3
      */
     setManualMorphTips(
-      stage: "jaw" | "eyeBrow" | "mouseCornersWidth",
+      stage: "jaw" | "eyeBrow" | "mouseCornersWidth" | "zygomaticArchWidth",
       pointL: THREE.Vector3,
       pointR: THREE.Vector3,
     ) {
@@ -733,6 +741,9 @@ export const useModelsStore = defineStore("models", {
       } else if (stage === "mouseCornersWidth") {
         this.manualMouseCornerTipL = pointL;
         this.manualMouseCornerTipR = pointR;
+      } else if (stage === "zygomaticArchWidth") {
+        this.manualZygomaticArchTipL = pointL;
+        this.manualZygomaticArchTipR = pointR;
       }
     },
 
@@ -747,6 +758,8 @@ export const useModelsStore = defineStore("models", {
       this.manualEyeBrowTipR = null;
       this.manualMouseCornerTipL = null;
       this.manualMouseCornerTipR = null;
+      this.manualZygomaticArchTipL = null;
+      this.manualZygomaticArchTipR = null;
     },
 
     /**

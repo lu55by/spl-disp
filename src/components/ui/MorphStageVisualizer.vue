@@ -24,6 +24,8 @@ const stageLabel = computed(() => {
       return "眉毛点位参考";
     case "mouseCornersWidth":
       return "嘴角点位参考";
+    case "zygomaticArchWidth":
+      return "颧骨点位参考";
     default:
       return "参考图";
   }
