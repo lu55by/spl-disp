@@ -1,9 +1,9 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import SplicingModelsMainContainer from "../components/SplicingModelsMainContainer.vue";
 import PageNotFound from "../components/ui/PageNotFound.vue";
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     {
       path: "/",
