@@ -12,6 +12,7 @@ import {
 import { useModelsStore } from "../../stores/useModelsStore";
 import {
   isObjGroupCutterNode,
+  validateImportFiles,
   validateImportFilesWithNodeNames,
 } from "../../utils/fileValidators";
 import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
@@ -67,46 +68,28 @@ const onDrop = async (e: DragEvent) => {
     console.log("\n -- onDrop -- files -- before validation ->", files);
 
     /**
-      Image file or Cutting Model OBJ file.
-      1. Image file name matches `thumb` with regex -> bind thumbnail to hovered object
-      2. File name matches `cutting` with regex -> bind cutting model to hovered object
-      3. Otherwise -> apply texture to hovered object
+      Texture applying
     */
     if (
       modelsStore.dragHoveredObject &&
-      !modelsStore.dragHoveredObject.parent.name
-        .toLocaleLowerCase()
-        .includes(CutHeadEyesNodeCombinedGroupName.toLocaleLowerCase()) &&
       files.length === 1 &&
-      (files[0].type.startsWith("image/") || /cutting/i.test(files[0].name))
+      files[0].type.startsWith("image/")
     ) {
-      // Check if the file is a thumbnail (contains "thumb" or "thumbnail")
-      const isThumbnail = /thumb/i.test(files[0].name);
-      // Check if the file is a cutting model (contains "cutting")
-      const isCuttingModel = /cutting/i.test(files[0].name);
-      let toastContents = ToastContentsTextureApplying;
-      if (isThumbnail) toastContents = ToastContentsBindingThumbnail;
-      if (isCuttingModel) toastContents = ToastContentsBindingCuttingModel;
-      const loadingToastId = toast.loading(toastContents.Loading);
+      const loadingToastId = toast.loading(
+        ToastContentsTextureApplying.Loading,
+      );
       try {
-        // Simulate large texture loading delay
-        // await new Promise((resolve) => setTimeout(resolve, 5000));
-
-        if (isThumbnail)
-          await modelsStore.bindThumbnailToDragHoveredObject(files[0]);
-        else if (isCuttingModel)
-          await modelsStore.bindCuttingModelToDragHoveredObject(files[0]);
-        else await modelsStore.applyTextureToHoveredObject(files[0]);
+        await modelsStore.applyTextureToHoveredObject(files[0]);
 
         toast.update(loadingToastId, {
-          render: toastContents.Success,
+          render: ToastContentsTextureApplying.Success,
           type: "success",
           isLoading: false,
           autoClose: 1000,
         });
       } catch (error) {
         toast.update(loadingToastId, {
-          render: toastContents.Error,
+          render: ToastContentsTextureApplying.Error,
           type: "error",
           isLoading: false,
           autoClose: 2000,
@@ -115,7 +98,7 @@ const onDrop = async (e: DragEvent) => {
       }
       // Reset hovered object
       modelsStore.setDragHoveredObject(null);
-      if (!isCuttingModel) return;
+      return;
     }
 
     // Reset hovered object logic is handled in SplicingModels or here if needed,
@@ -123,14 +106,13 @@ const onDrop = async (e: DragEvent) => {
     modelsStore.setDragHoveredObject(null);
 
     /**
-     * Import as 3D Model
+     * Import another head model
      */
 
     /*
       Validate Files
     */
-    const { isValid, parsedObjGroupFromValidators } =
-      await validateImportFilesWithNodeNames(files);
+    const isValid = await validateImportFiles(files);
     console.log("\n -- onDrop -- files -- after validation ->", files);
     if (!isValid) return;
 
@@ -138,16 +120,12 @@ const onDrop = async (e: DragEvent) => {
       Import Files
     */
     let toastContentsImport = ToastContentsImportDefault;
-    if (isObjGroupCutterNode(parsedObjGroupFromValidators))
-      toastContentsImport = ToastContentsImportCutter;
+    files.length === 1 &&
+      /cutting/i.test(files[0].name) &&
+      (toastContentsImport = ToastContentsImportCutter);
     const loadingToastId = toast.loading(toastContentsImport.Loading);
     try {
-      // Simulate large texture loading delay
-      // await new Promise((resolve) => setTimeout(resolve, 5000));
-      const success = await modelsStore.importObjStlWithNodeNames(
-        files,
-        parsedObjGroupFromValidators,
-      );
+      const success = await modelsStore.importAndReplaceHeadModel(files);
       if (success) {
         toast.update(loadingToastId, {
           render: toastContentsImport.Success,

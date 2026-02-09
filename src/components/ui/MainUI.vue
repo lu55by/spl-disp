@@ -11,6 +11,7 @@ import MorphTargetController from "./MorphTargetController.vue";
 import ThumbnailVisualizer from "./ThumbnailVisualizer.vue";
 import UploadManager from "./UploadManager.vue";
 import ButtonContainerMorph from "./ButtonContainerMorph.vue";
+import DragAndDropOverlayMorph from "./DragAndDropOverlayMorph.vue";
 
 const route = useRoute();
 // Check if the current mode is morph based on the URL path parameter -> /mode/morph
@@ -26,6 +27,7 @@ const isMorphMode = computed(() => route.params.mode === "morph");
       <MorphTargetController />
       <MorphStageVisualizer />
       <ButtonContainerMorph />
+      <DragAndDropOverlayMorph />
     </template>
     <template v-else>
       <ButtonContainer />

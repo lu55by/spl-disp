@@ -15,9 +15,9 @@ import {
 import { loadSTLFile } from "../three/loaders/ModelLoader.ts";
 import { loadTexture } from "../three/loaders/TextureLoader";
 import {
-  adjustPivotPointsForMesh,
   applyDoubleSide,
   applyPBRMaterialAndSRGBColorSpace,
+  applySphCutHeadHeightDataAndAdjustPivot,
   applyTextures2LoadedHeadModelAsync,
   disposeAndRemoveCurrentCutHead,
   disposeHairBodyFromSplicingGroupGlobal,
@@ -26,7 +26,6 @@ import {
   removeAndAddModelWithNodeNames,
   replaceCurrentHeadWithCutHead,
 } from "../three/meshOps/index.ts";
-import { csgSubtract } from "../three/utils/csgCutHeadV3.ts";
 import type { UploadModelInputFields } from "../types/index.ts";
 
 /*
@@ -40,14 +39,14 @@ export const LoadedCuttersModel: THREE.Group<THREE.Object3DEventMap> =
 /*
   Sphere Cutter
  */
-const SphereCutter = LoadedCuttersModel.getObjectByName(
+export const SphereCutter = LoadedCuttersModel.getObjectByName(
   "cutting02",
 ) as THREE.Mesh;
 
 /*
   Box3 instance for calculating the sph cut head height
  */
-const SphCutHeadBox3 = new THREE.Box3();
+export const SphCutHeadBox3 = new THREE.Box3();
 
 /*
   Available Head Models
@@ -102,62 +101,16 @@ const loadHeadModelAsync = async (isFemale: boolean, subPath?: string) => {
     paths.Texture,
   );
 
-  // THE ORIGINAL LOADED HEAD MODEL
-  const headModel = loadedHeadModel;
-
-  /*
-    !!! DEBUG FOR NEW HEAD MODEL
-   */
-  // Set name
-  // headModel.name =
-  //   CutHeadEyesNodeCombinedGroupName + (isFemale ? "Female" : "Male");
-  // // Cache it
-  // HeadModelsCache.set(cacheKey, markRaw(headModel));
-  // return markRaw(headModel);
-
-  // Calculate the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight and store it to the userData of the loadedHeadModel
-  const headNode = (headModel.getObjectByName(NodeNames.HeadNames.Head) ||
-    headModel.getObjectByName("CutHeadNode")) as THREE.Mesh;
-  const sphCutHead = csgSubtract(
-    headNode,
-    SphereCutter,
-    true,
-    ["position"],
-    null,
-  );
-  const sphCutHeadBoundingBox = SphCutHeadBox3.setFromObject(sphCutHead);
-  const minYSphCutHead = sphCutHeadBoundingBox.min.y;
-  const maxYSphCutHead = sphCutHeadBoundingBox.max.y;
-  const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
-
-  loadedHeadModel.userData.minYSphCutHead = minYSphCutHead;
-  loadedHeadModel.userData.maxYSphCutHead = maxYSphCutHead;
-  loadedHeadModel.userData.sphCutHeadHeight = sphCutHeadHeight;
-
-  // Get the eye nodes
-  const eyeLNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeL) ||
-    headModel.getObjectByName("EyeLNode")) as THREE.Mesh;
-  const eyeRNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeR) ||
-    headModel.getObjectByName("EyeRNode")) as THREE.Mesh;
-
-  /*
-    Apply PBR Material and SRGB Color Space
-    Apply Double Side
-    Adjust the Pivot Points of the Eye Nodes
-   */
-  applyPBRMaterialAndSRGBColorSpace(headModel, true);
-  applyDoubleSide(headModel);
-  adjustPivotPointsForMesh(eyeLNode);
-  adjustPivotPointsForMesh(eyeRNode);
+  applySphCutHeadHeightDataAndAdjustPivot(loadedHeadModel);
 
   // Set name
-  headModel.name =
+  loadedHeadModel.name =
     CutHeadEyesNodeCombinedGroupName + (isFemale ? "Female" : "Male");
 
   // Cache it
-  HeadModelsCache.set(cacheKey, markRaw(headModel));
+  HeadModelsCache.set(cacheKey, markRaw(loadedHeadModel));
 
-  return markRaw(headModel);
+  return markRaw(loadedHeadModel);
 };
 
 /*
@@ -666,6 +619,105 @@ export const useModelsStore = defineStore("models", {
         parsedObjGroup,
         isHairImported,
       );
+      this.syncSplicingGroupLength();
+      return true;
+    },
+
+    async importAndReplaceHeadModel(files: FileList): Promise<boolean> {
+      console.log("\n-- importAndReplaceHeadModel -- files ->", files);
+
+      let objFile: File | null = null;
+      let stlFile: File | null = null;
+
+      // Iterate over the files to find the .obj, .stl and texture files
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.name.toLocaleLowerCase().endsWith(".obj")) {
+          objFile = file;
+        } else if (file.name.toLocaleLowerCase().endsWith(".stl")) {
+          stlFile = file;
+        }
+      }
+
+      // Check if the .obj or .stl file exists
+      if (!objFile && !stlFile) {
+        console.warn("No .obj or .stl file found.");
+        return false;
+      }
+
+      /**
+       * ! STL File Import
+       */
+      if (stlFile) {
+        // Get the STL Mesh
+        const stlMesh: THREE.Mesh<
+          THREE.BufferGeometry,
+          THREE.MeshStandardNodeMaterial
+        > = await loadSTLFile(stlFile);
+
+        // Create a Group containing the stl mesh to be added to the splicing group
+        const stlModelGroup = new THREE.Group().add(stlMesh);
+        stlModelGroup.name = CutHeadEyesNodeCombinedGroupName;
+
+        // Clear the splicing group and add the stl model group to it
+        this.splicingGroupGlobal.clear();
+        this.splicingGroupGlobal.add(stlModelGroup);
+
+        // Sync the splicing group length
+        this.syncSplicingGroupLength();
+
+        // Return if it is stl file
+        return true;
+      }
+
+      /**
+       * ! OBJ File Import
+       */
+      const objTextContent = await objFile.text();
+      const parsedObjGroup = markRaw(OBJLoaderInstance.parse(objTextContent));
+
+      /**
+       * Cutter Import
+       */
+      const isCutterImported =
+        parsedObjGroup.children.find((child) => {
+          return child.name
+            .toLocaleLowerCase()
+            .startsWith(NodeNames.CuttersNames.Single.toLocaleLowerCase());
+        }) !== undefined;
+
+      console.log("\nisCutterImported ->", isCutterImported);
+      if (isCutterImported) {
+        // Do the getCutHead operation
+        if (
+          parsedObjGroup.children.length === 1 &&
+          parsedObjGroup.children[0].name.toLocaleLowerCase() ===
+            NodeNames.CuttersNames.Single.toLocaleLowerCase()
+        ) {
+          const currentHeadModel = this.splicingGroupGlobal
+            .children[0] as THREE.Group<THREE.Object3DEventMap>;
+          replaceCurrentHeadWithCutHead(
+            this.splicingGroupGlobal,
+            currentHeadModel,
+            parsedObjGroup,
+          );
+        } else
+          console.warn(
+            "Invalid cutter single model name ->",
+            parsedObjGroup.children[0].name,
+          );
+
+        // Return the function immediately to prevent the cutter single model from being added to the splicing group
+        return true;
+      }
+
+      applySphCutHeadHeightDataAndAdjustPivot(parsedObjGroup);
+      parsedObjGroup.name = CutHeadEyesNodeCombinedGroupName;
+
+      // Clear the splicing group and add the parsed obj group to it
+      this.splicingGroupGlobal.clear();
+      this.splicingGroupGlobal.add(parsedObjGroup);
+
       this.syncSplicingGroupLength();
       return true;
     },

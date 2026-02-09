@@ -13,7 +13,7 @@ import {
 } from "../constants";
 import { exportObjectToOBJ } from "../exporters";
 import { loadTexture } from "../loaders/TextureLoader";
-import { getCutHead } from "../utils/csgCutHeadV3";
+import { csgSubtract, getCutHead } from "../utils/csgCutHeadV3";
 
 import initManifold from "manifold-3d";
 import manifoldWasm from "manifold-3d/manifold.wasm?url";
@@ -21,6 +21,7 @@ import type {
   CutHeadEyesNodeCombinedGrpUserData,
   FacialMorphsVisualizers,
 } from "../../types";
+import { SphCutHeadBox3, SphereCutter } from "@/stores/useModelsStore";
 
 /**
  * Generates facial morphs for a given model.
@@ -1765,4 +1766,47 @@ export async function replaceCurrentHeadWithCutHead(
   splicingGroupGlobal.add(newCutHead);
   // Generate the facial morphs
   // generateFacialMorphs(splicingGroupGlobal, { noseRadius: 7 });
+}
+
+/**
+ * Apply the sph cut head height data, apply PBR Material and SRGB Color Space, apply double side and adjust the pivot points of the eye nodes.
+ * @param headModel The head model.
+ */
+export function applySphCutHeadHeightDataAndAdjustPivot(
+  headModel: THREE.Group<THREE.Object3DEventMap>,
+) {
+  // Calculate the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight and store it to the userData of the loadedHeadModel
+  const headNode = (headModel.getObjectByName(NodeNames.HeadNames.Head) ||
+    headModel.getObjectByName("CutHeadNode")) as THREE.Mesh;
+  const sphCutHead = csgSubtract(
+    headNode,
+    SphereCutter,
+    true,
+    ["position"],
+    null,
+  );
+  const sphCutHeadBoundingBox = SphCutHeadBox3.setFromObject(sphCutHead);
+  const minYSphCutHead = sphCutHeadBoundingBox.min.y;
+  const maxYSphCutHead = sphCutHeadBoundingBox.max.y;
+  const sphCutHeadHeight = maxYSphCutHead - minYSphCutHead;
+
+  headModel.userData.minYSphCutHead = minYSphCutHead;
+  headModel.userData.maxYSphCutHead = maxYSphCutHead;
+  headModel.userData.sphCutHeadHeight = sphCutHeadHeight;
+
+  // Get the eye nodes
+  const eyeLNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeL) ||
+    headModel.getObjectByName("EyeLNode")) as THREE.Mesh;
+  const eyeRNode = (headModel.getObjectByName(NodeNames.HeadNames.EyeR) ||
+    headModel.getObjectByName("EyeRNode")) as THREE.Mesh;
+
+  /*
+    Apply PBR Material and SRGB Color Space
+    Apply Double Side
+    Adjust the Pivot Points of the Eye Nodes
+  */
+  applyPBRMaterialAndSRGBColorSpace(headModel, true);
+  applyDoubleSide(headModel);
+  adjustPivotPointsForMesh(eyeLNode);
+  adjustPivotPointsForMesh(eyeRNode);
 }

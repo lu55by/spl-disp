@@ -1172,7 +1172,23 @@ const init = async () => {
    */
   // Re-traverse the splicingGroupGlobal and reapply the mixed colorNode to all the materials of meshes by using `watch` from vue on splicingGroupLen state to solve the issue of the map not being toggled when the models are loaded.
   watch(splicingGroupLen, () => {
+    console.log(
+      "\n-- watcher -- splicingGroupLen changed, reapplying mixed color node...\n",
+    );
     applyMixedColorNode(splicingGroupGlobal);
+  });
+
+  // Watcher for modelsStore actions
+  modelsStore.$onAction(({ name, after }) => {
+    const relevantActions = ["importAndReplaceHeadModel"];
+    if (relevantActions.includes(name)) {
+      after(() => {
+        console.log(
+          "\n-- watcher -- importAndReplaceHeadModel action completed, reapplying mixed color node...\n",
+        );
+        applyMixedColorNode(splicingGroupGlobal);
+      });
+    }
   });
 
   // Reapply the mixed colorNode and the visualizers if head model changes (gender or subpath)
