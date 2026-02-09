@@ -1,0 +1,262 @@
+<template>
+  <div
+    class="flex flex-col items-start justify-start gap-4 p-4 w-full md:w-72 max-h-full transition-all duration-500"
+  >
+    <!-- Backdrop Overlay to close the HUD Panel (Mobile Only) -->
+    <Transition name="fade">
+      <div
+        v-if="isMenuOpen"
+        class="md:hidden fixed inset-0 z-0 bg-black/40 backdrop-blur-xs pointer-events-auto transition-opacity duration-300"
+        @click="isMenuOpen = false"
+      ></div>
+    </Transition>
+
+    <!-- Mobile Toggle Button -->
+    <button
+      @click="toggleMenu"
+      class="md:hidden relative z-10 pointer-events-auto flex items-center gap-5 px-4 py-2 bg-slate-900/60 backdrop-blur-lg border border-cyan-500/40 rounded-sm text-cyan-400 font-futuristic group transition-all duration-300 hover:border-cyan-400 cursor-pointer"
+    >
+      <div class="relative w-5 h-4">
+        <span
+          :class="[
+            'absolute h-px w-5 bg-cyan-400 transition-all duration-300',
+            isMenuOpen ? 'top-2 rotate-45' : 'top-0',
+          ]"
+        ></span>
+        <span
+          :class="[
+            'absolute top-2 h-px w-5 bg-cyan-400 transition-all duration-300',
+            isMenuOpen ? 'opacity-0' : 'opacity-100',
+          ]"
+        ></span>
+        <span
+          :class="[
+            'absolute h-px w-5 bg-cyan-400 transition-all duration-300',
+            isMenuOpen ? 'top-2 -rotate-45' : 'top-4',
+          ]"
+        ></span>
+      </div>
+      <span class="text-xs tracking-[0.3em] uppercase">{{
+        isMenuOpen ? "Close HUD" : "Open HUD"
+      }}</span>
+    </button>
+
+    <!-- Main HUD Panel -->
+    <div
+      :class="[
+        'relative z-10 flex flex-col gap-6 w-full transition-all duration-500',
+        'md:pointer-events-auto',
+        'max-md:bg-slate-900/80 max-md:backdrop-blur-xl max-md:p-6 max-md:rounded-lg max-md:border max-md:border-cyan-500/20 max-md:shadow-2xl max-md:overflow-y-auto max-md:max-h-[85vh]',
+        !isMenuOpen
+          ? 'max-md:opacity-0 max-md:pointer-events-none max-md:-translate-y-4 max-md:invisible'
+          : 'max-md:opacity-100 max-md:pointer-events-auto max-md:translate-y-0 max-md:visible',
+      ]"
+    >
+      <!-- HUD Header -->
+      <div class="flex flex-col gap-1 w-full group">
+        <h2
+          class="text-cyan-500 font-futuristic tracking-[0.2em] text-lg uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]"
+        >
+          变形控制
+        </h2>
+        <!-- <div
+          class="h-px w-full bg-linear-to-r from-cyan-500/50 via-cyan-500/20 to-transparent group-hover:from-cyan-400 transition-all duration-300"
+        ></div> -->
+      </div>
+
+      <!-- Actions Container - Vertical Stacking -->
+      <div class="w-full flex flex-col gap-5">
+        <!-- Imports Section -->
+        <!-- <div class="flex flex-col gap-3">
+          <Button @click="openFilePicker">
+            <i class="opacity-50 text-[10px] uppercase">Dir</i> 导入文件夹
+          </Button>
+          <Button @click="openFilesPicker">
+            <i class="opacity-50 text-[10px] uppercase">File</i> 导入文件
+          </Button>
+        </div> -->
+
+        <div class="h-px w-full bg-slate-700/30"></div>
+
+        <!-- Tools Section -->
+        <div class="flex flex-col gap-3">
+          <Button @click="toggleIsShowMap">
+            <i class="opacity-50 text-[10px] uppercase">Vis</i>
+            切换{{ isShowMap ? "白" : "彩" }}模
+          </Button>
+          <Button @click="handleExport">
+            <i class="opacity-50 text-[10px] uppercase">Out</i> 导出
+          </Button>
+          <HeadModelSelector />
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden file inputs (keep outside functional UI) -->
+    <!-- Folder Input -->
+    <input
+      type="file"
+      ref="fileInput"
+      webkitdirectory
+      directory
+      multiple
+      class="hidden"
+      @change="handleFileChange"
+    />
+    <!-- Files Input -->
+    <input
+      type="file"
+      ref="filesInput"
+      accept=".obj,.stl,image/*"
+      multiple
+      class="hidden"
+      @change="handleFileChange"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { ref, watch } from "vue";
+import { toast } from "vue3-toastify";
+import {
+  ToastContentsImportCutter,
+  ToastContentsImportDefault,
+} from "../../constants";
+import { useModelsStore } from "../../stores/useModelsStore";
+import {
+  isObjGroupCutterNode,
+  validateImportFilesWithNodeNames,
+} from "../../utils/fileValidators";
+import Button from "./Button.vue";
+import HeadModelSelector from "./HeadModelSelector.vue";
+
+/*
+  Toggle Menu (Mobile Only)
+ */
+const isMenuOpen = ref(false);
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
+
+/**
+ * Get the store
+ */
+const modelsStore = useModelsStore();
+const { splicingGroupLen, isShowMap } = storeToRefs(modelsStore);
+
+// Use 'watch' to perform a side effect (like logging) when a reactive source changes
+watch(splicingGroupLen, (newLength, oldLength) => {
+  console.log(
+    `\n -- ButtonContainer -- splicingGroupLen changed from ${oldLength} to ${newLength}`,
+  );
+});
+
+/**
+ * Disable logic
+ */
+// let isExportBtnDisabled = computed(
+//   // () => splicingGroupLen.value < MaxModelLength
+//   () => splicingGroupLen.value === 0
+// );
+// let isClearBtnDisabled = computed(() => splicingGroupLen.value === 1);
+
+/**
+ * Input elements and fns.
+ */
+const fileInput = ref<HTMLInputElement | null>(null);
+const filesInput = ref<HTMLInputElement | null>(null);
+
+// Click "Import Folder" button → open file picker (directory mode)
+const openFilePicker = () => {
+  fileInput.value?.click();
+};
+
+// Click "Import Files" button -> open file picker (files mode)
+const openFilesPicker = () => {
+  filesInput.value?.click();
+};
+
+/**
+ * Toggle isShowMap
+ */
+const toggleIsShowMap = () => {
+  modelsStore.toggleIsShowMap();
+};
+
+/**
+ * Import Models
+ * When file selected → import it
+ */
+const handleFileChange = async (e: Event) => {
+  console.log("splicingGroupLen before importing ->", splicingGroupLen.value);
+
+  const target = e.target as HTMLInputElement;
+  const files = target.files;
+
+  /*
+    Validate Files
+   */
+  // const isValid = await validateImportFiles(files);
+  const { isValid, parsedObjGroupFromValidators } =
+    await validateImportFilesWithNodeNames(files);
+  if (!isValid) return;
+
+  /*
+    Import Files
+   */
+  let toastContentsImport = ToastContentsImportDefault;
+  if (isObjGroupCutterNode(parsedObjGroupFromValidators))
+    toastContentsImport = ToastContentsImportCutter;
+  const loadingToastId = toast.loading(toastContentsImport.Loading);
+  try {
+    // Simulate large texture loading delay
+    // await new Promise((resolve) => setTimeout(resolve, 5000));
+    const success = await modelsStore.importObjStlWithNodeNames(
+      files,
+      parsedObjGroupFromValidators,
+    );
+
+    if (success) {
+      toast.update(loadingToastId, {
+        render: toastContentsImport.Success,
+        type: "success",
+        isLoading: false,
+        autoClose: 1000,
+      });
+      console.log("splicingGroupLen after imported ->", splicingGroupLen.value);
+    } else {
+      toast.remove(loadingToastId);
+    }
+  } catch (error) {
+    toast.update(loadingToastId, {
+      render: toastContentsImport.Error,
+      type: "error",
+      isLoading: false,
+      autoClose: 2000,
+    });
+    console.error(error);
+  }
+
+  // clear input so selecting same file works
+  target.value = "";
+};
+
+/**
+ * Export models
+ */
+const handleExport = async () => {
+  try {
+    // TODO: Show a loading bar on the UI while exporting and let the user select where to save the file.
+    const result = await modelsStore.exportSplicingModels();
+    if (result) {
+      toast.success("导出成功", { autoClose: 2000 });
+    } else {
+      console.log("Export cancelled or failed silently");
+    }
+  } catch (error) {
+    console.error("Export failed", error);
+    toast.error("导出失败", { autoClose: 2000 });
+  }
+};
+</script>

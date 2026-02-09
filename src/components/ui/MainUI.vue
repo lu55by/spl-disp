@@ -10,6 +10,7 @@ import MorphStageVisualizer from "./MorphStageVisualizer.vue";
 import MorphTargetController from "./MorphTargetController.vue";
 import ThumbnailVisualizer from "./ThumbnailVisualizer.vue";
 import UploadManager from "./UploadManager.vue";
+import ButtonContainerMorph from "./ButtonContainerMorph.vue";
 
 const route = useRoute();
 // Check if the current mode is morph based on the URL path parameter -> /mode/morph
@@ -24,6 +25,7 @@ const isMorphMode = computed(() => route.params.mode === "morph");
       <ManualMorphUI />
       <MorphTargetController />
       <MorphStageVisualizer />
+      <ButtonContainerMorph />
     </template>
     <template v-else>
       <ButtonContainer />

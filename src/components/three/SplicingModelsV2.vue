@@ -1094,7 +1094,7 @@ const init = async () => {
     zygomaticArch
    */
   const selectedVisualizer = "zygomaticArch";
-  generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
+  // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
    * Add the global group
