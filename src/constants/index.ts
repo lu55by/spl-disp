@@ -140,6 +140,7 @@ export const MorphTargetLabelMapping = {
   ZygomaticArchWidth: "颧骨宽度",
   Cheek0: "脸颊",
   Cheek1: "腮帮",
+  JawWidth: "下巴宽度",
 };
 
 // Global Model

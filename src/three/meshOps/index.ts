@@ -148,11 +148,15 @@ export function generateFacialMorphs(
   // Zygomatic Arch Tips
   let zygomaticArchTipL = new THREE.Vector3(Infinity, 0, 0);
   let zygomaticArchTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Face Tips
+  // Cheek Tips
   let cheek0TipL = new THREE.Vector3(Infinity, 0, 0);
   let cheek0TipR = new THREE.Vector3(-Infinity, 0, 0);
   let cheek1TipL = new THREE.Vector3(Infinity, 0, 0);
   let cheek1TipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Jaw Tips
+  let jawTipL = new THREE.Vector3();
+  let jawTipR = new THREE.Vector3();
+  let jawTipM = new THREE.Vector3(0, Infinity, 0);
 
   /*
     Vertices for visualization
@@ -164,6 +168,7 @@ export function generateFacialMorphs(
   const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
   const visualizerByMouseCornerTipsDetection: THREE.Vector3[] = [];
   const visualizerByEarMiddleTipsDetection: THREE.Vector3[] = [];
+  const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   // Vertices for morphs based on the tips
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
@@ -175,6 +180,7 @@ export function generateFacialMorphs(
   const visualizerByZygomaticArchWidthMorph: THREE.Vector3[] = [];
   const visualizerByCheek0WidthMorph: THREE.Vector3[] = [];
   const visualizerByCheek1WidthMorph: THREE.Vector3[] = [];
+  const visualizerByJawWidthMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -206,7 +212,7 @@ export function generateFacialMorphs(
   console.log("\n -- generateFacialMorphs -- noseTip detected ->", noseTip);
 
   /**
-   * Ⅰ.Ⅱ CONSOLIDATED DETECTION (Nostrils, Mandible, and Ears)
+   * Ⅰ.Ⅱ CONSOLIDATED DETECTION (Nostrils, Mandible, Ears, and Jaw)
    * Optimization: Combined multiple lateral tip detection loops into a single pass over the geometry.
    */
 
@@ -228,7 +234,13 @@ export function generateFacialMorphs(
   const maxYEarTipDetection = maxYSphCutHead - sphCutHeadHeight * maxPerc;
   const minYEarTipDetection = minYSphCutHead + sphCutHeadHeight * minPerc;
 
-  // 1.2.4 optimized combined loop
+  // 1.2.4 Range for Jaw (relative to noseTip)
+  const minYJaw = minYSphCutHead;
+  const maxYJaw = noseTip.y;
+  const minZJaw = centerEyeLNode.z;
+  const maxZJaw = noseTip.z;
+
+  // 1.2.5 optimized combined loop
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
 
@@ -265,14 +277,32 @@ export function generateFacialMorphs(
       if (vertex.x > earMiddleTipR.x) earMiddleTipR.copy(vertex);
       visualizerByEarMiddleTipsDetection.push(vertex.clone());
     }
+
+    // D. JAW TIPS DETECTION (Only if not manual)
+    if (
+      vertex.y > minYJaw &&
+      vertex.y < maxYJaw &&
+      vertex.z > minZJaw &&
+      vertex.z < maxZJaw
+    ) {
+      if (vertex.y < jawTipM.y) jawTipM.copy(vertex);
+      visualizerByJawTipsDetection.push(vertex.clone());
+    }
   }
 
-  // 1.2.5 Post-loop manual mandible setup
+  // 1.2.6 Post-loop manual mandible setup
   if (manualTips?.mandibleTipL && manualTips?.mandibleTipR) {
     mandibleTipL.copy(manualTips.mandibleTipL);
     mandibleTipR.copy(manualTips.mandibleTipR);
     console.log("\n -- generateFacialMorphs -- using manual mandible tips");
   }
+
+  // 1.2.7 Post-loop jaw tip L and jaw tip R setup based on the jawtipM with some offset on the x axis
+  jawTipM.x = noseTip.x; // ! Set the jaw tip M to be the same as the nose tip on the x axis
+  jawTipL.copy(jawTipM.clone());
+  jawTipR.copy(jawTipM.clone());
+  jawTipL.x -= 1;
+  jawTipR.x += 1;
 
   console.log(
     "\n -- generateFacialMorphs -- nostrilTipL calculated ->",
@@ -289,6 +319,19 @@ export function generateFacialMorphs(
   console.log(
     "\n -- generateFacialMorphs -- mandibleTipR calculated ->",
     mandibleTipR.x === -Infinity ? "Not Found" : mandibleTipR,
+  );
+
+  console.log(
+    "\n -- generateFacialMorphs -- jawTipL calculated ->",
+    jawTipL.x === Infinity ? "Not Found" : jawTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- jawTipR calculated ->",
+    jawTipR.x === -Infinity ? "Not Found" : jawTipR,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- jawTipM calculated ->",
+    jawTipM.y === Infinity ? "Not Found" : jawTipM,
   );
 
   /**
@@ -459,6 +502,7 @@ export function generateFacialMorphs(
   const zygomaticArchWidthTarget = new Float32Array(positions.count * 3);
   const cheek0Target = new Float32Array(positions.count * 3);
   const cheek1Target = new Float32Array(positions.count * 3);
+  const jawWidthTarget = new Float32Array(positions.count * 3);
 
   // Parameters for the procedural brushes
   const noseRadius = 7;
@@ -646,6 +690,24 @@ export function generateFacialMorphs(
       visualizerByCheek1WidthMorph,
       1.05,
     );
+
+    // --- K. GENERATE JAW MORPH (Width) ---
+    applyMorph(
+      vertex,
+      i,
+      jawTipL,
+      jawTipR,
+      { xRange: 2, yRange: 1.5, zRange: 2 },
+      jawWidthTarget,
+      "widening",
+      {
+        powerVal: 1,
+        isInfXFixed: false,
+        infHeightApplyMode: "normal",
+      },
+      visualizerByJawWidthMorph,
+      1.05,
+    );
   }
 
   /**
@@ -668,6 +730,7 @@ export function generateFacialMorphs(
   );
   const cheek0Attr = new THREE.BufferAttribute(cheek0Target, 3);
   const cheek1Attr = new THREE.BufferAttribute(cheek1Target, 3);
+  const jawWidthAttr = new THREE.BufferAttribute(jawWidthTarget, 3);
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseAttr.name = "nose";
@@ -680,6 +743,7 @@ export function generateFacialMorphs(
   zygomaticArchWidthAttr.name = "zygomaticArchWidth";
   cheek0Attr.name = "cheek0";
   cheek1Attr.name = "cheek1";
+  jawWidthAttr.name = "jawWidth";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -693,6 +757,7 @@ export function generateFacialMorphs(
     zygomaticArchWidthAttr,
     cheek0Attr,
     cheek1Attr,
+    jawWidthAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -746,6 +811,9 @@ export function generateFacialMorphs(
     visualizerCheek0TipR: cheek0TipR,
     visualizerCheek1TipL: cheek1TipL,
     visualizerCheek1TipR: cheek1TipR,
+    visualizerJawTipL: jawTipL,
+    visualizerJawTipR: jawTipR,
+    visualizerJawTipM: jawTipM,
     // Detection
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
@@ -753,6 +821,7 @@ export function generateFacialMorphs(
     visualizerByEyeBrowTipsDetection,
     visualizerByMouseCornerTipsDetection,
     visualizerByEarMiddleTipsDetection,
+    visualizerByJawTipsDetection,
     // Morph
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
@@ -764,6 +833,7 @@ export function generateFacialMorphs(
     visualizerByZygomaticArchWidthMorph,
     visualizerByCheek0WidthMorph,
     visualizerByCheek1WidthMorph,
+    visualizerByJawWidthMorph,
   };
 }
 

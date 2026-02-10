@@ -619,6 +619,9 @@ const init = async () => {
       visualizerCheek0TipR, // Vector3
       visualizerCheek1TipL, // Vector3
       visualizerCheek1TipR, // Vector3
+      visualizerJawTipL, // Vector3
+      visualizerJawTipR, // Vector3
+      visualizerJawTipM, // Vector3
       // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
@@ -626,6 +629,7 @@ const init = async () => {
       visualizerByEyeBrowTipsDetection, // Vector3[]
       visualizerByMouseCornerTipsDetection, // Vector3[]
       visualizerByEarMiddleTipsDetection, // Vector3[]
+      visualizerByJawTipsDetection, // Vector3[]
       // Morph
       visualizerByNoseMorph, // Vector3[]
       visualizerByMandibleMorph, // Vector3[]
@@ -637,6 +641,7 @@ const init = async () => {
       visualizerByZygomaticArchWidthMorph, // Vector3[]
       visualizerByCheek0WidthMorph, // Vector3[]
       visualizerByCheek1WidthMorph, // Vector3[]
+      visualizerByJawWidthMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -800,6 +805,27 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#f0f" }),
       );
       /*
+        Jaw Tip Left Visualizer
+      */
+      const jawTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#0f0" }),
+      );
+      /*
+        Jaw Tip Right Visualizer
+      */
+      const jawTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#0f0" }),
+      );
+      /*
+        Jaw Tip Middle Visualizer
+      */
+      const jawTipMVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#0f0" }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -821,6 +847,9 @@ const init = async () => {
       cheek0TipRVisMesh.position.copy(visualizerCheek0TipR);
       cheek1TipLVisMesh.position.copy(visualizerCheek1TipL);
       cheek1TipRVisMesh.position.copy(visualizerCheek1TipR);
+      jawTipLVisMesh.position.copy(visualizerJawTipL);
+      jawTipRVisMesh.position.copy(visualizerJawTipR);
+      jawTipMVisMesh.position.copy(visualizerJawTipM);
       /*
         Add to scene
       */
@@ -846,6 +875,9 @@ const init = async () => {
             cheek0TipRVisMesh,
             cheek1TipLVisMesh,
             cheek1TipRVisMesh,
+            jawTipLVisMesh,
+            jawTipRVisMesh,
+            jawTipMVisMesh,
           );
           break;
         case "nose":
@@ -887,6 +919,11 @@ const init = async () => {
           visualizerGroup.add(cheek1TipLVisMesh);
           visualizerGroup.add(cheek1TipRVisMesh);
           break;
+        case "jawWidth":
+          visualizerGroup.add(jawTipLVisMesh);
+          visualizerGroup.add(jawTipRVisMesh);
+          visualizerGroup.add(jawTipMVisMesh);
+          break;
       }
     };
     visualizeTips(visualizer);
@@ -909,7 +946,9 @@ const init = async () => {
         );
       // Mandible tips geometry from detection vertices
       const visualizerByMandibleTipsDetectionGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByMandibleTipsDetection);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMandibleTipsDetection,
+        );
       // Eye brow tips geometry from detection vertices
       let visualizerByEyeBrowTipsDetectionGeo: THREE.BufferGeometry | null =
         null;
@@ -933,6 +972,9 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByEarMiddleTipsDetection,
         );
+      // Jaw tips geometry from detection vertices
+      const visualizerByJawTipsDetectionGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByJawTipsDetection);
       /*
         Create points from the corresponding geometries
       */
@@ -973,6 +1015,11 @@ const init = async () => {
         visualizerByEarMiddleTipsDetectionGeo,
         new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
       );
+      // Jaw tip detection points (Green)
+      const jawTipsDetectionPoints = new THREE.Points(
+        visualizerByJawTipsDetectionGeo,
+        new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -985,6 +1032,7 @@ const init = async () => {
             eyeBrowTipsDetectionPoints,
             mouseCornerTipsDetectionPoints,
             earMiddleTipsDetectionPoints,
+            jawTipsDetectionPoints,
           );
           break;
         case "nose":
@@ -1005,6 +1053,9 @@ const init = async () => {
         case "earMiddle":
           visualizerGroup.add(earMiddleTipsDetectionPoints);
           break;
+        case "jawWidth":
+          visualizerGroup.add(jawTipsDetectionPoints);
+          break;
       }
     };
     // visualizeMorphingDetectionVertices(visualizer);
@@ -1024,9 +1075,8 @@ const init = async () => {
       const visualizerByNostrilMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByNostrilMorph);
       // Mandible morph geometry from morph vertices
-      const visualizerByMandibleMorphGeo = new THREE.BufferGeometry().setFromPoints(
-        visualizerByMandibleMorph,
-      );
+      const visualizerByMandibleMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByMandibleMorph);
       // Eye brow morph geometry from morph vertices
       const visualizerByEyeBrowMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByEyeBrowMorph);
@@ -1052,6 +1102,9 @@ const init = async () => {
       // Cheek 1 width morph geometry from morph vertices
       const visualizerByCheek1WidthMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByCheek1WidthMorph);
+      // Jaw width morph geometry from morph vertices
+      const visualizerByJawWidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByJawWidthMorph);
       /*
         Create points from the corresponding geometries
       */
@@ -1105,6 +1158,11 @@ const init = async () => {
         visualizerByCheek1WidthMorphGeo,
         new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
       );
+      // Jaw width morph points (Green)
+      const jawWidthMorphPoints = new THREE.Points(
+        visualizerByJawWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -1121,6 +1179,7 @@ const init = async () => {
             zygomaticArchMorphPoints,
             cheek0WidthMorphPoints,
             cheek1WidthMorphPoints,
+            jawWidthMorphPoints,
           );
           break;
         case "nose":
@@ -1153,6 +1212,9 @@ const init = async () => {
         case "cheek1Width":
           visualizerGroup.add(cheek1WidthMorphPoints);
           break;
+        case "jawWidth":
+          visualizerGroup.add(jawWidthMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -1172,8 +1234,9 @@ const init = async () => {
     zygomaticArch
     cheek0Width
     cheek1Width
+    jawWidth
    */
-  const selectedVisualizer = "cheek1Width";
+  const selectedVisualizer = "jawWidth";
   generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
@@ -1279,7 +1342,10 @@ const init = async () => {
     applyMixedColorNode(splicingGroupGlobal);
     clearVisualizerGroup();
     // ! TST PURPOSE
-    generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
+    generateFacialMorphsAndVisualizers(
+      isVisualizerDisabled,
+      selectedVisualizer,
+    );
     modelsStore.setIsManualMorphGenerationMode(false);
     modelsStore.setManualMorphSelectionStage(null);
   });

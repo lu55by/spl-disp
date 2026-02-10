@@ -43,11 +43,15 @@ export interface FacialMorphsVisualizers {
   // Zygomatic Arch Tips
   visualizerZygomaticArchTipL: Vector3;
   visualizerZygomaticArchTipR: Vector3;
-  // Face Tips
+  // Cheek Tips
   visualizerCheek0TipL: Vector3;
   visualizerCheek0TipR: Vector3;
   visualizerCheek1TipL: Vector3;
   visualizerCheek1TipR: Vector3;
+  // Jaw Tips
+  visualizerJawTipL: Vector3;
+  visualizerJawTipR: Vector3;
+  visualizerJawTipM: Vector3;
   /*
     Detection
   */
@@ -63,6 +67,8 @@ export interface FacialMorphsVisualizers {
   visualizerByMouseCornerTipsDetection: Vector3[];
   // Ear Middle Tips Detection
   visualizerByEarMiddleTipsDetection: Vector3[];
+  // Jaw Tips Detection
+  visualizerByJawTipsDetection: Vector3[];
   /*
     Morph
   */
@@ -85,6 +91,8 @@ export interface FacialMorphsVisualizers {
   // Face Width Morph
   visualizerByCheek0WidthMorph: Vector3[];
   visualizerByCheek1WidthMorph: Vector3[];
+  // Jaw Width Morph
+  visualizerByJawWidthMorph: Vector3[];
 }
 
 /*
