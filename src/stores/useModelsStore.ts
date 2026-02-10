@@ -696,9 +696,14 @@ export const useModelsStore = defineStore("models", {
         ) {
           const currentHeadModel = this.splicingGroupGlobal
             .children[0] as THREE.Group<THREE.Object3DEventMap>;
+          console.log(
+            "\n-- cutter imported -- currentHeadModel ->",
+            currentHeadModel,
+          );
+          // return true;
           replaceCurrentHeadWithCutHead(
             this.splicingGroupGlobal,
-            currentHeadModel,
+            currentHeadModel.clone(),
             parsedObjGroup,
           );
         } else

@@ -599,6 +599,7 @@ const init = async () => {
       manualZygomaticArchTipR.value;
 
     const {
+      // Tips
       visualizerNoseTip, // Vector3
       visualizerNostrilTipL, // Vector3
       visualizerNostrilTipR, // Vector3
@@ -614,12 +615,18 @@ const init = async () => {
       visualizerEarTopTipR, // Vector3
       visualizerZygomaticArchTipL, // Vector3
       visualizerZygomaticArchTipR, // Vector3
+      visualizerCheek0TipL, // Vector3
+      visualizerCheek0TipR, // Vector3
+      visualizerCheek1TipL, // Vector3
+      visualizerCheek1TipR, // Vector3
+      // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
       visualizerByJawTipsDetection, // Vector3[]
       visualizerByEyeBrowTipsDetection, // Vector3[]
       visualizerByMouseCornerTipsDetection, // Vector3[]
       visualizerByEarMiddleTipsDetection, // Vector3[]
+      // Morph
       visualizerByNoseMorph, // Vector3[]
       visualizerByJawMorph, // Vector3[]
       visualizerByNostrilMorph, // Vector3[]
@@ -627,7 +634,9 @@ const init = async () => {
       visualizerByMouseCornersWidthMorph, // Vector3[]
       visualizerByEarMiddleMorph, // Vector3[]
       visualizerByEarTopMorph, // Vector3[]
-      visualizerByZygomaticArchMorph, // Vector3[]
+      visualizerByZygomaticArchWidthMorph, // Vector3[]
+      visualizerByCheek0WidthMorph, // Vector3[]
+      visualizerByCheek1WidthMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -763,6 +772,34 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#f00" }),
       );
       /*
+        Cheek 0 Tip Left Visualizer
+      */
+      const cheek0TipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#ff0" }),
+      );
+      /*
+        Cheek 0 Tip Right Visualizer
+      */
+      const cheek0TipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#ff0" }),
+      );
+      /*
+        Cheek 1 Tip Left Visualizer
+      */
+      const cheek1TipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#f0f" }),
+      );
+      /*
+        Cheek 1 Tip Right Visualizer
+      */
+      const cheek1TipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#f0f" }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -780,6 +817,10 @@ const init = async () => {
       earTopTipRVisMesh.position.copy(visualizerEarTopTipR);
       zygomaticArchTipLVisMesh.position.copy(visualizerZygomaticArchTipL);
       zygomaticArchTipRVisMesh.position.copy(visualizerZygomaticArchTipR);
+      cheek0TipLVisMesh.position.copy(visualizerCheek0TipL);
+      cheek0TipRVisMesh.position.copy(visualizerCheek0TipR);
+      cheek1TipLVisMesh.position.copy(visualizerCheek1TipL);
+      cheek1TipRVisMesh.position.copy(visualizerCheek1TipR);
       /*
         Add to scene
       */
@@ -801,6 +842,10 @@ const init = async () => {
             earTopTipRVisMesh,
             zygomaticArchTipLVisMesh,
             zygomaticArchTipRVisMesh,
+            cheek0TipLVisMesh,
+            cheek0TipRVisMesh,
+            cheek1TipLVisMesh,
+            cheek1TipRVisMesh,
           );
           break;
         case "nose":
@@ -833,6 +878,14 @@ const init = async () => {
         case "zygomaticArch":
           visualizerGroup.add(zygomaticArchTipLVisMesh);
           visualizerGroup.add(zygomaticArchTipRVisMesh);
+          break;
+        case "cheek0Width":
+          visualizerGroup.add(cheek0TipLVisMesh);
+          visualizerGroup.add(cheek0TipRVisMesh);
+          break;
+        case "cheek1Width":
+          visualizerGroup.add(cheek1TipLVisMesh);
+          visualizerGroup.add(cheek1TipRVisMesh);
           break;
       }
     };
@@ -991,8 +1044,14 @@ const init = async () => {
       // Zygomatic arch morph geometry from morph vertices
       const visualizerByZygomaticArchMorphGeo =
         new THREE.BufferGeometry().setFromPoints(
-          visualizerByZygomaticArchMorph,
+          visualizerByZygomaticArchWidthMorph,
         );
+      // Cheek 0 width morph geometry from morph vertices
+      const visualizerByCheek0WidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByCheek0WidthMorph);
+      // Cheek 1 width morph geometry from morph vertices
+      const visualizerByCheek1WidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByCheek1WidthMorph);
       /*
         Create points from the corresponding geometries
       */
@@ -1026,15 +1085,25 @@ const init = async () => {
         visualizerByEarMiddleMorphGeo,
         new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
       );
-      // Ear top morph points (Purple)
+      // Ear top morph points (Red)
       const earTopMorphPoints = new THREE.Points(
         visualizerByEarTopMorphGeo,
         new THREE.PointsMaterial({ color: "#f00", size: 0.15 }),
       );
-      // Zygomatic arch morph points (Purple)
+      // Zygomatic arch morph points (Red)
       const zygomaticArchMorphPoints = new THREE.Points(
         visualizerByZygomaticArchMorphGeo,
         new THREE.PointsMaterial({ color: "#f00", size: 0.15 }),
+      );
+      // Cheek 0 width morph points (Yellow)
+      const cheek0WidthMorphPoints = new THREE.Points(
+        visualizerByCheek0WidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#ff0", size: 0.15 }),
+      );
+      // Cheek 1 width morph points (Purple)
+      const cheek1WidthMorphPoints = new THREE.Points(
+        visualizerByCheek1WidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#f0f", size: 0.15 }),
       );
       /*
         Add to scene
@@ -1050,6 +1119,8 @@ const init = async () => {
             earMiddleMorphPoints,
             earTopMorphPoints,
             zygomaticArchMorphPoints,
+            cheek0WidthMorphPoints,
+            cheek1WidthMorphPoints,
           );
           break;
         case "nose":
@@ -1076,6 +1147,12 @@ const init = async () => {
         case "zygomaticArch":
           visualizerGroup.add(zygomaticArchMorphPoints);
           break;
+        case "cheek0Width":
+          visualizerGroup.add(cheek0WidthMorphPoints);
+          break;
+        case "cheek1Width":
+          visualizerGroup.add(cheek1WidthMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -1083,6 +1160,7 @@ const init = async () => {
   // Disable the visualizers if it is for production
   const isVisualizerDisabled = import.meta.env.PROD;
   /*
+    none
     all
     nose
     nostril
@@ -1092,9 +1170,11 @@ const init = async () => {
     earMiddle
     earTop
     zygomaticArch
+    cheek0Width
+    cheek1Width
    */
-  const selectedVisualizer = "zygomaticArch";
-  // generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
+  const selectedVisualizer = "cheek1Width";
+  generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
 
   /**
    * Add the global group
@@ -1178,7 +1258,7 @@ const init = async () => {
     applyMixedColorNode(splicingGroupGlobal);
   });
 
-  // Watcher for modelsStore actions
+  // Watcher for handling operations for the new imported head model
   modelsStore.$onAction(({ name, after }) => {
     const relevantActions = ["importAndReplaceHeadModel"];
     if (relevantActions.includes(name)) {
@@ -1186,7 +1266,10 @@ const init = async () => {
         console.log(
           "\n-- watcher -- importAndReplaceHeadModel action completed, reapplying mixed color node...\n",
         );
+        // Reapply the mixed color node to the splicing group
         applyMixedColorNode(splicingGroupGlobal);
+        // Reset the selected object to null in order to hide the morph target controller
+        modelsStore.setSelectedObject(null);
       });
     }
   });
@@ -1195,6 +1278,8 @@ const init = async () => {
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
     clearVisualizerGroup();
+    // ! TST PURPOSE
+    generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
     modelsStore.setIsManualMorphGenerationMode(false);
     modelsStore.setManualMorphSelectionStage(null);
   });

@@ -138,6 +138,8 @@ export const MorphTargetLabelMapping = {
   EarMiddle: "耳朵宽度",
   EarTop: "耳朵厚度",
   ZygomaticArchWidth: "颧骨宽度",
+  Cheek0: "脸颊",
+  Cheek1: "腮帮",
 };
 
 // Global Model

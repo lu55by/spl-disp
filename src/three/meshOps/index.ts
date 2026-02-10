@@ -148,6 +148,11 @@ export function generateFacialMorphs(
   // Zygomatic Arch Tips
   let zygomaticArchTipL = new THREE.Vector3(Infinity, 0, 0);
   let zygomaticArchTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Face Tips
+  let cheek0TipL = new THREE.Vector3(Infinity, 0, 0);
+  let cheek0TipR = new THREE.Vector3(-Infinity, 0, 0);
+  let cheek1TipL = new THREE.Vector3(Infinity, 0, 0);
+  let cheek1TipR = new THREE.Vector3(-Infinity, 0, 0);
 
   /*
     Vertices for visualization
@@ -168,6 +173,8 @@ export function generateFacialMorphs(
   const visualizerByEarMiddleMorph: THREE.Vector3[] = [];
   const visualizerByEarTopMorph: THREE.Vector3[] = [];
   const visualizerByZygomaticArchWidthMorph: THREE.Vector3[] = [];
+  const visualizerByCheek0WidthMorph: THREE.Vector3[] = [];
+  const visualizerByCheek1WidthMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -287,10 +294,10 @@ export function generateFacialMorphs(
   /**
    * Ⅰ.Ⅲ EAR TIPS SETUP
    */
-  // Set the top ear tips
+  // Set the ear top tips to be the same as the cloned ear middle tips
   earTopTipL.copy(earMiddleTipL.clone());
   earTopTipR.copy(earMiddleTipR.clone());
-  // Offset the ear tips on the Y axis
+  // Offset the ear middle tips on the Y axis
   earMiddleTipL.sub(new THREE.Vector3(0, 1.5, 0));
   earMiddleTipR.sub(new THREE.Vector3(0, 1.5, 0));
   console.log(
@@ -389,6 +396,56 @@ export function generateFacialMorphs(
   );
 
   /**
+   * Ⅰ.Ⅶ CHEEK TIPS DETECTION
+   */
+  // Detect the cheek tips based on the center of the eye nodes on the X and Z axis (with some offsets), and the mouseTipY on the Y axis.
+  const cheekOffsetX = 3;
+  cheek0TipL.copy(
+    new THREE.Vector3(
+      centerEyeRNode.x - cheekOffsetX,
+      mouseTipY,
+      centerEyeRNode.z - 1.2,
+    ),
+  );
+  cheek0TipR.copy(
+    new THREE.Vector3(
+      centerEyeLNode.x + cheekOffsetX,
+      mouseTipY,
+      centerEyeLNode.z - 1.2,
+    ),
+  );
+  cheek1TipL.copy(
+    new THREE.Vector3(
+      centerEyeRNode.x - cheekOffsetX,
+      mouseTipY + 1.2,
+      centerEyeRNode.z - 2.4,
+    ),
+  );
+  cheek1TipR.copy(
+    new THREE.Vector3(
+      centerEyeLNode.x + cheekOffsetX,
+      mouseTipY + 1.2,
+      centerEyeLNode.z - 2.4,
+    ),
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- cheek0TipL calculated ->",
+    cheek0TipL.x === Infinity ? "Not Found" : cheek0TipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- cheek0TipR calculated ->",
+    cheek0TipR.x === -Infinity ? "Not Found" : cheek0TipR,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- cheek1TipL calculated ->",
+    cheek1TipL.x === Infinity ? "Not Found" : cheek1TipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- cheek1TipR calculated ->",
+    cheek1TipR.x === -Infinity ? "Not Found" : cheek1TipR,
+  );
+
+  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
@@ -400,6 +457,8 @@ export function generateFacialMorphs(
   const earMiddleTarget = new Float32Array(positions.count * 3);
   const earTopTarget = new Float32Array(positions.count * 3);
   const zygomaticArchWidthTarget = new Float32Array(positions.count * 3);
+  const cheek0Target = new Float32Array(positions.count * 3);
+  const cheek1Target = new Float32Array(positions.count * 3);
 
   // Parameters for the procedural brushes
   const noseRadius = 7;
@@ -551,6 +610,42 @@ export function generateFacialMorphs(
       visualizerByZygomaticArchWidthMorph,
       1.4,
     );
+
+    // --- I. GENERATE CHEEK MORPH 0 (Width) ---
+    applyMorph(
+      vertex,
+      i,
+      cheek0TipL,
+      cheek0TipR,
+      { xRange: 6, yRange: 5, zRange: 2.3 },
+      cheek0Target,
+      "widening",
+      {
+        powerVal: 1,
+        isInfXFixed: false,
+        infHeightApplyMode: "normal",
+      },
+      visualizerByCheek0WidthMorph,
+      1.8,
+    );
+
+    // --- J. GENERATE CHEEK MORPH 1 (Width) ---
+    applyMorph(
+      vertex,
+      i,
+      cheek1TipL,
+      cheek1TipR,
+      { xRange: 6, yRange: 5, zRange: 2.8 },
+      cheek1Target,
+      "widening",
+      {
+        powerVal: 1,
+        isInfXFixed: false,
+        infHeightApplyMode: "normal",
+      },
+      visualizerByCheek1WidthMorph,
+      1.05,
+    );
   }
 
   /**
@@ -571,6 +666,8 @@ export function generateFacialMorphs(
     zygomaticArchWidthTarget,
     3,
   );
+  const cheek0Attr = new THREE.BufferAttribute(cheek0Target, 3);
+  const cheek1Attr = new THREE.BufferAttribute(cheek1Target, 3);
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseAttr.name = "nose";
@@ -581,6 +678,8 @@ export function generateFacialMorphs(
   earMiddleAttr.name = "earMiddle";
   earTopAttr.name = "earTop";
   zygomaticArchWidthAttr.name = "zygomaticArchWidth";
+  cheek0Attr.name = "cheek0";
+  cheek1Attr.name = "cheek1";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -592,6 +691,8 @@ export function generateFacialMorphs(
     earMiddleAttr,
     earTopAttr,
     zygomaticArchWidthAttr,
+    cheek0Attr,
+    cheek1Attr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -625,6 +726,7 @@ export function generateFacialMorphs(
    * Ⅳ. RETURN THE RESULTS FOR VISUALIZATION
    */
   return {
+    // Tips
     visualizerNoseTip: noseTip,
     visualizerNostrilTipL: nostrilTipL,
     visualizerNostrilTipR: nostrilTipR,
@@ -640,12 +742,18 @@ export function generateFacialMorphs(
     visualizerEarTopTipR: earTopTipR,
     visualizerZygomaticArchTipL: zygomaticArchTipL,
     visualizerZygomaticArchTipR: zygomaticArchTipR,
+    visualizerCheek0TipL: cheek0TipL,
+    visualizerCheek0TipR: cheek0TipR,
+    visualizerCheek1TipL: cheek1TipL,
+    visualizerCheek1TipR: cheek1TipR,
+    // Detection
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
     visualizerByJawTipsDetection,
     visualizerByEyeBrowTipsDetection,
     visualizerByMouseCornerTipsDetection,
     visualizerByEarMiddleTipsDetection,
+    // Morph
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
     visualizerByJawMorph,
@@ -653,7 +761,9 @@ export function generateFacialMorphs(
     visualizerByMouseCornersWidthMorph,
     visualizerByEarMiddleMorph,
     visualizerByEarTopMorph,
-    visualizerByZygomaticArchMorph: visualizerByZygomaticArchWidthMorph,
+    visualizerByZygomaticArchWidthMorph,
+    visualizerByCheek0WidthMorph,
+    visualizerByCheek1WidthMorph,
   };
 }
 
