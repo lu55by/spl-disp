@@ -25,9 +25,9 @@ export interface FacialMorphsVisualizers {
   // Nostril Tips
   visualizerNostrilTipL: Vector3;
   visualizerNostrilTipR: Vector3;
-  // Jaw Tips
-  visualizerJawTipL: Vector3;
-  visualizerJawTipR: Vector3;
+  // Mandible Tips
+  visualizerMandibleTipL: Vector3;
+  visualizerMandibleTipR: Vector3;
   // Mouse Corner Tips
   visualizerMouseCornerTipL: Vector3;
   visualizerMouseCornerTipR: Vector3;
@@ -55,8 +55,8 @@ export interface FacialMorphsVisualizers {
   visualizerByNoseTipDetection: Vector3[];
   // Nostril Tips Detection
   visualizerByNostrilTipsDetection: Vector3[];
-  // Jaw Tips Detection
-  visualizerByJawTipsDetection: Vector3[];
+  // Mandible Tips Detection
+  visualizerByMandibleTipsDetection: Vector3[];
   // Eye Brow Tips Detection
   visualizerByEyeBrowTipsDetection: Vector3[];
   // Mouse Corner Tips Detection
@@ -70,8 +70,8 @@ export interface FacialMorphsVisualizers {
   visualizerByNoseMorph: Vector3[];
   // Nostril Morph
   visualizerByNostrilMorph: Vector3[];
-  // Jaw Morph
-  visualizerByJawMorph: Vector3[];
+  // Mandible Morph
+  visualizerByMandibleMorph: Vector3[];
   // Eye Brow Morph
   visualizerByEyeBrowMorph: Vector3[];
   // Mouse Corners Width Morph

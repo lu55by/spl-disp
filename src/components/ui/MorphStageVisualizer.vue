@@ -18,7 +18,7 @@ const currentRefImg = computed(() => {
 
 const stageLabel = computed(() => {
   switch (manualMorphSelectionStage.value) {
-    case "jaw":
+    case "mandible":
       return "下颌点位参考";
     case "eyeBrow":
       return "眉毛点位参考";

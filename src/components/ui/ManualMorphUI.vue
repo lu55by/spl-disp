@@ -71,13 +71,13 @@
 
         <div class="flex gap-3">
           <Button
-            @click="setStage('jaw')"
+            @click="setStage('mandible')"
             :class="{
               'border-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(34,211,238,0.3)]':
-                manualMorphSelectionStage === 'jaw',
+                manualMorphSelectionStage === 'mandible',
             }"
           >
-            {{ manualJawTipL ? "✅ 下颌" : "下颌" }}
+            {{ manualMandibleTipL ? "✅ 下颌" : "下颌" }}
           </Button>
           <Button
             @click="setStage('eyeBrow')"
@@ -134,7 +134,7 @@ const {
   selectedObject,
   isManualMorphGenerationMode,
   manualMorphSelectionStage,
-  manualJawTipL,
+  manualMandibleTipL,
   manualEyeBrowTipL,
   manualMouseCornerTipL,
   // manualZygomaticArchTipL,
@@ -142,7 +142,7 @@ const {
 
 const isSelectionComplete = computed(() => {
   return (
-    manualJawTipL.value !== null &&
+    manualMandibleTipL.value !== null &&
     manualEyeBrowTipL.value !== null &&
     manualMouseCornerTipL.value !== null
     // manualZygomaticArchTipL.value !== null
@@ -182,7 +182,7 @@ const startAutomaticMode = () => {
   });
 };
 
-const setStage = (stage: "jaw" | "eyeBrow" | "mouseCornersWidth" | "zygomaticArchWidth") => {
+const setStage = (stage: "mandible" | "eyeBrow" | "mouseCornersWidth" | "zygomaticArchWidth") => {
   modelsStore.setManualMorphSelectionStage(stage);
 };
 

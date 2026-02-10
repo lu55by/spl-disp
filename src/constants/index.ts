@@ -132,7 +132,7 @@ export const UIContents = {
 export const MorphTargetLabelMapping = {
   Nose: "鼻高",
   Nostril: "鼻翼宽度",
-  Jaw: "下颌宽度",
+  Mandible: "下颌宽度",
   EyeBrow: "眉毛高度",
   MouseCornersWidth: "嘴角宽度",
   EarMiddle: "耳朵宽度",

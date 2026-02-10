@@ -159,16 +159,16 @@ export const useModelsStore = defineStore("models", {
     isUploadModalVisible: false,
     // isManualMorphGenerationMode state to toggle the manual morph generation mode
     isManualMorphGenerationMode: false,
-    // manualMorphSelectionStage state to track the current selection stage (jaw, eyebrow, mouse)
+    // manualMorphSelectionStage state to track the current selection stage (mandible, eyebrow, mouse)
     manualMorphSelectionStage: null as
-      | "jaw"
+      | "mandible"
       | "eyeBrow"
       | "mouseCornersWidth"
       | "zygomaticArchWidth"
       | null,
     // Manual tips vectors
-    manualJawTipL: null as THREE.Vector3 | null,
-    manualJawTipR: null as THREE.Vector3 | null,
+    manualMandibleTipL: null as THREE.Vector3 | null,
+    manualMandibleTipR: null as THREE.Vector3 | null,
     manualEyeBrowTipL: null as THREE.Vector3 | null,
     manualEyeBrowTipR: null as THREE.Vector3 | null,
     manualMouseCornerTipL: null as THREE.Vector3 | null,
@@ -765,11 +765,11 @@ export const useModelsStore = defineStore("models", {
 
     /**
      * Set the current manual morph selection stage.
-     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth' | 'zygomaticArchWidth' | null
+     * @param stage 'mandible' | 'eyeBrow' | 'mouseCornersWidth' | 'zygomaticArchWidth' | null
      */
     setManualMorphSelectionStage(
       stage:
-        | "jaw"
+        | "mandible"
         | "eyeBrow"
         | "mouseCornersWidth"
         | "zygomaticArchWidth"
@@ -780,19 +780,23 @@ export const useModelsStore = defineStore("models", {
 
     /**
      * Set the manual tips for a specific stage.
-     * @param stage 'jaw' | 'eyeBrow' | 'mouseCornersWidth' | 'zygomaticArchWidth'
+     * @param stage 'mandible' | 'eyeBrow' | 'mouseCornersWidth' | 'zygomaticArchWidth'
      * @param pointL THREE.Vector3
      * @param pointR THREE.Vector3
      */
     setManualMorphTips(
-      stage: "jaw" | "eyeBrow" | "mouseCornersWidth" | "zygomaticArchWidth",
+      stage:
+        | "mandible"
+        | "eyeBrow"
+        | "mouseCornersWidth"
+        | "zygomaticArchWidth",
       pointL: THREE.Vector3,
       pointR: THREE.Vector3,
     ) {
       switch (stage) {
-        case "jaw":
-          this.manualJawTipL = pointL;
-          this.manualJawTipR = pointR;
+        case "mandible":
+          this.manualMandibleTipL = pointL;
+          this.manualMandibleTipR = pointR;
           break;
         case "eyeBrow":
           this.manualEyeBrowTipL = pointL;
@@ -814,8 +818,8 @@ export const useModelsStore = defineStore("models", {
      */
     resetManualMorphTips() {
       this.manualMorphSelectionStage = null;
-      this.manualJawTipL = null;
-      this.manualJawTipR = null;
+      this.manualMandibleTipL = null;
+      this.manualMandibleTipR = null;
       this.manualEyeBrowTipL = null;
       this.manualEyeBrowTipR = null;
       this.manualMouseCornerTipL = null;

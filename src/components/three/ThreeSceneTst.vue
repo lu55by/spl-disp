@@ -998,7 +998,7 @@ const init = async () => {
 
       const morphParams = {
         nose: 0,
-        jaw: 0,
+        mandible: 0,
       };
 
       const guiFolderMorphs = guiInspector.addFolder("Morphs");
@@ -1013,11 +1013,11 @@ const init = async () => {
         })
         .name("Nose");
       guiFolderMorphs
-        .add(morphParams, "jaw", -1, 1, 0.01)
+        .add(morphParams, "mandible", -1, 1, 0.01)
         .onChange((v) => {
           cutHeadNode.morphTargetInfluences[1] = v;
         })
-        .name("Jaw");
+        .name("Mandible");
     }
 
     console.log(

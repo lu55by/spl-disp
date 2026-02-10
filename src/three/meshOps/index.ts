@@ -31,8 +31,8 @@ import { SphCutHeadBox3, SphereCutter } from "@/stores/useModelsStore";
 export function generateFacialMorphs(
   model: THREE.Group,
   manualTips?: {
-    jawTipL?: THREE.Vector3;
-    jawTipR?: THREE.Vector3;
+    mandibleTipL?: THREE.Vector3;
+    mandibleTipR?: THREE.Vector3;
     eyeBrowTipL?: THREE.Vector3;
     eyeBrowTipR?: THREE.Vector3;
     mouseCornerTipL?: THREE.Vector3;
@@ -130,9 +130,9 @@ export function generateFacialMorphs(
   // Nostril Tips
   let nostrilTipL = new THREE.Vector3(Infinity, 0, 0);
   let nostrilTipR = new THREE.Vector3(-Infinity, 0, 0);
-  // Jaw Tips
-  let jawTipL = new THREE.Vector3(Infinity, 0, 0);
-  let jawTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Mandible Tips
+  let mandibleTipL = new THREE.Vector3(Infinity, 0, 0);
+  let mandibleTipR = new THREE.Vector3(-Infinity, 0, 0);
   // Eye Brow Tips
   let eyeBrowTipL = new THREE.Vector3(Infinity, 0, 0);
   let eyeBrowTipR = new THREE.Vector3(-Infinity, 0, 0);
@@ -160,14 +160,14 @@ export function generateFacialMorphs(
   // Vertices for detecting the tips
   const visualizerByNoseTipDetection: THREE.Vector3[] = [];
   const visualizerByNostrilTipsDetection: THREE.Vector3[] = [];
-  const visualizerByJawTipsDetection: THREE.Vector3[] = [];
+  const visualizerByMandibleTipsDetection: THREE.Vector3[] = [];
   const visualizerByEyeBrowTipsDetection: THREE.Vector3[] = [];
   const visualizerByMouseCornerTipsDetection: THREE.Vector3[] = [];
   const visualizerByEarMiddleTipsDetection: THREE.Vector3[] = [];
   // Vertices for morphs based on the tips
   const visualizerByNoseMorph: THREE.Vector3[] = [];
   const visualizerByNostrilMorph: THREE.Vector3[] = [];
-  const visualizerByJawMorph: THREE.Vector3[] = [];
+  const visualizerByMandibleMorph: THREE.Vector3[] = [];
   const visualizerByEyeBrowMorph: THREE.Vector3[] = [];
   const visualizerByMouseCornersWidthMorph: THREE.Vector3[] = [];
   const visualizerByEarMiddleMorph: THREE.Vector3[] = [];
@@ -206,7 +206,7 @@ export function generateFacialMorphs(
   console.log("\n -- generateFacialMorphs -- noseTip detected ->", noseTip);
 
   /**
-   * Ⅰ.Ⅱ CONSOLIDATED DETECTION (Nostrils, Jaw, and Ears)
+   * Ⅰ.Ⅱ CONSOLIDATED DETECTION (Nostrils, Mandible, and Ears)
    * Optimization: Combined multiple lateral tip detection loops into a single pass over the geometry.
    */
 
@@ -216,11 +216,11 @@ export function generateFacialMorphs(
   const minZ_Nostril = noseTip.z - 2;
   const maxZ_Nostril = noseTip.z + 0;
 
-  // 1.2.2 Ranges for Jaw (relative to noseTip)
-  const minY_Jaw = noseTip.y - 7;
-  const maxY_Jaw = noseTip.y - 6;
-  const minZ_Jaw = noseTip.z - 7;
-  const maxZ_Jaw = noseTip.z - 5;
+  // 1.2.2 Ranges for Mandible (relative to noseTip)
+  const minY_Mandible = noseTip.y - 7;
+  const maxY_Mandible = noseTip.y - 6;
+  const minZ_Mandible = noseTip.z - 7;
+  const maxZ_Mandible = noseTip.z - 5;
 
   // 1.2.3 Range for Ears (Reuse the bounding box on the Y axis based on the sph cut head)
   const maxPerc = 0.3;
@@ -244,17 +244,17 @@ export function generateFacialMorphs(
       visualizerByNostrilTipsDetection.push(vertex.clone());
     }
 
-    // B. JAW TIPS DETECTION (Only if not manual)
-    if (!(manualTips?.jawTipL && manualTips?.jawTipR)) {
+    // B. MANDIBLE TIPS DETECTION (Only if not manual)
+    if (!(manualTips?.mandibleTipL && manualTips?.mandibleTipR)) {
       if (
-        vertex.y > minY_Jaw &&
-        vertex.y < maxY_Jaw &&
-        vertex.z > minZ_Jaw &&
-        vertex.z < maxZ_Jaw
+        vertex.y > minY_Mandible &&
+        vertex.y < maxY_Mandible &&
+        vertex.z > minZ_Mandible &&
+        vertex.z < maxZ_Mandible
       ) {
-        if (vertex.x < jawTipL.x) jawTipL.copy(vertex);
-        if (vertex.x > jawTipR.x) jawTipR.copy(vertex);
-        visualizerByJawTipsDetection.push(vertex.clone());
+        if (vertex.x < mandibleTipL.x) mandibleTipL.copy(vertex);
+        if (vertex.x > mandibleTipR.x) mandibleTipR.copy(vertex);
+        visualizerByMandibleTipsDetection.push(vertex.clone());
       }
     }
 
@@ -267,11 +267,11 @@ export function generateFacialMorphs(
     }
   }
 
-  // 1.2.5 Post-loop manual jaw setup
-  if (manualTips?.jawTipL && manualTips?.jawTipR) {
-    jawTipL.copy(manualTips.jawTipL);
-    jawTipR.copy(manualTips.jawTipR);
-    console.log("\n -- generateFacialMorphs -- using manual jaw tips");
+  // 1.2.5 Post-loop manual mandible setup
+  if (manualTips?.mandibleTipL && manualTips?.mandibleTipR) {
+    mandibleTipL.copy(manualTips.mandibleTipL);
+    mandibleTipR.copy(manualTips.mandibleTipR);
+    console.log("\n -- generateFacialMorphs -- using manual mandible tips");
   }
 
   console.log(
@@ -283,12 +283,12 @@ export function generateFacialMorphs(
     nostrilTipR.x === -Infinity ? "Not Found" : nostrilTipR,
   );
   console.log(
-    "\n -- generateFacialMorphs -- jawTipL calculated ->",
-    jawTipL.x === Infinity ? "Not Found" : jawTipL,
+    "\n -- generateFacialMorphs -- mandibleTipL calculated ->",
+    mandibleTipL.x === Infinity ? "Not Found" : mandibleTipL,
   );
   console.log(
-    "\n -- generateFacialMorphs -- jawTipR calculated ->",
-    jawTipR.x === -Infinity ? "Not Found" : jawTipR,
+    "\n -- generateFacialMorphs -- mandibleTipR calculated ->",
+    mandibleTipR.x === -Infinity ? "Not Found" : mandibleTipR,
   );
 
   /**
@@ -451,7 +451,7 @@ export function generateFacialMorphs(
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
   const noseTarget = new Float32Array(positions.count * 3);
   const nostrilTarget = new Float32Array(positions.count * 3);
-  const jawTarget = new Float32Array(positions.count * 3);
+  const mandibleTarget = new Float32Array(positions.count * 3);
   const eyeBrowTarget = new Float32Array(positions.count * 3);
   const mouseCornersWidthTarget = new Float32Array(positions.count * 3);
   const earMiddleTarget = new Float32Array(positions.count * 3);
@@ -503,21 +503,21 @@ export function generateFacialMorphs(
       0.8,
     );
 
-    // --- C. GENERATE JAW WIDTH MORPH (Widen) ---
+    // --- C. GENERATE MANDIBLE WIDTH MORPH (Widen) ---
     applyMorph(
       vertex,
       i,
-      jawTipL,
-      jawTipR,
+      mandibleTipL,
+      mandibleTipR,
       { xRange: 5, yRange: 6.0, zRange: 4.0 },
-      jawTarget,
+      mandibleTarget,
       "widening",
       {
         powerVal: 2,
         isInfXFixed: false,
         infHeightApplyMode: "normal",
       },
-      visualizerByJawMorph,
+      visualizerByMandibleMorph,
       1.25,
     );
 
@@ -626,7 +626,7 @@ export function generateFacialMorphs(
         infHeightApplyMode: "normal",
       },
       visualizerByCheek0WidthMorph,
-      1.8,
+      1.3,
     );
 
     // --- J. GENERATE CHEEK MORPH 1 (Width) ---
@@ -654,7 +654,7 @@ export function generateFacialMorphs(
   // 3.1 Create the BufferAttributes for the morphs
   const noseAttr = new THREE.BufferAttribute(noseTarget, 3);
   const nostrilAttr = new THREE.BufferAttribute(nostrilTarget, 3);
-  const jawAttr = new THREE.BufferAttribute(jawTarget, 3);
+  const mandibleAttr = new THREE.BufferAttribute(mandibleTarget, 3);
   const eyeBrowAttr = new THREE.BufferAttribute(eyeBrowTarget, 3);
   const mouseCornersWidthAttr = new THREE.BufferAttribute(
     mouseCornersWidthTarget,
@@ -672,7 +672,7 @@ export function generateFacialMorphs(
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseAttr.name = "nose";
   nostrilAttr.name = "nostril";
-  jawAttr.name = "jaw";
+  mandibleAttr.name = "mandible";
   eyeBrowAttr.name = "eyeBrow";
   mouseCornersWidthAttr.name = "mouseCornersWidth";
   earMiddleAttr.name = "earMiddle";
@@ -685,7 +685,7 @@ export function generateFacialMorphs(
   geo.morphAttributes.position = [
     noseAttr,
     nostrilAttr,
-    jawAttr,
+    mandibleAttr,
     eyeBrowAttr,
     mouseCornersWidthAttr,
     earMiddleAttr,
@@ -730,8 +730,8 @@ export function generateFacialMorphs(
     visualizerNoseTip: noseTip,
     visualizerNostrilTipL: nostrilTipL,
     visualizerNostrilTipR: nostrilTipR,
-    visualizerJawTipL: jawTipL,
-    visualizerJawTipR: jawTipR,
+    visualizerMandibleTipL: mandibleTipL,
+    visualizerMandibleTipR: mandibleTipR,
     visualizerEyeBrowTipL: eyeBrowTipL,
     visualizerEyeBrowTipR: eyeBrowTipR,
     visualizerMouseCornerTipL: mouseCornerTipL,
@@ -749,14 +749,14 @@ export function generateFacialMorphs(
     // Detection
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
-    visualizerByJawTipsDetection,
+    visualizerByMandibleTipsDetection,
     visualizerByEyeBrowTipsDetection,
     visualizerByMouseCornerTipsDetection,
     visualizerByEarMiddleTipsDetection,
     // Morph
     visualizerByNoseMorph,
     visualizerByNostrilMorph,
-    visualizerByJawMorph,
+    visualizerByMandibleMorph,
     visualizerByEyeBrowMorph,
     visualizerByMouseCornersWidthMorph,
     visualizerByEarMiddleMorph,
@@ -842,7 +842,7 @@ export function bakeMorphTargets(mesh: THREE.Mesh): void {
 
 /**
  * Finds the lateral extremes (min X and max X) within a target bounding box relative to a reference point.
- * Used for detecting jaw angles, nostrils, etc.
+ * Used for detecting mandible angles, nostrils, etc.
  * @param referencePoint The reference point (e.g., nose tip) to calculate the offsets from.
  * @param range The offsets for Y and Z axes to define the search region.
  * @param positions The position attribute of the geometry.

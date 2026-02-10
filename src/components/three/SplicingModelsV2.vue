@@ -144,8 +144,8 @@ const {
   currentHeadModelSubPath,
   isManualMorphGenerationMode,
   manualMorphSelectionStage,
-  manualJawTipL,
-  manualJawTipR,
+  manualMandibleTipL,
+  manualMandibleTipR,
   manualEyeBrowTipL,
   manualEyeBrowTipR,
   manualMouseCornerTipL,
@@ -589,8 +589,8 @@ const init = async () => {
     // console.log("\ngenerateFacialMorphsAndVisualizers called...");
 
     const hasManualTips =
-      manualJawTipL.value ||
-      manualJawTipR.value ||
+      manualMandibleTipL.value ||
+      manualMandibleTipR.value ||
       manualEyeBrowTipL.value ||
       manualEyeBrowTipR.value ||
       manualMouseCornerTipL.value ||
@@ -603,8 +603,8 @@ const init = async () => {
       visualizerNoseTip, // Vector3
       visualizerNostrilTipL, // Vector3
       visualizerNostrilTipR, // Vector3
-      visualizerJawTipL, // Vector3
-      visualizerJawTipR, // Vector3
+      visualizerMandibleTipL, // Vector3
+      visualizerMandibleTipR, // Vector3
       visualizerEyeBrowTipL, // Vector3
       visualizerEyeBrowTipR, // Vector3
       visualizerMouseCornerTipL, // Vector3
@@ -622,13 +622,13 @@ const init = async () => {
       // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
-      visualizerByJawTipsDetection, // Vector3[]
+      visualizerByMandibleTipsDetection, // Vector3[]
       visualizerByEyeBrowTipsDetection, // Vector3[]
       visualizerByMouseCornerTipsDetection, // Vector3[]
       visualizerByEarMiddleTipsDetection, // Vector3[]
       // Morph
       visualizerByNoseMorph, // Vector3[]
-      visualizerByJawMorph, // Vector3[]
+      visualizerByMandibleMorph, // Vector3[]
       visualizerByNostrilMorph, // Vector3[]
       visualizerByEyeBrowMorph, // Vector3[]
       visualizerByMouseCornersWidthMorph, // Vector3[]
@@ -641,8 +641,8 @@ const init = async () => {
       splicingGroupGlobal,
       hasManualTips
         ? {
-            jawTipL: manualJawTipL.value || undefined,
-            jawTipR: manualJawTipR.value || undefined,
+            mandibleTipL: manualMandibleTipL.value || undefined,
+            mandibleTipR: manualMandibleTipR.value || undefined,
             eyeBrowTipL: manualEyeBrowTipL.value || undefined,
             eyeBrowTipR: manualEyeBrowTipR.value || undefined,
             mouseCornerTipL: manualMouseCornerTipL.value || undefined,
@@ -688,16 +688,16 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#00f" }),
       );
       /*
-        Jaw Tip Left Visualizer
+        Mandible Tip Left Visualizer
       */
-      const jawTipLVisMesh = new THREE.Mesh(
+      const mandibleTipLVisMesh = new THREE.Mesh(
         sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#0ff" }),
       );
       /*
-        Jaw Tip Right Visualizer
+        Mandible Tip Right Visualizer
       */
-      const jawTipRVisMesh = new THREE.Mesh(
+      const mandibleTipRVisMesh = new THREE.Mesh(
         sharedSphereGeo,
         new THREE.MeshBasicMaterial({ color: "#0ff" }),
       );
@@ -805,8 +805,8 @@ const init = async () => {
       noseTipVisMesh.position.copy(visualizerNoseTip);
       nostrilTipLVisMesh.position.copy(visualizerNostrilTipL);
       nostrilTipRVisMesh.position.copy(visualizerNostrilTipR);
-      jawTipLVisMesh.position.copy(visualizerJawTipL);
-      jawTipRVisMesh.position.copy(visualizerJawTipR);
+      mandibleTipLVisMesh.position.copy(visualizerMandibleTipL);
+      mandibleTipRVisMesh.position.copy(visualizerMandibleTipR);
       eyeBrowTipLVisMesh.position.copy(visualizerEyeBrowTipL);
       eyeBrowTipRVisMesh.position.copy(visualizerEyeBrowTipR);
       mouseTipLVisMesh.position.copy(visualizerMouseCornerTipL);
@@ -830,8 +830,8 @@ const init = async () => {
             noseTipVisMesh,
             nostrilTipLVisMesh,
             nostrilTipRVisMesh,
-            jawTipLVisMesh,
-            jawTipRVisMesh,
+            mandibleTipLVisMesh,
+            mandibleTipRVisMesh,
             eyeBrowTipLVisMesh,
             eyeBrowTipRVisMesh,
             mouseTipLVisMesh,
@@ -855,9 +855,9 @@ const init = async () => {
           visualizerGroup.add(nostrilTipLVisMesh);
           visualizerGroup.add(nostrilTipRVisMesh);
           break;
-        case "jaw":
-          visualizerGroup.add(jawTipLVisMesh);
-          visualizerGroup.add(jawTipRVisMesh);
+        case "mandible":
+          visualizerGroup.add(mandibleTipLVisMesh);
+          visualizerGroup.add(mandibleTipRVisMesh);
           break;
         case "eyeBrow":
           visualizerGroup.add(eyeBrowTipLVisMesh);
@@ -907,9 +907,9 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByNostrilTipsDetection,
         );
-      // Jaw tips geometry from detection vertices
-      const visualizerByJawTipsDetectionGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByJawTipsDetection);
+      // Mandible tips geometry from detection vertices
+      const visualizerByMandibleTipsDetectionGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByMandibleTipsDetection);
       // Eye brow tips geometry from detection vertices
       let visualizerByEyeBrowTipsDetectionGeo: THREE.BufferGeometry | null =
         null;
@@ -946,9 +946,9 @@ const init = async () => {
         visualizerByNostrilTipsDetectionGeo,
         new THREE.PointsMaterial({ color: "#00f", size: 0.15 }),
       );
-      // Jaw tip detection points (Cyan)
-      const jawTipsDetectionPoints = new THREE.Points(
-        visualizerByJawTipsDetectionGeo,
+      // Mandible tip detection points (Cyan)
+      const mandibleTipsDetectionPoints = new THREE.Points(
+        visualizerByMandibleTipsDetectionGeo,
         new THREE.PointsMaterial({ color: "#0ff", size: 0.15 }),
       );
 
@@ -981,7 +981,7 @@ const init = async () => {
           visualizerGroup.add(
             noseTipsDetectionPoints,
             nostrilTipsDetectionPoints,
-            jawTipsDetectionPoints,
+            mandibleTipsDetectionPoints,
             eyeBrowTipsDetectionPoints,
             mouseCornerTipsDetectionPoints,
             earMiddleTipsDetectionPoints,
@@ -993,8 +993,8 @@ const init = async () => {
         case "nostril":
           visualizerGroup.add(nostrilTipsDetectionPoints);
           break;
-        case "jaw":
-          visualizerGroup.add(jawTipsDetectionPoints);
+        case "mandible":
+          visualizerGroup.add(mandibleTipsDetectionPoints);
           break;
         case "eyeBrow":
           visualizerGroup.add(eyeBrowTipsDetectionPoints);
@@ -1023,9 +1023,9 @@ const init = async () => {
       // Nostril morph geometry from morph vertices
       const visualizerByNostrilMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByNostrilMorph);
-      // Jaw morph geometry from morph vertices
-      const visualizerByJawMorphGeo = new THREE.BufferGeometry().setFromPoints(
-        visualizerByJawMorph,
+      // Mandible morph geometry from morph vertices
+      const visualizerByMandibleMorphGeo = new THREE.BufferGeometry().setFromPoints(
+        visualizerByMandibleMorph,
       );
       // Eye brow morph geometry from morph vertices
       const visualizerByEyeBrowMorphGeo =
@@ -1065,9 +1065,9 @@ const init = async () => {
         visualizerByNostrilMorphGeo,
         new THREE.PointsMaterial({ color: "#00f", size: 0.15 }),
       );
-      // Jaw morph points (Cyan)
-      const jawMorphPoints = new THREE.Points(
-        visualizerByJawMorphGeo,
+      // Mandible morph points (Cyan)
+      const mandibleMorphPoints = new THREE.Points(
+        visualizerByMandibleMorphGeo,
         new THREE.PointsMaterial({ color: "#0ff", size: 0.15 }),
       );
       // Eye brow morph points (Yellow)
@@ -1113,7 +1113,7 @@ const init = async () => {
           visualizerGroup.add(
             noseMorphPoints,
             nostrilMorphPoints,
-            jawMorphPoints,
+            mandibleMorphPoints,
             eyeBrowMorphPoints,
             mouseCornersWidthMorphPoints,
             earMiddleMorphPoints,
@@ -1129,8 +1129,8 @@ const init = async () => {
         case "nostril":
           visualizerGroup.add(nostrilMorphPoints);
           break;
-        case "jaw":
-          visualizerGroup.add(jawMorphPoints);
+        case "mandible":
+          visualizerGroup.add(mandibleMorphPoints);
           break;
         case "eyeBrow":
           visualizerGroup.add(eyeBrowMorphPoints);
@@ -1164,7 +1164,7 @@ const init = async () => {
     all
     nose
     nostril
-    jaw
+    mandible
     eyeBrow
     mouseCornersWidth
     earMiddle
