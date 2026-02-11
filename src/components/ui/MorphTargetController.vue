@@ -178,6 +178,14 @@ const updateHeadNodeInfluence = (index: number, value: number) => {
 };
 
 /**
+ * Get the minimum value for a morph target influence based on its label.
+ */
+const getMorphMin = (label: string) => {
+  if (label === "JawWidth") return -0.4;
+  return label === "Nose" || label === "MouseCornersWidth" ? -1 : 0;
+};
+
+/**
  * Update the eye scale for both left and right eye nodes.
  */
 const updateEyeScale = (value: number) => {
@@ -225,7 +233,7 @@ onUnmounted(() => {
     >
       <!-- Glassmorphism Container -->
       <div
-        class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] backdrop-blur-xl pointer-events-auto transition-all duration-500 hover:bg-slate-900/60 hover:border-cyan-500/40 group/container"
+        class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] backdrop-blur-xl pointer-events-auto transition-all duration-500 hover:bg-slate-900/60 hover:border-cyan-500/40 group/container max-h-[calc(100vh-3rem)] overflow-y-auto"
       >
         <!-- Background Glow -->
         <div
@@ -284,33 +292,19 @@ onUnmounted(() => {
                 <div
                   class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
                   :style="{
-                    width:
-                      target.label === 'Nose' ||
-                      target.label === 'MouseCornersWidth'
-                        ? `${
-                            ((headNodeinfluencesValues[
-                              target.morphTargetInfIdx
-                            ] +
-                              1) /
-                              2) *
-                            100
-                          }%`
-                        : `${
-                            headNodeinfluencesValues[target.morphTargetInfIdx] *
-                            100
-                          }%`,
+                    width: `${
+                      ((headNodeinfluencesValues[target.morphTargetInfIdx] -
+                        getMorphMin(target.label)) /
+                        (1 - getMorphMin(target.label))) *
+                      100
+                    }%`,
                   }"
                 ></div>
               </div>
 
               <input
                 type="range"
-                :min="
-                  target.label === 'Nose' ||
-                  target.label === 'MouseCornersWidth'
-                    ? -1
-                    : 0
-                "
+                :min="getMorphMin(target.label)"
                 max="1"
                 step="0.01"
                 :value="headNodeinfluencesValues[target.morphTargetInfIdx]"
@@ -459,6 +453,32 @@ input[type="range"]::-moz-range-thumb {
   transform: translateX(30px) scale(0.95);
   filter: blur(10px);
   opacity: 0;
+}
+
+/* Custom Scrollbar Styling */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px; /* Thin scrollbar width */
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.1); /* Subtle track background */
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.2); /* Cyan thumb with transparency */
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.5); /* Brighter cyan on hover */
+}
+
+/* For Firefox compatibility */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.2) rgba(15, 23, 42, 0.1);
 }
 
 /* Responsive adjustments */
