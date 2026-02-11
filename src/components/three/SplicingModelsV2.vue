@@ -111,6 +111,7 @@ import {
   getObject3DBoundingBoxCenter,
 } from "../../three/meshOps";
 import { getOutlinePattern } from "../../three/shaders/tsl";
+import { IsDevelopment } from "@/constants";
 
 // import { getProject, types } from "@theatre/core";
 // import studio from "@theatre/studio";
@@ -642,6 +643,7 @@ const init = async () => {
       visualizerByCheek0WidthMorph, // Vector3[]
       visualizerByCheek1WidthMorph, // Vector3[]
       visualizerByJawWidthMorph, // Vector3[]
+      visualizerByJawSidesWidthMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -920,6 +922,7 @@ const init = async () => {
           visualizerGroup.add(cheek1TipRVisMesh);
           break;
         case "jawWidth":
+        case "jawSidesWidth":
           visualizerGroup.add(jawTipLVisMesh);
           visualizerGroup.add(jawTipRVisMesh);
           visualizerGroup.add(jawTipMVisMesh);
@@ -1105,6 +1108,11 @@ const init = async () => {
       // Jaw width morph geometry from morph vertices
       const visualizerByJawWidthMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByJawWidthMorph);
+      // Jaw sides width morph geometry from morph vertices
+      const visualizerByJawSidesWidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByJawSidesWidthMorph,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -1163,6 +1171,11 @@ const init = async () => {
         visualizerByJawWidthMorphGeo,
         new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
       );
+      // Jaw sides width morph points (Green)
+      const jawSidesWidthMorphPoints = new THREE.Points(
+        visualizerByJawSidesWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -1180,6 +1193,7 @@ const init = async () => {
             cheek0WidthMorphPoints,
             cheek1WidthMorphPoints,
             jawWidthMorphPoints,
+            jawSidesWidthMorphPoints,
           );
           break;
         case "nose":
@@ -1215,12 +1229,15 @@ const init = async () => {
         case "jawWidth":
           visualizerGroup.add(jawWidthMorphPoints);
           break;
+        case "jawSidesWidth":
+          visualizerGroup.add(jawSidesWidthMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
   };
   // Disable the visualizers if it is for production
-  const isVisualizerDisabled = import.meta.env.PROD;
+  const isVisualizerDisabled = !IsDevelopment;
   /*
     none
     all
@@ -1235,9 +1252,14 @@ const init = async () => {
     cheek0Width
     cheek1Width
     jawWidth
+    jawSidesWidth
    */
-  const selectedVisualizer = "jawWidth";
-  generateFacialMorphsAndVisualizers(isVisualizerDisabled, selectedVisualizer);
+  const selectedVisualizer = "none";
+  IsDevelopment &&
+    generateFacialMorphsAndVisualizers(
+      isVisualizerDisabled,
+      selectedVisualizer,
+    );
 
   /**
    * Add the global group
@@ -1341,11 +1363,12 @@ const init = async () => {
   watch([isDefaultHeadFemale, currentHeadModelSubPath], () => {
     applyMixedColorNode(splicingGroupGlobal);
     clearVisualizerGroup();
-    // ! TST PURPOSE
-    generateFacialMorphsAndVisualizers(
-      isVisualizerDisabled,
-      selectedVisualizer,
-    );
+    // ! TST PURPOSE FOR IMPORTED HEAD MODEL
+    IsDevelopment &&
+      generateFacialMorphsAndVisualizers(
+        isVisualizerDisabled,
+        selectedVisualizer,
+      );
     modelsStore.setIsManualMorphGenerationMode(false);
     modelsStore.setManualMorphSelectionStage(null);
   });
@@ -1848,7 +1871,7 @@ const animate = async () => {
     Update Light
    */
   // 主光旋转
-  if (rotatingLight) {
+  if (rotatingLight && !IsDevelopment) {
     rotatingLight.position.x = Math.cos(t) * 15;
     rotatingLight.position.z = Math.sin(t) * 15;
   }

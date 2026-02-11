@@ -93,6 +93,8 @@ export interface FacialMorphsVisualizers {
   visualizerByCheek1WidthMorph: Vector3[];
   // Jaw Width Morph
   visualizerByJawWidthMorph: Vector3[];
+  // Jaw Sides Width Morph
+  visualizerByJawSidesWidthMorph: Vector3[];
 }
 
 /*

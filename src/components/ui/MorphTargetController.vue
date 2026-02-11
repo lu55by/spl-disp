@@ -181,7 +181,7 @@ const updateHeadNodeInfluence = (index: number, value: number) => {
  * Get the minimum value for a morph target influence based on its label.
  */
 const getMorphMin = (label: string) => {
-  if (label === "JawWidth") return -0.4;
+  if (label === "JawSidesWidth") return -0.4;
   return label === "Nose" || label === "MouseCornersWidth" ? -1 : 0;
 };
 
@@ -228,12 +228,12 @@ onUnmounted(() => {
   <Transition name="slide-fade">
     <div
       v-if="isVisible && headNodeMorphTargetsData.length > 0"
-      class="fixed top-6 right-6 z-60 w-72 md:w-80 pointer-events-none group"
+      class="fixed top-6 right-6 z-60 w-72 md:w-80 pointer-events-none group rounded-2xl max-h-[calc(100vh-3rem)] overflow-y-auto"
       @click.stop
     >
       <!-- Glassmorphism Container -->
       <div
-        class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] backdrop-blur-xl pointer-events-auto transition-all duration-500 hover:bg-slate-900/60 hover:border-cyan-500/40 group/container max-h-[calc(100vh-3rem)] overflow-y-auto"
+        class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] backdrop-blur-xl pointer-events-auto transition-all duration-500 hover:bg-slate-900/60 hover:border-cyan-500/40 group/container"
       >
         <!-- Background Glow -->
         <div
