@@ -143,6 +143,9 @@ export const MorphTargetLabelMapping = {
   JawWidth: "下巴宽度",
   JawSidesWidth: "下巴两侧宽度",
   MandibleCornersWidth: "下颌角宽度",
+  ForeheadWidth: "额头宽度",
+  ForeheadDepth: "额头深度",
+  ForeheadHeight: "额头高度",
 };
 
 // Global Model

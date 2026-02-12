@@ -181,8 +181,18 @@ const updateHeadNodeInfluence = (index: number, value: number) => {
  * Get the minimum value for a morph target influence based on its label.
  */
 const getMorphMin = (label: string) => {
-  if (label === "JawSidesWidth") return -0.4;
-  return label === "Nose" || label === "MouseCornersWidth" ? -1 : 0;
+  switch (label) {
+    case "JawSidesWidth":
+    case "ForeheadWidth":
+    case "ForeheadDepth":
+    case "ForeheadHeight":
+      return -0.4;
+    case "Nose":
+    case "MouseCornersWidth":
+      return -1;
+    default:
+      return 0;
+  }
 };
 
 /**

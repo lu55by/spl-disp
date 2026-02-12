@@ -625,6 +625,9 @@ const init = async () => {
       visualizerJawTipM, // Vector3
       visualizerMandibleCornerTipL, // Vector3
       visualizerMandibleCornerTipR, // Vector3
+      visualizerForeheadTipL, // Vector3
+      visualizerForeheadTipR, // Vector3
+      visualizerForeheadTipM, // Vector3
       // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
@@ -647,6 +650,9 @@ const init = async () => {
       visualizerByJawWidthMorph, // Vector3[]
       visualizerByJawSidesWidthMorph, // Vector3[]
       visualizerByMandibleCornersWidthMorph, // Vector3[]
+      visualizerByForeheadWidthMorph, // Vector3[]
+      visualizerByForeheadDepthMorph, // Vector3[]
+      visualizerByForeheadHeightMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -845,6 +851,27 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#f80" }),
       );
       /*
+        Forehead Tip Left Visualizer
+      */
+      const foreheadTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
+        Forehead Tip Right Visualizer
+      */
+      const foreheadTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
+        Forehead Tip Middle Visualizer
+      */
+      const foreheadTipMVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -871,6 +898,9 @@ const init = async () => {
       jawTipMVisMesh.position.copy(visualizerJawTipM);
       mandibleCornerTipLVisMesh.position.copy(visualizerMandibleCornerTipL);
       mandibleCornerTipRVisMesh.position.copy(visualizerMandibleCornerTipR);
+      foreheadTipLVisMesh.position.copy(visualizerForeheadTipL);
+      foreheadTipRVisMesh.position.copy(visualizerForeheadTipR);
+      foreheadTipMVisMesh.position.copy(visualizerForeheadTipM);
       /*
         Add to scene
       */
@@ -901,6 +931,9 @@ const init = async () => {
             jawTipMVisMesh,
             mandibleCornerTipLVisMesh,
             mandibleCornerTipRVisMesh,
+            foreheadTipLVisMesh,
+            foreheadTipRVisMesh,
+            foreheadTipMVisMesh,
           );
           break;
         case "nose":
@@ -951,6 +984,13 @@ const init = async () => {
         case "mandibleCornersWidth":
           visualizerGroup.add(mandibleCornerTipLVisMesh);
           visualizerGroup.add(mandibleCornerTipRVisMesh);
+          break;
+        case "foreheadWidth":
+        case "foreheadHeight":
+        case "foreheadDepth":
+          visualizerGroup.add(foreheadTipLVisMesh);
+          visualizerGroup.add(foreheadTipRVisMesh);
+          visualizerGroup.add(foreheadTipMVisMesh);
           break;
       }
     };
@@ -1143,6 +1183,15 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByMandibleCornersWidthMorph,
         );
+      // Forehead width morph geometry from morph vertices
+      const visualizerByForeheadWidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByForeheadWidthMorph);
+      // Forehead depth morph geometry from morph vertices
+      const visualizerByForeheadDepthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByForeheadDepthMorph);
+      // Forehead height morph geometry from morph vertices
+      const visualizerByForeheadHeightMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByForeheadHeightMorph);
       /*
         Create points from the corresponding geometries
       */
@@ -1211,6 +1260,21 @@ const init = async () => {
         visualizerByMandibleCornersWidthMorphGeo,
         new THREE.PointsMaterial({ color: "#f80", size: 0.15 }),
       );
+      // Forehead width morph points (White)
+      const foreheadWidthMorphPoints = new THREE.Points(
+        visualizerByForeheadWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
+      // Forehead depth morph points (White)
+      const foreheadDepthMorphPoints = new THREE.Points(
+        visualizerByForeheadDepthMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
+      // Forehead height morph points (White)
+      const foreheadHeightMorphPoints = new THREE.Points(
+        visualizerByForeheadHeightMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -1230,6 +1294,9 @@ const init = async () => {
             jawWidthMorphPoints,
             jawSidesWidthMorphPoints,
             mandibleCornersWidthMorphPoints,
+            foreheadWidthMorphPoints,
+            foreheadDepthMorphPoints,
+            foreheadHeightMorphPoints,
           );
           break;
         case "nose":
@@ -1271,6 +1338,15 @@ const init = async () => {
         case "mandibleCornersWidth":
           visualizerGroup.add(mandibleCornersWidthMorphPoints);
           break;
+        case "foreheadWidth":
+          visualizerGroup.add(foreheadWidthMorphPoints);
+          break;
+        case "foreheadDepth":
+          visualizerGroup.add(foreheadDepthMorphPoints);
+          break;
+        case "foreheadHeight":
+          visualizerGroup.add(foreheadHeightMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -1293,8 +1369,11 @@ const init = async () => {
     jawWidth
     jawSidesWidth
     mandibleCornersWidth
+    foreheadWidth
+    foreheadDepth
+    foreheadHeight
    */
-  const selectedVisualizer = "nose";
+  const selectedVisualizer = "foreheadHeight";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,

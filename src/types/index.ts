@@ -55,6 +55,10 @@ export interface FacialMorphsVisualizers {
   // Mandible Corner Tips
   visualizerMandibleCornerTipL: Vector3;
   visualizerMandibleCornerTipR: Vector3;
+  // Forehead Tips
+  visualizerForeheadTipL: Vector3;
+  visualizerForeheadTipR: Vector3;
+  visualizerForeheadTipM: Vector3;
   /*
     Detection
   */
@@ -100,6 +104,10 @@ export interface FacialMorphsVisualizers {
   visualizerByJawSidesWidthMorph: Vector3[];
   // Mandible Corner Width Morph
   visualizerByMandibleCornersWidthMorph: Vector3[];
+  // Forehead Morphs
+  visualizerByForeheadWidthMorph: Vector3[];
+  visualizerByForeheadDepthMorph: Vector3[];
+  visualizerByForeheadHeightMorph: Vector3[];
 }
 
 /*

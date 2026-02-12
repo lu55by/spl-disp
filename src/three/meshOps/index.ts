@@ -160,6 +160,10 @@ export function generateFacialMorphs(
   // Mandible Corner Tips
   let mandibleCornerTipL = new THREE.Vector3();
   let mandibleCornerTipR = new THREE.Vector3();
+  // Forehead Tips
+  let foreheadTipL = new THREE.Vector3();
+  let foreheadTipR = new THREE.Vector3();
+  let foreheadTipM = new THREE.Vector3();
 
   /*
     Vertices for visualization
@@ -186,6 +190,9 @@ export function generateFacialMorphs(
   const visualizerByJawWidthMorph: THREE.Vector3[] = [];
   const visualizerByJawSidesWidthMorph: THREE.Vector3[] = [];
   const visualizerByMandibleCornersWidthMorph: THREE.Vector3[] = [];
+  const visualizerByForeheadWidthMorph: THREE.Vector3[] = [];
+  const visualizerByForeheadDepthMorph: THREE.Vector3[] = [];
+  const visualizerByForeheadHeightMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -523,6 +530,45 @@ export function generateFacialMorphs(
   );
 
   /**
+   * Ⅰ.Ⅸ FOREHEAD TIPS DETECTION
+   */
+  const foreheadTipOffsetX = 1.5;
+  const foreheadTipOffsetY = 1.4;
+  foreheadTipM.copy(
+    new THREE.Vector3(
+      noseTip.x,
+      centerEyeLNode.y + (maxYSphCutHead - centerEyeLNode.y) * 0.55,
+      centerEyeLNode.z + 3,
+    ),
+  );
+  foreheadTipL.copy(
+    new THREE.Vector3(
+      foreheadTipM.x - foreheadTipOffsetX,
+      foreheadTipM.y + foreheadTipOffsetY,
+      foreheadTipM.z,
+    ),
+  );
+  foreheadTipR.copy(
+    new THREE.Vector3(
+      foreheadTipM.x + foreheadTipOffsetX,
+      foreheadTipM.y + foreheadTipOffsetY,
+      foreheadTipM.z,
+    ),
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- foreheadTipM calculated ->",
+    foreheadTipM.x === Infinity ? "Not Found" : foreheadTipM,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- foreheadTipL calculated ->",
+    foreheadTipL.x === Infinity ? "Not Found" : foreheadTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- foreheadTipR calculated ->",
+    foreheadTipR.x === -Infinity ? "Not Found" : foreheadTipR,
+  );
+
+  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
@@ -539,6 +585,9 @@ export function generateFacialMorphs(
   const jawWidthTarget = new Float32Array(positions.count * 3);
   const jawSidesWidthTarget = new Float32Array(positions.count * 3);
   const mandibleCornersWidthTarget = new Float32Array(positions.count * 3);
+  const foreheadWidthTarget = new Float32Array(positions.count * 3);
+  const foreheadDepthTarget = new Float32Array(positions.count * 3);
+  const foreheadHeightTarget = new Float32Array(positions.count * 3);
 
   // 2.2 Traverse through the vertex count to generate the morphs
   for (let i = 0; i < positions.count; i++) {
@@ -551,20 +600,21 @@ export function generateFacialMorphs(
       null,
       noseTip,
       null,
-      { xRange: 3, yRange: 2.3, zRange: 3 },
+      { xRange: 3, yRange: 2, zRange: 3 },
       noseHeightTarget,
       ["height", "depth"],
       {
         widening: null,
         heightOrDepth: {
           isCurveInverted: true,
-          infFrequency: 1,
-          power: 2,
+          infFrequency: { x: 1, y: 1, z: Math.PI * 0.5 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 0.8,
           totalInfMode: "All",
         },
       },
       visualizerByNoseHeightMorph,
-      1.2,
+      0.6,
     );
 
     // --- B. GENERATE NOSTRIL WIDTH MORPH (Widening) ---
@@ -580,7 +630,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -604,7 +655,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -629,7 +681,8 @@ export function generateFacialMorphs(
         widening: null,
         heightOrDepth: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "eyeBrowHeight",
         },
@@ -651,7 +704,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -675,14 +729,16 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
         heightOrDepth: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
         },
@@ -704,7 +760,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -729,7 +786,8 @@ export function generateFacialMorphs(
         widening: null,
         heightOrDepth: {
           isCurveInverted: true,
-          infFrequency: Math.PI,
+          infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "zygomaticArchWidth",
         },
@@ -751,7 +809,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -775,7 +834,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -799,7 +859,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: true,
-          infFrequency: 1,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
           isApplyModeAddition: true,
@@ -823,7 +884,8 @@ export function generateFacialMorphs(
       {
         widening: {
           isCurveInverted: false,
-          infFrequency: Math.PI,
+          infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "jawSidesWidth",
           isApplyModeAddition: false,
@@ -848,13 +910,87 @@ export function generateFacialMorphs(
         widening: null,
         heightOrDepth: {
           isCurveInverted: false,
-          infFrequency: Math.PI,
+          infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
+          infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "mandibleCornersWidth",
         },
       },
       visualizerByMandibleCornersWidthMorph,
       1.05,
+    );
+
+    // --- N. GENERATE FOREHEAD WIDTH MORPH (Widening) ---
+    applyMorph(
+      vertex,
+      i,
+      foreheadTipL,
+      foreheadTipM,
+      foreheadTipR,
+      { xRange: 5, yRange: 3, zRange: 5 },
+      foreheadWidthTarget,
+      "widening",
+      {
+        widening: {
+          isCurveInverted: true,
+          infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
+          infAmplitude: { x: 0.1, y: 1, z: 1 },
+          power: 1,
+          totalInfMode: "foreheadWidth",
+          isApplyModeAddition: true,
+        },
+        heightOrDepth: null,
+      },
+      visualizerByForeheadWidthMorph,
+      4,
+    );
+
+    // --- O. GENERATE FOREHEAD DEPTH MORPH (Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      foreheadTipL,
+      foreheadTipM,
+      foreheadTipR,
+      { xRange: 5, yRange: 4, zRange: 5 },
+      foreheadDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 0.5 },
+          power: 1,
+          totalInfMode: "All",
+        },
+      },
+      visualizerByForeheadDepthMorph,
+      2.8,
+    );
+
+    // --- P. GENERATE FOREHEAD HEIGHT MORPH (height) ---
+    applyMorph(
+      vertex,
+      i,
+      foreheadTipL,
+      foreheadTipM,
+      foreheadTipR,
+      { xRange: 5, yRange: 4, zRange: 5 },
+      foreheadHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 0.5, z: 1 },
+          power: 1,
+          totalInfMode: "All",
+        },
+      },
+      visualizerByForeheadHeightMorph,
+      2.8,
     );
   }
 
@@ -887,6 +1023,9 @@ export function generateFacialMorphs(
     mandibleCornersWidthTarget,
     3,
   );
+  const foreheadWidthAttr = new THREE.BufferAttribute(foreheadWidthTarget, 3);
+  const foreheadDepthAttr = new THREE.BufferAttribute(foreheadDepthTarget, 3);
+  const foreheadHeightAttr = new THREE.BufferAttribute(foreheadHeightTarget, 3);
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseHeightAttr.name = "noseHeight";
@@ -902,6 +1041,9 @@ export function generateFacialMorphs(
   jawWidthAttr.name = "jawWidth";
   jawSidesWidthAttr.name = "jawSidesWidth";
   mandibleCornersWidthAttr.name = "mandibleCornersWidth";
+  foreheadWidthAttr.name = "foreheadWidth";
+  foreheadDepthAttr.name = "foreheadDepth";
+  foreheadHeightAttr.name = "foreheadHeight";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -918,6 +1060,9 @@ export function generateFacialMorphs(
     jawWidthAttr,
     jawSidesWidthAttr,
     mandibleCornersWidthAttr,
+    foreheadWidthAttr,
+    foreheadDepthAttr,
+    foreheadHeightAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -976,6 +1121,9 @@ export function generateFacialMorphs(
     visualizerJawTipM: jawTipM,
     visualizerMandibleCornerTipL: mandibleCornerTipL,
     visualizerMandibleCornerTipR: mandibleCornerTipR,
+    visualizerForeheadTipL: foreheadTipL,
+    visualizerForeheadTipR: foreheadTipR,
+    visualizerForeheadTipM: foreheadTipM,
     // Detection
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
@@ -998,6 +1146,9 @@ export function generateFacialMorphs(
     visualizerByJawWidthMorph,
     visualizerByJawSidesWidthMorph,
     visualizerByMandibleCornersWidthMorph,
+    visualizerByForeheadWidthMorph,
+    visualizerByForeheadDepthMorph,
+    visualizerByForeheadHeightMorph,
   };
 }
 
@@ -1098,19 +1249,22 @@ function applyMorph(
   infConfig: {
     widening: {
       isCurveInverted: boolean;
-      infFrequency: number;
+      infFrequency: { x: number; y: number; z: number };
+      infAmplitude: { x: number; y: number; z: number };
       power: number;
-      totalInfMode: "jawSidesWidth" | "All";
+      totalInfMode: "jawSidesWidth" | "foreheadWidth" | "All";
       isApplyModeAddition: boolean;
     } | null;
     heightOrDepth: {
       isCurveInverted: boolean;
-      infFrequency: number;
+      infFrequency: { x: number; y: number; z: number };
+      infAmplitude: { x: number; y: number; z: number };
       power: number;
       totalInfMode:
         | "eyeBrowHeight"
         | "zygomaticArchWidth"
         | "mandibleCornersWidth"
+        | "foreheadDepth"
         | "All";
     } | null;
   },
@@ -1147,6 +1301,7 @@ function applyMorph(
       const {
         isCurveInverted,
         infFrequency,
+        infAmplitude,
         power,
         isApplyModeAddition,
         totalInfMode,
@@ -1158,33 +1313,35 @@ function applyMorph(
       /*
         Angle X
       */
-      const angleX = x01 * infFrequency;
+      const angleX = x01 * infFrequency.x;
 
       /*
         Angle Y
       */
       const angleY =
-        totalInfMode === "jawSidesWidth" ? 1 - dy / yRange : y01 * infFrequency;
+        totalInfMode === "jawSidesWidth"
+          ? 1 - dy / yRange
+          : y01 * infFrequency.y;
 
       /*
         Angle Z
       */
-      const angleZ = z01 * infFrequency;
+      const angleZ = z01 * infFrequency.z;
 
       /*
         Inf X
       */
-      const influenceX = Math.pow(Math.sin(angleX), power);
+      const influenceX = Math.pow(Math.sin(angleX) * infAmplitude.x, power);
 
       /*
         Inf Y
       */
-      const influenceY = Math.pow(Math.sin(angleY), power);
+      const influenceY = Math.pow(Math.sin(angleY) * infAmplitude.y, power);
 
       /*
         Inf Z
       */
-      const influenceZ = Math.pow(Math.sin(angleZ), power);
+      const influenceZ = Math.pow(Math.sin(angleZ) * infAmplitude.z, power);
 
       /*
         Total Inf
@@ -1193,6 +1350,12 @@ function applyMorph(
       switch (totalInfMode) {
         case "jawSidesWidth":
           totalInfluence = influenceX * influenceY * totalInfluenceStrength;
+          break;
+        case "foreheadWidth":
+          totalInfluence =
+            vertex.y < targetTip.y
+              ? 0
+              : influenceX * influenceY * totalInfluenceStrength;
           break;
         case "All":
           totalInfluence =
@@ -1211,8 +1374,13 @@ function applyMorph(
     // --- 2. HEIGHT and DEPTH MORPHS (Y and Z axes) ---
     // These morph types share similar logic for lateral (X) and vertical (Y) falloff
     if (isHeight || isDepth) {
-      const { isCurveInverted, infFrequency, power, totalInfMode } =
-        infConfig.heightOrDepth;
+      const {
+        isCurveInverted,
+        infFrequency,
+        infAmplitude,
+        power,
+        totalInfMode,
+      } = infConfig.heightOrDepth;
       const x01 = isCurveInverted ? 1 - dx / xRange : dx / xRange;
       const y01 = isCurveInverted ? 1 - dy / yRange : dy / yRange;
       const z01 = isCurveInverted ? 1 - dz / zRange : dz / zRange;
@@ -1220,7 +1388,7 @@ function applyMorph(
       /*
         Angle X
       */
-      const angleX = x01 * infFrequency;
+      const angleX = x01 * infFrequency.x;
 
       /*
         Angle Y
@@ -1228,13 +1396,13 @@ function applyMorph(
       const angleY =
         totalInfMode === "mandibleCornersWidth"
           ? 1 - dy / yRange
-          : y01 * infFrequency;
+          : y01 * infFrequency.y;
 
       /*
         Angle Z
       */
       const angleZ =
-        totalInfMode === "zygomaticArchWidth" ? z01 : z01 * infFrequency;
+        totalInfMode === "zygomaticArchWidth" ? z01 : z01 * infFrequency.z;
 
       /*
         Inf X
@@ -1242,17 +1410,17 @@ function applyMorph(
       const influenceX =
         totalInfMode === "eyeBrowHeight"
           ? 1
-          : Math.pow(Math.sin(angleX), power);
+          : Math.pow(Math.sin(angleX) * infAmplitude.x, power);
 
       /*
         Inf Y
       */
-      const influenceY = Math.pow(Math.sin(angleY), power);
+      const influenceY = Math.pow(Math.sin(angleY) * infAmplitude.y, power);
 
       /*
         Inf Z
       */
-      const influenceZ = Math.pow(Math.sin(angleZ), power);
+      const influenceZ = Math.pow(Math.sin(angleZ) * infAmplitude.z, power);
 
       /*
         Total Inf
@@ -1273,6 +1441,9 @@ function applyMorph(
             influenceZ *
             0.5 *
             totalInfluenceStrength;
+          break;
+        case "foreheadDepth":
+          totalInfluence = influenceZ * totalInfluenceStrength;
           break;
         case "eyeBrowHeight":
         case "All":
