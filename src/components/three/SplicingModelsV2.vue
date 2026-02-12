@@ -623,6 +623,8 @@ const init = async () => {
       visualizerJawTipL, // Vector3
       visualizerJawTipR, // Vector3
       visualizerJawTipM, // Vector3
+      visualizerMandibleCornerTipL, // Vector3
+      visualizerMandibleCornerTipR, // Vector3
       // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
@@ -644,6 +646,7 @@ const init = async () => {
       visualizerByCheek1WidthMorph, // Vector3[]
       visualizerByJawWidthMorph, // Vector3[]
       visualizerByJawSidesWidthMorph, // Vector3[]
+      visualizerByMandibleCornersWidthMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -828,6 +831,20 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#0f0" }),
       );
       /*
+        Mandible Corner Tip Left Visualizer
+      */
+      const mandibleCornerTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#f80" }),
+      );
+      /*
+        Mandible Corner Tip Right Visualizer
+      */
+      const mandibleCornerTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#f80" }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -852,6 +869,8 @@ const init = async () => {
       jawTipLVisMesh.position.copy(visualizerJawTipL);
       jawTipRVisMesh.position.copy(visualizerJawTipR);
       jawTipMVisMesh.position.copy(visualizerJawTipM);
+      mandibleCornerTipLVisMesh.position.copy(visualizerMandibleCornerTipL);
+      mandibleCornerTipRVisMesh.position.copy(visualizerMandibleCornerTipR);
       /*
         Add to scene
       */
@@ -880,6 +899,8 @@ const init = async () => {
             jawTipLVisMesh,
             jawTipRVisMesh,
             jawTipMVisMesh,
+            mandibleCornerTipLVisMesh,
+            mandibleCornerTipRVisMesh,
           );
           break;
         case "nose":
@@ -926,6 +947,10 @@ const init = async () => {
           visualizerGroup.add(jawTipLVisMesh);
           visualizerGroup.add(jawTipRVisMesh);
           visualizerGroup.add(jawTipMVisMesh);
+          break;
+        case "mandibleCornersWidth":
+          visualizerGroup.add(mandibleCornerTipLVisMesh);
+          visualizerGroup.add(mandibleCornerTipRVisMesh);
           break;
       }
     };
@@ -1113,6 +1138,11 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByJawSidesWidthMorph,
         );
+      // Mandible corners width morph geometry from morph vertices
+      const visualizerByMandibleCornersWidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMandibleCornersWidthMorph,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -1176,6 +1206,11 @@ const init = async () => {
         visualizerByJawSidesWidthMorphGeo,
         new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
       );
+      // Mandible corners width morph points (Orange)
+      const mandibleCornersWidthMorphPoints = new THREE.Points(
+        visualizerByMandibleCornersWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#f80", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -1194,6 +1229,7 @@ const init = async () => {
             cheek1WidthMorphPoints,
             jawWidthMorphPoints,
             jawSidesWidthMorphPoints,
+            mandibleCornersWidthMorphPoints,
           );
           break;
         case "nose":
@@ -1232,6 +1268,9 @@ const init = async () => {
         case "jawSidesWidth":
           visualizerGroup.add(jawSidesWidthMorphPoints);
           break;
+        case "mandibleCornersWidth":
+          visualizerGroup.add(mandibleCornersWidthMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -1253,8 +1292,9 @@ const init = async () => {
     cheek1Width
     jawWidth
     jawSidesWidth
+    mandibleCornersWidth
    */
-  const selectedVisualizer = "none";
+  const selectedVisualizer = "zygomaticArch";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,
