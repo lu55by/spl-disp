@@ -173,13 +173,13 @@ export function generateFacialMorphs(
   const visualizerByEarMiddleTipsDetection: THREE.Vector3[] = [];
   const visualizerByJawTipsDetection: THREE.Vector3[] = [];
   // Vertices for morphs based on the tips
-  const visualizerByNoseMorph: THREE.Vector3[] = [];
-  const visualizerByNostrilMorph: THREE.Vector3[] = [];
-  const visualizerByMandibleMorph: THREE.Vector3[] = [];
-  const visualizerByEyeBrowMorph: THREE.Vector3[] = [];
+  const visualizerByNoseHeightMorph: THREE.Vector3[] = [];
+  const visualizerByNostrilWidthMorph: THREE.Vector3[] = [];
+  const visualizerByMandibleWidthMorph: THREE.Vector3[] = [];
+  const visualizerByEyeBrowHeightMorph: THREE.Vector3[] = [];
   const visualizerByMouseCornersWidthMorph: THREE.Vector3[] = [];
-  const visualizerByEarMiddleMorph: THREE.Vector3[] = [];
-  const visualizerByEarTopMorph: THREE.Vector3[] = [];
+  const visualizerByEarMiddleWidthMorph: THREE.Vector3[] = [];
+  const visualizerByEarTopThicknessMorph: THREE.Vector3[] = [];
   const visualizerByZygomaticArchWidthMorph: THREE.Vector3[] = [];
   const visualizerByCheek0WidthMorph: THREE.Vector3[] = [];
   const visualizerByCheek1WidthMorph: THREE.Vector3[] = [];
@@ -239,7 +239,7 @@ export function generateFacialMorphs(
   const maxYEarTipDetection = maxYSphCutHead - sphCutHeadHeight * maxPerc;
   const minYEarTipDetection = minYSphCutHead + sphCutHeadHeight * minPerc;
 
-  // 1.2.4 Range for Jaw (relative to noseTip)
+  // 1.2.4 Range for Jaw (relative to the minimum Y of the sphere cut head bounding box, and the noseTip, and the center eye L/R nodes)
   const minYJaw = minYSphCutHead;
   const maxYJaw = noseTip.y;
   const minZJaw = centerEyeLNode.z;
@@ -526,44 +526,46 @@ export function generateFacialMorphs(
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
-  const noseTarget = new Float32Array(positions.count * 3);
-  const nostrilTarget = new Float32Array(positions.count * 3);
-  const mandibleTarget = new Float32Array(positions.count * 3);
-  const eyeBrowTarget = new Float32Array(positions.count * 3);
+  const noseHeightTarget = new Float32Array(positions.count * 3);
+  const nostrilWidthTarget = new Float32Array(positions.count * 3);
+  const mandibleWidthTarget = new Float32Array(positions.count * 3);
+  const eyeBrowHeightTarget = new Float32Array(positions.count * 3);
   const mouseCornersWidthTarget = new Float32Array(positions.count * 3);
-  const earMiddleTarget = new Float32Array(positions.count * 3);
-  const earTopTarget = new Float32Array(positions.count * 3);
+  const earMiddleWidthTarget = new Float32Array(positions.count * 3);
+  const earTopThicknessTarget = new Float32Array(positions.count * 3);
   const zygomaticArchWidthTarget = new Float32Array(positions.count * 3);
-  const cheek0Target = new Float32Array(positions.count * 3);
-  const cheek1Target = new Float32Array(positions.count * 3);
+  const cheek0WidthTarget = new Float32Array(positions.count * 3);
+  const cheek1WidthTarget = new Float32Array(positions.count * 3);
   const jawWidthTarget = new Float32Array(positions.count * 3);
   const jawSidesWidthTarget = new Float32Array(positions.count * 3);
   const mandibleCornersWidthTarget = new Float32Array(positions.count * 3);
 
-  // Parameters for the procedural brushes
-  const noseRadius = 7;
-
-  // 2.2 Traverse through the vertex count to get the morphs
-
+  // 2.2 Traverse through the vertex count to generate the morphs
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
 
-    // --- A. GENERATE NOSE HEIGHT MORPH (Move Forward) ---
-    const distToNoseTip = vertex.distanceTo(noseTip);
-    if (distToNoseTip < noseRadius) {
-      // Influence based on the distance to the nose tip, the further the vertex is from the nose tip, the less influence it has
-      const influence = Math.pow(1 - distToNoseTip / noseRadius, 4);
-      // Indices of the Y and Z coordinates
-      const i3Y = i * 3 + 1;
-      const i3Z = i * 3 + 2;
-      // const factorInf = vertex.y > noseTip.y + 1 ? 1.5 : 0.2;
-      const factorInf = 0.2;
-      const finalInf = factorInf * influence;
-      noseTarget[i3Y] += finalInf;
-      noseTarget[i3Z] += finalInf;
-      // Add the vertex to filtered the nose vertices morph array
-      visualizerByNoseMorph.push(vertex.clone());
-    }
+    // --- A. GENERATE NOSE HEIGHT MORPH (Height, Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      null,
+      noseTip,
+      null,
+      { xRange: 3, yRange: 2.3, zRange: 3 },
+      noseHeightTarget,
+      ["height", "depth"],
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: 1,
+          power: 2,
+          totalInfMode: "All",
+        },
+      },
+      visualizerByNoseHeightMorph,
+      1.2,
+    );
 
     // --- B. GENERATE NOSTRIL WIDTH MORPH (Widening) ---
     applyMorph(
@@ -573,7 +575,7 @@ export function generateFacialMorphs(
       null,
       nostrilTipR,
       { xRange: 2, yRange: 1, zRange: 1 },
-      nostrilTarget,
+      nostrilWidthTarget,
       "widening",
       {
         widening: {
@@ -584,10 +586,8 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
-      visualizerByNostrilMorph,
+      visualizerByNostrilWidthMorph,
       0.8,
     );
 
@@ -599,7 +599,7 @@ export function generateFacialMorphs(
       null,
       mandibleTipR,
       { xRange: 5, yRange: 6.0, zRange: 4.0 },
-      mandibleTarget,
+      mandibleWidthTarget,
       "widening",
       {
         widening: {
@@ -610,10 +610,8 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
-      visualizerByMandibleMorph,
+      visualizerByMandibleWidthMorph,
       1.25,
     );
 
@@ -625,7 +623,7 @@ export function generateFacialMorphs(
       null,
       eyeBrowTipR,
       { xRange: 3.0, yRange: 1.0, zRange: 2 },
-      eyeBrowTarget,
+      eyeBrowHeightTarget,
       "height",
       {
         widening: null,
@@ -635,10 +633,8 @@ export function generateFacialMorphs(
           power: 1,
           totalInfMode: "eyeBrowHeight",
         },
-        isInfXFixed: true,
-        infHeightApplyMode: "normal",
       },
-      visualizerByEyeBrowMorph,
+      visualizerByEyeBrowHeightMorph,
       0.7,
     );
 
@@ -661,8 +657,6 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
       visualizerByMouseCornersWidthMorph,
       1.7,
@@ -676,7 +670,7 @@ export function generateFacialMorphs(
       null,
       earMiddleTipR,
       { xRange: 6, yRange: 3, zRange: 2.5 },
-      earMiddleTarget,
+      earMiddleWidthTarget,
       ["widening", "height"],
       {
         widening: {
@@ -692,10 +686,8 @@ export function generateFacialMorphs(
           power: 2,
           totalInfMode: "All",
         },
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
-      visualizerByEarMiddleMorph,
+      visualizerByEarMiddleWidthMorph,
       0.7,
     );
 
@@ -707,7 +699,7 @@ export function generateFacialMorphs(
       null,
       earTopTipR,
       { xRange: 1.5, yRange: 1.0, zRange: 1.0 },
-      earTopTarget,
+      earTopThicknessTarget,
       "widening",
       {
         widening: {
@@ -718,10 +710,8 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
-      visualizerByEarTopMorph,
+      visualizerByEarTopThicknessMorph,
       0.4,
     );
 
@@ -743,8 +733,6 @@ export function generateFacialMorphs(
           power: 1,
           totalInfMode: "zygomaticArchWidth",
         },
-        isInfXFixed: false,
-        infHeightApplyMode: "tip-y-based",
       },
       visualizerByZygomaticArchWidthMorph,
       1.4,
@@ -758,7 +746,7 @@ export function generateFacialMorphs(
       null,
       cheek0TipR,
       { xRange: 6, yRange: 5, zRange: 2.3 },
-      cheek0Target,
+      cheek0WidthTarget,
       "widening",
       {
         widening: {
@@ -769,8 +757,6 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
       visualizerByCheek0WidthMorph,
       1.1,
@@ -784,7 +770,7 @@ export function generateFacialMorphs(
       null,
       cheek1TipR,
       { xRange: 6, yRange: 5, zRange: 2.8 },
-      cheek1Target,
+      cheek1WidthTarget,
       "widening",
       {
         widening: {
@@ -795,8 +781,6 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
       visualizerByCheek1WidthMorph,
       0.9,
@@ -821,8 +805,6 @@ export function generateFacialMorphs(
           isApplyModeAddition: true,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
       visualizerByJawWidthMorph,
       1.05,
@@ -847,8 +829,6 @@ export function generateFacialMorphs(
           isApplyModeAddition: false,
         },
         heightOrDepth: null,
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
       visualizerByJawSidesWidthMorph,
       1.1,
@@ -872,8 +852,6 @@ export function generateFacialMorphs(
           power: 1,
           totalInfMode: "mandibleCornersWidth",
         },
-        isInfXFixed: false,
-        infHeightApplyMode: "normal",
       },
       visualizerByMandibleCornersWidthMorph,
       1.05,
@@ -884,22 +862,25 @@ export function generateFacialMorphs(
    * Ⅲ. APPLY THE MORPH TARGETS
    */
   // 3.1 Create the BufferAttributes for the morphs
-  const noseHeightAttr = new THREE.BufferAttribute(noseTarget, 3);
-  const nostrilWidthAttr = new THREE.BufferAttribute(nostrilTarget, 3);
-  const mandibleWidthAttr = new THREE.BufferAttribute(mandibleTarget, 3);
-  const eyeBrowHeightAttr = new THREE.BufferAttribute(eyeBrowTarget, 3);
+  const noseHeightAttr = new THREE.BufferAttribute(noseHeightTarget, 3);
+  const nostrilWidthAttr = new THREE.BufferAttribute(nostrilWidthTarget, 3);
+  const mandibleWidthAttr = new THREE.BufferAttribute(mandibleWidthTarget, 3);
+  const eyeBrowHeightAttr = new THREE.BufferAttribute(eyeBrowHeightTarget, 3);
   const mouseCornersWidthAttr = new THREE.BufferAttribute(
     mouseCornersWidthTarget,
     3,
   );
-  const earMiddleWidthAttr = new THREE.BufferAttribute(earMiddleTarget, 3);
-  const earTopAttrThickness = new THREE.BufferAttribute(earTopTarget, 3);
+  const earMiddleWidthAttr = new THREE.BufferAttribute(earMiddleWidthTarget, 3);
+  const earTopThicknessAttr = new THREE.BufferAttribute(
+    earTopThicknessTarget,
+    3,
+  );
   const zygomaticArchWidthAttr = new THREE.BufferAttribute(
     zygomaticArchWidthTarget,
     3,
   );
-  const cheek0WidthAttr = new THREE.BufferAttribute(cheek0Target, 3);
-  const cheek1WidthAttr = new THREE.BufferAttribute(cheek1Target, 3);
+  const cheek0WidthAttr = new THREE.BufferAttribute(cheek0WidthTarget, 3);
+  const cheek1WidthAttr = new THREE.BufferAttribute(cheek1WidthTarget, 3);
   const jawWidthAttr = new THREE.BufferAttribute(jawWidthTarget, 3);
   const jawSidesWidthAttr = new THREE.BufferAttribute(jawSidesWidthTarget, 3);
   const mandibleCornersWidthAttr = new THREE.BufferAttribute(
@@ -914,7 +895,7 @@ export function generateFacialMorphs(
   eyeBrowHeightAttr.name = "eyeBrowHeight";
   mouseCornersWidthAttr.name = "mouseCornersWidth";
   earMiddleWidthAttr.name = "earMiddleWidth";
-  earTopAttrThickness.name = "earTopThickness";
+  earTopThicknessAttr.name = "earTopThickness";
   zygomaticArchWidthAttr.name = "zygomaticArchWidth";
   cheek0WidthAttr.name = "cheek0Width";
   cheek1WidthAttr.name = "cheek1Width";
@@ -930,7 +911,7 @@ export function generateFacialMorphs(
     eyeBrowHeightAttr,
     mouseCornersWidthAttr,
     earMiddleWidthAttr,
-    earTopAttrThickness,
+    earTopThicknessAttr,
     zygomaticArchWidthAttr,
     cheek0WidthAttr,
     cheek1WidthAttr,
@@ -1004,13 +985,13 @@ export function generateFacialMorphs(
     visualizerByEarMiddleTipsDetection,
     visualizerByJawTipsDetection,
     // Morph
-    visualizerByNoseMorph,
-    visualizerByNostrilMorph,
-    visualizerByMandibleMorph,
-    visualizerByEyeBrowMorph,
+    visualizerByNoseHeightMorph,
+    visualizerByNostrilWidthMorph,
+    visualizerByMandibleWidthMorph,
+    visualizerByEyeBrowHeightMorph,
     visualizerByMouseCornersWidthMorph,
-    visualizerByEarMiddleMorph,
-    visualizerByEarTopMorph,
+    visualizerByEarMiddleWidthMorph,
+    visualizerByEarTopThicknessMorph,
     visualizerByZygomaticArchWidthMorph,
     visualizerByCheek0WidthMorph,
     visualizerByCheek1WidthMorph,
@@ -1094,54 +1075,6 @@ export function bakeMorphTargets(mesh: THREE.Mesh): void {
 }
 
 /**
- * Finds the lateral extremes (min X and max X) within a target bounding box relative to a reference point.
- * Used for detecting mandible angles, nostrils, etc.
- * @param referencePoint The reference point (e.g., nose tip) to calculate the offsets from.
- * @param range The offsets for Y and Z axes to define the search region.
- * @param positions The position attribute of the geometry.
- * @param tipL The vector to store the left-most vertex (min X).
- * @param tipR The vector to store the right-most vertex (max X).
- * @param visualizer Optional array to store all vertices within the range for visualization.
- */
-function findLateralTips(
-  referencePoint: THREE.Vector3,
-  range: {
-    yMinOffset: number;
-    yMaxOffset: number;
-    zMinOffset: number;
-    zMaxOffset: number;
-  },
-  positions: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
-  tipL: THREE.Vector3,
-  tipR: THREE.Vector3,
-  visualizer?: THREE.Vector3[],
-): void {
-  const yMin = referencePoint.y + range.yMinOffset;
-  const yMax = referencePoint.y + range.yMaxOffset;
-  const zMin = referencePoint.z + range.zMinOffset;
-  const zMax = referencePoint.z + range.zMaxOffset;
-
-  const vertex = new THREE.Vector3();
-
-  for (let i = 0; i < positions.count; i++) {
-    vertex.fromBufferAttribute(positions, i);
-    // Filter for the specified region relative to the reference point
-    if (
-      vertex.y > yMin &&
-      vertex.y < yMax &&
-      vertex.z > zMin &&
-      vertex.z < zMax
-    ) {
-      // Find the lateral extremes (min X for left, max X for right)
-      if (vertex.x < tipL.x) tipL.copy(vertex);
-      if (vertex.x > tipR.x) tipR.copy(vertex);
-      // Add the vertex to the visualizer array if provided
-      if (visualizer) visualizer.push(vertex.clone());
-    }
-  }
-}
-
-/**
  * Applies a morph to a vertex based on its proximity to the nearest lateral tip (L/R).
  * @param vertex The current vertex being processed.
  * @param index The index of the vertex.
@@ -1180,8 +1113,6 @@ function applyMorph(
         | "mandibleCornersWidth"
         | "All";
     } | null;
-    isInfXFixed: boolean;
-    infHeightApplyMode: "normal" | "tip-y-based";
   },
   visualizer?: THREE.Vector3[],
   totalInfluenceStrength: number = 1.25,

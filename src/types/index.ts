@@ -76,19 +76,19 @@ export interface FacialMorphsVisualizers {
     Morph
   */
   // Nose Morph
-  visualizerByNoseMorph: Vector3[];
+  visualizerByNoseHeightMorph: Vector3[];
   // Nostril Morph
-  visualizerByNostrilMorph: Vector3[];
+  visualizerByNostrilWidthMorph: Vector3[];
   // Mandible Morph
-  visualizerByMandibleMorph: Vector3[];
+  visualizerByMandibleWidthMorph: Vector3[];
   // Eye Brow Morph
-  visualizerByEyeBrowMorph: Vector3[];
+  visualizerByEyeBrowHeightMorph: Vector3[];
   // Mouse Corners Width Morph
   visualizerByMouseCornersWidthMorph: Vector3[];
   // Ear Middle Morph
-  visualizerByEarMiddleMorph: Vector3[];
+  visualizerByEarMiddleWidthMorph: Vector3[];
   // Ear Top Morph
-  visualizerByEarTopMorph: Vector3[];
+  visualizerByEarTopThicknessMorph: Vector3[];
   // Zygomatic Arch Width Morph
   visualizerByZygomaticArchWidthMorph: Vector3[];
   // Face Width Morph
