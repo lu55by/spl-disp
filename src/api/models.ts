@@ -14,18 +14,20 @@ export const modelService = {
    * @param formData The form data containing the file and metadata
    * @param isHair Whether the uploaded model is a hair, body otherwise
    * @param onProgress Callback function to track upload progress
+   * @param baseUrl The base URL of the selected server
    */
   uploadModel(
     formData: FormData,
     isHair: boolean,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    baseUrl?: string,
   ) {
     const endpoint = isHair ? ENDPOINTS.UPLOAD_HAIR : ENDPOINTS.UPLOAD_BODY;
     // Iterate through the formData to log all keys and their values
     formData.forEach((value, key) => {
       console.log(
         `\n-- uploadModel -- formData key -> ${key}, value ->`,
-        value
+        value,
       );
     });
     console.log("\n-- uploadModel -- isHair ->", isHair);
@@ -33,13 +35,14 @@ export const modelService = {
     // return;
 
     return apiClient.post(endpoint, formData, {
+      baseURL: baseUrl,
       headers: {
         "Content-Type": "multipart/form-data",
       },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
           const progress = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
+            (progressEvent.loaded * 100) / progressEvent.total,
           );
           onProgress(progress);
         }

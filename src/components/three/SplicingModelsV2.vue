@@ -1373,7 +1373,7 @@ const init = async () => {
     foreheadDepth
     foreheadHeight
    */
-  const selectedVisualizer = "foreheadHeight";
+  const selectedVisualizer = "earTop";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,

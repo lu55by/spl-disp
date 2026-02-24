@@ -2318,9 +2318,14 @@ export async function replaceCurrentHeadWithCutHead(
 export function applySphCutHeadHeightDataAndAdjustPivot(
   headModel: THREE.Group<THREE.Object3DEventMap>,
 ) {
+  console.log(
+    "\n -- applySphCutHeadHeightDataAndAdjustPivot -- headModel ->",
+    headModel,
+  );
   // Calculate the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight and store it to the userData of the loadedHeadModel
   const headNode = (headModel.getObjectByName(NodeNames.HeadNames.Head) ||
-    headModel.getObjectByName("CutHeadNode")) as THREE.Mesh;
+    headModel.getObjectByName("CutHeadNode") ||
+    headModel.getObjectByName("FBHead")) as THREE.Mesh;
   const sphCutHead = csgSubtract(
     headNode,
     SphereCutter,

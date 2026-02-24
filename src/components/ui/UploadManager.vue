@@ -57,7 +57,11 @@
                   class="text-cyan-400 font-futuristic tracking-[0.2em] text-xl uppercase"
                 >
                   {{
-                    currentStep === "select" ? "选择上传类型" : "完善模型信息"
+                    currentStep === "select"
+                      ? "选择上传类型"
+                      : currentStep === "server"
+                      ? "选择上传服务器"
+                      : "完善模型信息"
                   }}
                 </h3>
               </div>
@@ -68,18 +72,37 @@
 
             <!-- Step 1: Selection -->
             <div v-if="currentStep === 'select'" class="flex flex-col gap-4">
-              <Button @click="goToForm('Default')">
+              <Button @click="goToSelectServer('Default')">
                 {{ UIContents.DefaultOutfitZH }}
               </Button>
-              <Button @click="goToForm('Normal Outfit')" :disabled="true">
+              <Button
+                @click="goToSelectServer('Normal Outfit')"
+                :disabled="true"
+              >
                 {{ UIContents.NormalOutfitZH }}
               </Button>
-              <Button @click="goToForm('IP Outfit')" :disabled="true">
+              <Button @click="goToSelectServer('IP Outfit')" :disabled="true">
                 {{ UIContents.IPOutfitZH }}
               </Button>
             </div>
 
-            <!-- Step 2: Form -->
+            <!-- Step 2: Server Selection -->
+            <div v-else-if="currentStep === 'server'" class="flex flex-col gap-4">
+              <Button @click="goToForm(innerBaseUrl)">
+                上传至内网测试服务器
+              </Button>
+              <Button @click="goToForm(outerBaseUrl)">
+                上传至外网测试服务器
+              </Button>
+              <button
+                @click="currentStep = 'select'"
+                class="w-full py-2.5 border border-cyan-500/20 text-cyan-500/50 hover:border-cyan-500/50 hover:text-cyan-400 transition-all text-xs uppercase tracking-[0.2em] font-futuristic"
+              >
+                返回
+              </button>
+            </div>
+
+            <!-- Step 3: Form -->
             <div v-else class="flex flex-col gap-5" @click.stop>
               <!-- Name Input -->
               <div class="flex flex-col gap-1.5">
@@ -182,7 +205,7 @@
               <!-- Action Buttons -->
               <div class="flex gap-4 mt-2">
                 <button
-                  @click="currentStep = 'select'"
+                  @click="currentStep = 'server'"
                   class="flex-1 py-2.5 border border-cyan-500/20 text-cyan-500/50 hover:border-cyan-500/50 hover:text-cyan-400 transition-all text-xs uppercase tracking-[0.2em] font-futuristic"
                 >
                   返回
@@ -225,18 +248,26 @@ import { storeToRefs } from "pinia";
 import { reactive, ref } from "vue";
 import { toast } from "vue3-toastify";
 import { ToastContentsUpload, UIContents } from "../../constants";
+import { useAuthStore } from "../../stores/useAuthStore";
 import { useModelsStore } from "../../stores/useModelsStore";
 import { CutHeadEyesNodeCombinedGroupName } from "../../three/constants";
 import type { UploadModelInputFields } from "../../types";
 import Button from "./Button.vue";
 
+const authStore = useAuthStore();
 const modelsStore = useModelsStore();
 const { selectedObject, isUploadModalVisible } =
   storeToRefs(modelsStore);
 
 const isUploading = ref(false);
-const currentStep = ref<"select" | "form">("select");
+const currentStep = ref<"select" | "server" | "form">("select");
 const selectedType = ref<"Default" | "Normal Outfit" | "IP Outfit">("Default");
+// Currently selected server URL for upload
+const selectedServerUrl = ref("");
+
+// Server Base URLs from Env
+const innerBaseUrl = import.meta.env.VITE_API_INNER_BASE_URL || "";
+const outerBaseUrl = import.meta.env.VITE_API_OUTER_BASE_URL || "";
 
 const formFields = reactive<UploadModelInputFields>({
   name: "",
@@ -250,8 +281,21 @@ const showModal = () => {
   modelsStore.setUploadModalVisible(true);
 };
 
-const goToForm = (type: "Default" | "Normal Outfit" | "IP Outfit") => {
+/**
+ * Go to the server selection step.
+ * @param type The outfit type for the uploaded model
+ */
+const goToSelectServer = (type: "Default" | "Normal Outfit" | "IP Outfit") => {
   selectedType.value = type;
+  currentStep.value = "server";
+};
+
+/**
+ * Go to the form step and set the selected server URL.
+ * @param url The base URL of the selected server
+ */
+const goToForm = (url: string) => {
+  selectedServerUrl.value = url;
   currentStep.value = "form";
 
   // Pre-populate defaults
@@ -272,9 +316,19 @@ const handleUpload = async () => {
   const loadingToastId = toast.loading(ToastContentsUpload.Loading);
 
   try {
-    const success = await modelsStore.uploadSelectedObject(selectedType.value, {
-      ...formFields,
-    });
+    // 1. Fetch token for the selected server to ensure the upload is authorized
+    await authStore.fetchToken(selectedServerUrl.value);
+
+    // 2. Clear previous errors in case of success
+    authStore.error = null;
+
+    const success = await modelsStore.uploadSelectedObject(
+      selectedType.value,
+      {
+        ...formFields,
+      },
+      selectedServerUrl.value
+    );
 
     if (success) {
       toast.update(loadingToastId, {

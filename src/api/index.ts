@@ -18,16 +18,20 @@ apiClient.interceptors.request.use(
     // Access the auth store
     const authStore = useAuthStore();
 
-    // If a token exists in the store, add it to the Authorization header
-    if (authStore.token) {
-      config.headers["Authorization"] = `Bearer ${authStore.token}`;
+    // If a token exists in the store for the current baseURL, add it to the Authorization header
+    const token = authStore.getToken(
+      config.baseURL || import.meta.env.VITE_API_BASE_URL,
+    );
+
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
 
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor (useful for global error handling)
@@ -38,7 +42,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Global error handling logic
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

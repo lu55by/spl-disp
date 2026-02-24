@@ -831,10 +831,13 @@ export const useModelsStore = defineStore("models", {
     /**
      * Upload the selected object to the database (either a hair or body).
      * @param outfitType The outfit type for the uploaded model
+     * @param uploadModelInputFields The input fields for the uploaded model
+     * @param baseUrl The base URL of the selected server
      */
     async uploadSelectedObject(
       outfitType: "Default" | "Normal Outfit" | "IP Outfit",
       uploadModelInputFields: UploadModelInputFields,
+      baseUrl: string,
     ): Promise<boolean> {
       if (!this.selectedObject) {
         console.warn("No object selected for upload.");
@@ -982,6 +985,7 @@ export const useModelsStore = defineStore("models", {
               `\nModel ${this.selectedObject.name} Upload progress -> ${progress}%`,
             );
           },
+          baseUrl,
         );
 
         const resCode: number = response.data.code;
