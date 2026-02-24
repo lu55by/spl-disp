@@ -1231,7 +1231,7 @@ export function bakeMorphTargets(mesh: THREE.Mesh): void {
  * @param index The index of the vertex.
  * @param tipL The detected left-side tip.
  * @param tipR The detected right-side tip.
- * @param ranges Range for X, Y and Z influence.
+ * @param ranges Range for include the vertices in the morph.
  * @param targetArray The target Float32Array to write the morph delta to.
  * @param type The type of morph to apply (widening, height, depth).
  * @param visualizer Optional array to store the vertex for visualization if it was affected.

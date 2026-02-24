@@ -141,10 +141,7 @@ const init = async () => {
   // const ambientLight = new THREE.AmbientLight("#fff", 3);
   // scene.add(ambientLight);
 
-  // const directionalLight = new THREE.DirectionalLight(
-  //   "#fff",
-  //   DirectionalLightIntensity
-  // );
+  // const directionalLight = new THREE.DirectionalLight("#fff", 2);
   // directionalLight.position.set(4, 3, 1);
   // scene.add(directionalLight);
 
@@ -1092,6 +1089,19 @@ const init = async () => {
     scene.add(cutHeadDefault);
   };
 
+  const headV2Tst = async () => {
+    const headModel = await OBJLoaderInstance.loadAsync(
+      "models/head/v2/new-head-01.obj",
+    );
+    const headTex = await loadTexture("models/head/v2/map.png");
+    const headNode = headModel.children[0] as PhongMesh;
+    headNode.material.map = headTex;
+    console.log("\n -- headV2Tst -- headModel ->", headModel);
+    applyPBRMaterialAndSRGBColorSpace(headModel, true);
+    applyDoubleSide(headModel);
+    scene.add(headModel);
+  };
+
   // loadHairTst();
 
   // loadHeadTst();
@@ -1100,7 +1110,7 @@ const init = async () => {
 
   // loadBodyTst();
 
-  loadMultipleCutHeads();
+  // loadMultipleCutHeads();
 
   // loadExportedFullModelsTst();
 
@@ -1109,6 +1119,8 @@ const init = async () => {
   // manifoldTst();
 
   // oralCutterTst();
+
+  headV2Tst();
 };
 
 // Resize fn

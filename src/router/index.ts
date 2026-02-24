@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import SplicingModelsMainContainer from "../components/SplicingModelsMainContainer.vue";
+// import SplicingModelsMainContainer from "../components/SplicingModelsMainContainer.vue";
 import PageNotFound from "../components/ui/PageNotFound.vue";
+import ThreeSceneTst from "@/components/three/ThreeSceneTst.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -8,12 +9,14 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: SplicingModelsMainContainer,
+      // component: SplicingModelsMainContainer,
+      component: ThreeSceneTst,
     },
     {
       path: "/mode/:mode",
       name: "mode",
-      component: SplicingModelsMainContainer,
+      // component: SplicingModelsMainContainer,
+      component: ThreeSceneTst,
       // Validation to ensure only 'morph' is allowed -> others go to 404
       beforeEnter: (to, from, next) => {
         if (to.params.mode === "morph") {
