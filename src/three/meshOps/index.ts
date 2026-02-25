@@ -1153,6 +1153,284 @@ export function generateFacialMorphs(
 }
 
 /**
+ * Generates only ear morphs for a given model (Test version).
+ * @param model The model to generate ear morphs for.
+ * @param manualTips The manual selected tips (not used for ears currently).
+ */
+export function generateFacialMorphsTst(
+  model: THREE.Group,
+  manualTips?: {
+    mandibleTipL?: THREE.Vector3;
+    mandibleTipR?: THREE.Vector3;
+    eyeBrowTipL?: THREE.Vector3;
+    eyeBrowTipR?: THREE.Vector3;
+    mouseCornerTipL?: THREE.Vector3;
+    mouseCornerTipR?: THREE.Vector3;
+    zygomaticArchTipL?: THREE.Vector3;
+    zygomaticArchTipR?: THREE.Vector3;
+  },
+): FacialMorphsVisualizers {
+  /*
+    PRE-LOGS
+   */
+  console.log(
+    `\n---- Ready to generate ear morphs (test) for [${model.name}] ----\n`,
+  );
+  console.log("\n -- generateFacialMorphsTst -- model ->", model);
+
+  /*
+    Get the head node based on the node name
+   */
+  const headNode = model.children[0] as THREE.Mesh;
+
+  /*
+    Check if the geometry has morph attributes
+  */
+  if (headNode.geometry.morphAttributes.position) {
+    console.warn(
+      "\n -- generateFacialMorphsTst -- mesh.geometry.morphAttributes.position exists, overwriting...",
+    );
+  }
+
+  /*
+    Get the minYSphCutHead, maxYSphCutHead and sphCutHeadHeight from the headNode.parent userData
+  */
+  const { min, max } = new THREE.Box3().setFromObject(headNode);
+  const minYSphCutHead = min.y;
+  const maxYSphCutHead = max.y;
+  const sphCutHeadHeight = max.y - min.y;
+
+  /*
+    Get the original geometry of the head node
+   */
+  const geoOrg = headNode.geometry;
+
+  /*
+    Clone the head node geometry to ensure we don't affect other meshes sharing the same geometry
+   */
+  headNode.geometry = headNode.geometry.clone();
+
+  /*
+    Dispose the original geometry
+   */
+  geoOrg.dispose();
+
+  const geo = headNode.geometry;
+
+  /*
+    Get the positions attribute from the head node geometry
+   */
+  const positions = geo.getAttribute("position");
+  const vertex = new THREE.Vector3();
+
+  /*
+    Tips for the morphs
+   */
+  // Ear Middle Tips
+  let earMiddleTipL = new THREE.Vector3(Infinity, 0, 0);
+  let earMiddleTipR = new THREE.Vector3(-Infinity, 0, 0);
+  // Ear Top Tips
+  let earTopTipL = new THREE.Vector3(Infinity, 0, 0);
+  let earTopTipR = new THREE.Vector3(-Infinity, 0, 0);
+
+  /*
+    Vertices for visualization
+   */
+  const visualizerByEarMiddleTipsDetection: THREE.Vector3[] = [];
+  const visualizerByEarMiddleWidthMorph: THREE.Vector3[] = [];
+  const visualizerByEarTopThicknessMorph: THREE.Vector3[] = [];
+
+  /**
+   * Ⅰ. EAR TIPS DETECTION
+   */
+  const maxPerc = 0.3;
+  const minPerc = 0.25;
+  const maxYEarTipDetection = maxYSphCutHead - sphCutHeadHeight * maxPerc;
+  const minYEarTipDetection = minYSphCutHead + sphCutHeadHeight * minPerc;
+
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+
+    if (vertex.y <= maxYEarTipDetection && vertex.y >= minYEarTipDetection) {
+      // Find the ear tips with the max X and min X
+      if (vertex.x < earMiddleTipL.x) earMiddleTipL.copy(vertex);
+      if (vertex.x > earMiddleTipR.x) earMiddleTipR.copy(vertex);
+      visualizerByEarMiddleTipsDetection.push(vertex.clone());
+    }
+  }
+
+  /**
+   * Ⅱ. EAR TIPS SETUP
+   */
+  // Set the ear top tips to be the same as the cloned ear middle tips
+  earTopTipL.copy(earMiddleTipL.clone());
+  earTopTipR.copy(earMiddleTipR.clone());
+  // Offset the ear middle tips on the Y axis
+  earMiddleTipL.sub(new THREE.Vector3(0, 0.2, 0));
+  earMiddleTipR.sub(new THREE.Vector3(0, 0.2, 0));
+
+  console.log(
+    "\n -- generateFacialMorphsTst -- earTopTipL calculated ->",
+    earTopTipL.x === Infinity ? "Not Found" : earTopTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphsTst -- earTopTipR calculated ->",
+    earTopTipR.x === -Infinity ? "Not Found" : earTopTipR,
+  );
+
+  /**
+   * Ⅲ. CREATE BUFFERS FOR MORPHS
+   */
+  const earMiddleWidthTarget = new Float32Array(positions.count * 3);
+  const earTopThicknessTarget = new Float32Array(positions.count * 3);
+
+  for (let i = 0; i < positions.count; i++) {
+    vertex.fromBufferAttribute(positions, i);
+
+    // --- F. GENERATE EAR TIPS WIDTH MORPH (Widening, Height) ---
+    applyMorph(
+      vertex,
+      i,
+      earMiddleTipL,
+      null,
+      earMiddleTipR,
+      { xRange: 2, yRange: 0.5, zRange: 0.3 },
+      earMiddleWidthTarget,
+      ["widening", "height"],
+      {
+        widening: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 2,
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 2,
+          totalInfMode: "All",
+        },
+      },
+      visualizerByEarMiddleWidthMorph,
+      0.35,
+    );
+
+    // --- G. GENERATE EAR TOP MORPH (Widening) ---
+    applyMorph(
+      vertex,
+      i,
+      earTopTipL,
+      null,
+      earTopTipR,
+      { xRange: 0.75, yRange: 0.5, zRange: 0.2 },
+      earTopThicknessTarget,
+      "widening",
+      {
+        widening: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 2,
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+        heightOrDepth: null,
+      },
+      visualizerByEarTopThicknessMorph,
+      0.2,
+    );
+  }
+
+  // Ⅳ. ASSIGN MORPH ATTRIBUTES
+  const earMiddleWidthAttr = new THREE.BufferAttribute(earMiddleWidthTarget, 3);
+  const earTopThicknessAttr = new THREE.BufferAttribute(
+    earTopThicknessTarget,
+    3,
+  );
+
+  earMiddleWidthAttr.name = "earMiddleWidth";
+  earTopThicknessAttr.name = "earTopThickness";
+
+  geo.morphAttributes.position = [earMiddleWidthAttr, earTopThicknessAttr];
+  geo.computeVertexNormals();
+  geo.morphTargetsRelative = true;
+  headNode.updateMorphTargets();
+
+  if (headNode.material) {
+    if (Array.isArray(headNode.material)) {
+      headNode.material.forEach((mat) => (mat.needsUpdate = true));
+    } else {
+      headNode.material.needsUpdate = true;
+    }
+  }
+
+  /**
+   * Ⅴ. RETURN THE RESULTS FOR VISUALIZATION
+   */
+  const emptyVec = new THREE.Vector3(Infinity, 0, 0);
+  const emptyVecNeg = new THREE.Vector3(-Infinity, 0, 0);
+
+  return {
+    // Tips
+    visualizerNoseTip: new THREE.Vector3(0, 0, -Infinity),
+    visualizerNostrilTipL: emptyVec.clone(),
+    visualizerNostrilTipR: emptyVecNeg.clone(),
+    visualizerMandibleTipL: emptyVec.clone(),
+    visualizerMandibleTipR: emptyVecNeg.clone(),
+    visualizerEyeBrowTipL: emptyVec.clone(),
+    visualizerEyeBrowTipR: emptyVecNeg.clone(),
+    visualizerMouseCornerTipL: emptyVec.clone(),
+    visualizerMouseCornerTipR: emptyVecNeg.clone(),
+    visualizerEarMiddleTipL: earMiddleTipL,
+    visualizerEarMiddleTipR: earMiddleTipR,
+    visualizerEarTopTipL: earTopTipL,
+    visualizerEarTopTipR: earTopTipR,
+    visualizerZygomaticArchTipL: emptyVec.clone(),
+    visualizerZygomaticArchTipR: emptyVecNeg.clone(),
+    visualizerCheek0TipL: emptyVec.clone(),
+    visualizerCheek0TipR: emptyVecNeg.clone(),
+    visualizerCheek1TipL: emptyVec.clone(),
+    visualizerCheek1TipR: emptyVecNeg.clone(),
+    visualizerJawTipL: new THREE.Vector3(),
+    visualizerJawTipR: new THREE.Vector3(),
+    visualizerJawTipM: new THREE.Vector3(0, Infinity, 0),
+    visualizerMandibleCornerTipL: new THREE.Vector3(),
+    visualizerMandibleCornerTipR: new THREE.Vector3(),
+    visualizerForeheadTipL: new THREE.Vector3(),
+    visualizerForeheadTipR: new THREE.Vector3(),
+    visualizerForeheadTipM: new THREE.Vector3(),
+    // Detection
+    visualizerByNoseTipDetection: [],
+    visualizerByNostrilTipsDetection: [],
+    visualizerByMandibleTipsDetection: [],
+    visualizerByEyeBrowTipsDetection: [],
+    visualizerByMouseCornerTipsDetection: [],
+    visualizerByEarMiddleTipsDetection,
+    visualizerByJawTipsDetection: [],
+    // Morph
+    visualizerByNoseHeightMorph: [],
+    visualizerByNostrilWidthMorph: [],
+    visualizerByMandibleWidthMorph: [],
+    visualizerByEyeBrowHeightMorph: [],
+    visualizerByMouseCornersWidthMorph: [],
+    visualizerByEarMiddleWidthMorph,
+    visualizerByEarTopThicknessMorph,
+    visualizerByZygomaticArchWidthMorph: [],
+    visualizerByCheek0WidthMorph: [],
+    visualizerByCheek1WidthMorph: [],
+    visualizerByJawWidthMorph: [],
+    visualizerByJawSidesWidthMorph: [],
+    visualizerByMandibleCornersWidthMorph: [],
+    visualizerByForeheadWidthMorph: [],
+    visualizerByForeheadDepthMorph: [],
+    visualizerByForeheadHeightMorph: [],
+  };
+}
+
+/**
  * Bakes the current morph target influences into the geometry's position attribute.
  * This effectively makes the current morph state the "base" shape of the mesh.
  * @param mesh The mesh to bake morphs for.

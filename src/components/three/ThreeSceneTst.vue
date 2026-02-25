@@ -1,5 +1,19 @@
 <template>
-  <canvas class="h-full w-full relative" ref="canvasEle"></canvas>
+  <div class="relative h-full w-full overflow-hidden">
+    <canvas class="h-full w-full" ref="canvasEle"></canvas>
+
+    <!-- Futuristic Export Button -->
+    <div class="fixed top-10 left-10 z-100 flex flex-col items-end gap-4">
+      <button @click="handleExport" class="futuristic-export-btn">
+        <div class="btn-content">
+          <span class="btn-glitch-text" data-text="EXPORT_MODEL">EXPORT_MODEL</span>
+          <div class="btn-decor-line"></div>
+        </div>
+        <div class="btn-corner top-left"></div>
+        <div class="btn-corner bottom-right"></div>
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -39,7 +53,10 @@ import {
   type StandardMesh,
 } from "../../three/constants";
 import { csgSubtract } from "../../three/csg";
-import { exportObjectToOBJ } from "../../three/exporters";
+import {
+  exportObjectToOBJ,
+  exportSplicingGroup,
+} from "../../three/exporters";
 import { addTransformDebug, addTransformDebugInspector } from "../../three/gui";
 import { GUIGlobal } from "../../three/gui/global";
 import { loadObj } from "../../three/loaders/ModelLoader";
@@ -52,6 +69,7 @@ import {
   applyTextures2LoadedHeadModelAsync,
   combineMeshesToGroup,
   generateFacialMorphs,
+  generateFacialMorphsTst,
   modifyNewVerticesUv,
   scaleGroupToHeight,
 } from "../../three/meshOps";
@@ -60,6 +78,28 @@ import { getCutHead } from "../../three/utils/csgCutHeadV3";
 
 // Canvas Element
 const canvasEle = ref<HTMLCanvasElement | null>(null);
+
+// Reference for the head model to be exported
+const headModelRef = ref<THREE.Group | null>(null);
+
+/**
+ * Handles the export of the splicing group (Head Model)
+ */
+const handleExport = async () => {
+  if (headModelRef.value) {
+    console.log(
+      "\n -- handleExport -- preparing to export splicing group ->",
+      headModelRef.value,
+    );
+    // Export the group with textures bundled in a ZIP
+    await exportSplicingGroup(headModelRef.value);
+  } else {
+    console.warn(
+      "\n -- handleExport -- headModel is not loaded yet ->",
+      headModelRef.value,
+    );
+  }
+};
 
 const { splicingGroupGlobal: globalGroup } = useModelsStore();
 console.log("Global Group ->", globalGroup);
@@ -1090,16 +1130,94 @@ const init = async () => {
   };
 
   const headV2Tst = async () => {
-    const headModel = await OBJLoaderInstance.loadAsync(
+    const headModel = (await OBJLoaderInstance.loadAsync(
       "models/head/v2/new-head-01.obj",
-    );
+    )) as THREE.Group;
+
+    // Store the reference for exporting
+    headModelRef.value = headModel;
+
+    scene.add(headModel);
     const headTex = await loadTexture("models/head/v2/map.png");
     const headNode = headModel.children[0] as PhongMesh;
     headNode.material.map = headTex;
     console.log("\n -- headV2Tst -- headModel ->", headModel);
     applyPBRMaterialAndSRGBColorSpace(headModel, true);
     applyDoubleSide(headModel);
-    scene.add(headModel);
+
+    /*
+      Generate facial morphs
+    */
+    const {
+      visualizerEarMiddleTipL, // Vector3
+      visualizerEarMiddleTipR, // Vector3
+      visualizerEarTopTipL, // Vector3
+      visualizerEarTopTipR, // Vector3
+      visualizerByEarMiddleWidthMorph, // Vector3[]
+      visualizerByEarTopThicknessMorph, // Vector3[]
+    } = generateFacialMorphsTst(headModel);
+
+    console.log(
+      "\n -- headV2Tst -- headModel after generating facial morphs ->",
+      headModel,
+    );
+
+    // Add visualizers to the scene
+    // Tips
+    const earMiddleTipL = new THREE.Mesh(
+      new THREE.SphereGeometry(0.01, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+    );
+    earMiddleTipL.position.copy(visualizerEarMiddleTipL);
+    scene.add(earMiddleTipL);
+
+    const earMiddleTipR = new THREE.Mesh(
+      new THREE.SphereGeometry(0.01, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+    );
+    earMiddleTipR.position.copy(visualizerEarMiddleTipR);
+    scene.add(earMiddleTipR);
+
+    const earTopTipL = new THREE.Mesh(
+      new THREE.SphereGeometry(0.01, 16, 16),
+      new THREE.MeshBasicMaterial({ color: "#0ff" }),
+    );
+    earTopTipL.position.copy(visualizerEarTopTipL);
+    scene.add(earTopTipL);
+
+    const earTopTipR = new THREE.Mesh(
+      new THREE.SphereGeometry(0.01, 16, 16),
+      new THREE.MeshBasicMaterial({ color: "#0ff" }),
+    );
+    earTopTipR.position.copy(visualizerEarTopTipR);
+    scene.add(earTopTipR);
+
+    // Morphs
+    const visualizerByEarMiddleMorphGeo =
+      new THREE.BufferGeometry().setFromPoints(visualizerByEarMiddleWidthMorph);
+    const earMiddleMorphPoints = new THREE.Points(
+      visualizerByEarMiddleMorphGeo,
+      new THREE.PointsMaterial({ color: 0xff0000, size: 0.01 }),
+    );
+    // scene.add(earMiddleMorphPoints);
+
+    const visualizerByEarTopMorphGeo = new THREE.BufferGeometry().setFromPoints(
+      visualizerByEarTopThicknessMorph,
+    );
+    const earTopMorphPoints = new THREE.Points(
+      visualizerByEarTopMorphGeo,
+      new THREE.PointsMaterial({ color: "#0ff", size: 0.01 }),
+    );
+    scene.add(earTopMorphPoints);
+
+    const morphFolder = guiInspectorFolderCutHead.addFolder("New Head Morphs");
+    morphFolder
+      .add(headNode.morphTargetInfluences, 0, 0, 1, 0.01)
+      .name("Ear Middle Width");
+    morphFolder
+      .add(headNode.morphTargetInfluences, 1, 0, 1, 0.01)
+      .name("Ear Top Thickness");
+
   };
 
   // loadHairTst();
@@ -1171,3 +1289,133 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
 });
 </script>
+
+<style scoped>
+.futuristic-export-btn {
+  position: relative;
+  background: rgba(0, 15, 25, 0.7);
+  color: #00ffff;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  padding: 16px 32px;
+  font-family: "Outfit", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow:
+    inset 0 0 15px rgba(0, 255, 255, 0.05),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+
+.futuristic-export-btn:hover {
+  border-color: #00ffff;
+  color: #ffffff;
+  background: rgba(0, 30, 45, 0.85);
+  box-shadow:
+    inset 0 0 25px rgba(0, 255, 255, 0.15),
+    0 0 30px rgba(0, 255, 255, 0.4);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.futuristic-export-btn:active {
+  transform: translateY(0px) scale(0.96);
+}
+
+.btn-content {
+  position: relative;
+  z-index: 2;
+}
+
+.btn-glitch-text {
+  position: relative;
+}
+
+.btn-glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  color: #ff00ff;
+  z-index: -1;
+}
+
+.futuristic-export-btn:hover .btn-glitch-text::after {
+  animation: glitch 0.43s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+  opacity: 1;
+}
+
+.btn-decor-line {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 25%;
+  height: 2px;
+  background: #00ffff;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 8px #00ffff;
+}
+
+.futuristic-export-btn:hover .btn-decor-line {
+  width: 100%;
+}
+
+.btn-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #00ffff;
+  transition: all 0.3s ease;
+}
+
+.top-left {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+.futuristic-export-btn:hover .btn-corner {
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-3px, 3px);
+  }
+  40% {
+    transform: translate(-3px, -3px);
+  }
+  60% {
+    transform: translate(3px, 3px);
+  }
+  80% {
+    transform: translate(3px, -3px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+</style>
