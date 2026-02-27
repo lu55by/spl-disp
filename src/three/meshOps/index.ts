@@ -194,7 +194,11 @@ export function generateFacialMorphs(
   const visualizerByCheek1DepthMorph: THREE.Vector3[] = [];
   const visualizerByCheek1HeightMorph: THREE.Vector3[] = [];
   const visualizerByJawWidthMorph: THREE.Vector3[] = [];
+  const visualizerByJawHeightMorph: THREE.Vector3[] = [];
+  const visualizerByJawDepthMorph: THREE.Vector3[] = [];
   const visualizerByJawSidesWidthMorph: THREE.Vector3[] = [];
+  const visualizerByJawSidesHeightMorph: THREE.Vector3[] = [];
+  const visualizerByJawSidesDepthMorph: THREE.Vector3[] = [];
   const visualizerByMandibleCornersWidthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadWidthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadDepthMorph: THREE.Vector3[] = [];
@@ -595,7 +599,11 @@ export function generateFacialMorphs(
   const cheek1DepthTarget = new Float32Array(positions.count * 3);
   const cheek1HeightTarget = new Float32Array(positions.count * 3);
   const jawWidthTarget = new Float32Array(positions.count * 3);
+  const jawHeightTarget = new Float32Array(positions.count * 3);
+  const jawDepthTarget = new Float32Array(positions.count * 3);
   const jawSidesWidthTarget = new Float32Array(positions.count * 3);
+  const jawSidesHeightTarget = new Float32Array(positions.count * 3);
+  const jawSidesDepthTarget = new Float32Array(positions.count * 3);
   const mandibleCornersWidthTarget = new Float32Array(positions.count * 3);
   const foreheadWidthTarget = new Float32Array(positions.count * 3);
   const foreheadDepthTarget = new Float32Array(positions.count * 3);
@@ -623,6 +631,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 0.8,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByNoseHeightMorph,
@@ -697,6 +706,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "eyeBrowHeight",
+          isApplyModeAddition: true,
         },
       },
       visualizerByEyeBrowHeightMorph,
@@ -753,6 +763,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByEarMiddleWidthMorph,
@@ -802,6 +813,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "zygomaticArchWidth",
+          isApplyModeAddition: true,
         },
       },
       visualizerByZygomaticArchWidthMorph,
@@ -826,6 +838,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "zygomaticArchHeight",
+          isApplyModeAddition: true,
         },
       },
       visualizerByZygomaticArchHeightMorph,
@@ -850,6 +863,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "zygomaticArchDepth",
+          isApplyModeAddition: true,
         },
       },
       visualizerByZygomaticArchDepthMorph,
@@ -899,6 +913,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByCheek0DepthMorph,
@@ -923,6 +938,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByCheek0HeightMorph,
@@ -972,6 +988,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByCheek1DepthMorph,
@@ -996,13 +1013,14 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByCheek1HeightMorph,
       1.2,
     );
 
-    // --- K. GENERATE JAW MORPH (Widening) ---
+    // --- K.0 GENERATE JAW MORPH (Widening) ---
     applyMorph(
       vertex,
       i,
@@ -1027,7 +1045,57 @@ export function generateFacialMorphs(
       1.05,
     );
 
-    // --- L. GENERATE JAW SIDES WIDTH MORPH (Widening) ---
+    // --- K.1 GENERATE JAW MORPH (Height) ---
+    applyMorph(
+      vertex,
+      i,
+      jawTipL,
+      jawTipM,
+      jawTipR,
+      { xRange: 3, yRange: 1.5, zRange: 2 },
+      jawHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 0.7, y: 1, z: 1 },
+          power: 1.5,
+          totalInfMode: "All",
+          isApplyModeAddition: false,
+        },
+      },
+      visualizerByJawHeightMorph,
+      1.8,
+    );
+
+    // --- K.2 GENERATE JAW MORPH (Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      jawTipL,
+      jawTipM,
+      jawTipR,
+      { xRange: 3, yRange: 2.8, zRange: 2 },
+      jawDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 0.7, y: 1, z: 1 },
+          power: 0.6,
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByJawDepthMorph,
+      4,
+    );
+
+    // --- L.0 GENERATE JAW SIDES WIDTH MORPH (Widening) ---
     applyMorph(
       vertex,
       i,
@@ -1052,6 +1120,56 @@ export function generateFacialMorphs(
       1.1,
     );
 
+    // --- L.1 GENERATE JAW SIDES HEIGHT MORPH (Height) ---
+    applyMorph(
+      vertex,
+      i,
+      jawTipL,
+      null,
+      jawTipR,
+      { xRange: 5, yRange: 3.5, zRange: 4 },
+      jawSidesHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 1.5,
+          totalInfMode: "All",
+          isApplyModeAddition: false,
+        },
+      },
+      visualizerByJawSidesHeightMorph,
+      2.5,
+    );
+
+    // --- L.2 GENERATE JAW SIDES DEPTH MORPH (Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      jawTipL,
+      null,
+      jawTipR,
+      { xRange: 5, yRange: 3.5, zRange: 4 },
+      jawSidesDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 0.8,
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByJawSidesDepthMorph,
+      3.5,
+    );
+
     // --- M. GENERATE MANDIBLE CORNERS WIDTH MORPH (Depth) ---
     applyMorph(
       vertex,
@@ -1070,6 +1188,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 1,
           totalInfMode: "mandibleCornersWidth",
+          isApplyModeAddition: true,
         },
       },
       visualizerByMandibleCornersWidthMorph,
@@ -1119,6 +1238,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 1, z: 0.5 },
           power: 1,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByForeheadDepthMorph,
@@ -1143,6 +1263,7 @@ export function generateFacialMorphs(
           infAmplitude: { x: 1, y: 0.5, z: 1 },
           power: 1,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByForeheadHeightMorph,
@@ -1186,7 +1307,11 @@ export function generateFacialMorphs(
   const cheek1DepthAttr = new THREE.BufferAttribute(cheek1DepthTarget, 3);
   const cheek1HeightAttr = new THREE.BufferAttribute(cheek1HeightTarget, 3);
   const jawWidthAttr = new THREE.BufferAttribute(jawWidthTarget, 3);
+  const jawHeightAttr = new THREE.BufferAttribute(jawHeightTarget, 3);
+  const jawDepthAttr = new THREE.BufferAttribute(jawDepthTarget, 3);
   const jawSidesWidthAttr = new THREE.BufferAttribute(jawSidesWidthTarget, 3);
+  const jawSidesHeightAttr = new THREE.BufferAttribute(jawSidesHeightTarget, 3);
+  const jawSidesDepthAttr = new THREE.BufferAttribute(jawSidesDepthTarget, 3);
   const mandibleCornersWidthAttr = new THREE.BufferAttribute(
     mandibleCornersWidthTarget,
     3,
@@ -1213,7 +1338,11 @@ export function generateFacialMorphs(
   cheek1DepthAttr.name = "cheek1Depth";
   cheek1HeightAttr.name = "cheek1Height";
   jawWidthAttr.name = "jawWidth";
+  jawHeightAttr.name = "jawHeight";
+  jawDepthAttr.name = "jawDepth";
   jawSidesWidthAttr.name = "jawSidesWidth";
+  jawSidesHeightAttr.name = "jawSidesHeight";
+  jawSidesDepthAttr.name = "jawSidesDepth";
   mandibleCornersWidthAttr.name = "mandibleCornersWidth";
   foreheadWidthAttr.name = "foreheadWidth";
   foreheadDepthAttr.name = "foreheadDepth";
@@ -1238,7 +1367,11 @@ export function generateFacialMorphs(
     cheek1DepthAttr,
     cheek1HeightAttr,
     jawWidthAttr,
+    jawHeightAttr,
+    jawDepthAttr,
     jawSidesWidthAttr,
+    jawSidesHeightAttr,
+    jawSidesDepthAttr,
     mandibleCornersWidthAttr,
     foreheadWidthAttr,
     foreheadDepthAttr,
@@ -1330,7 +1463,11 @@ export function generateFacialMorphs(
     visualizerByCheek1DepthMorph,
     visualizerByCheek1HeightMorph,
     visualizerByJawWidthMorph,
+    visualizerByJawHeightMorph,
+    visualizerByJawDepthMorph,
     visualizerByJawSidesWidthMorph,
+    visualizerByJawSidesHeightMorph,
+    visualizerByJawSidesDepthMorph,
     visualizerByMandibleCornersWidthMorph,
     visualizerByForeheadWidthMorph,
     visualizerByForeheadDepthMorph,
@@ -1498,6 +1635,7 @@ export function generateFacialMorphsTst(
           infAmplitude: { x: 1, y: 1, z: 1 },
           power: 2,
           totalInfMode: "All",
+          isApplyModeAddition: true,
         },
       },
       visualizerByEarMiddleWidthMorph,
@@ -1614,7 +1752,11 @@ export function generateFacialMorphsTst(
     visualizerByCheek1DepthMorph: [],
     visualizerByCheek1HeightMorph: [],
     visualizerByJawWidthMorph: [],
+    visualizerByJawHeightMorph: [],
+    visualizerByJawDepthMorph: [],
     visualizerByJawSidesWidthMorph: [],
+    visualizerByJawSidesHeightMorph: [],
+    visualizerByJawSidesDepthMorph: [],
     visualizerByMandibleCornersWidthMorph: [],
     visualizerByForeheadWidthMorph: [],
     visualizerByForeheadDepthMorph: [],
@@ -1738,6 +1880,7 @@ function applyMorph(
         | "mandibleCornersWidth"
         | "foreheadDepth"
         | "All";
+      isApplyModeAddition: boolean;
     } | null;
   },
   visualizer?: THREE.Vector3[],
@@ -1852,6 +1995,7 @@ function applyMorph(
         infAmplitude,
         power,
         totalInfMode,
+        isApplyModeAddition,
       } = infConfig.heightOrDepth;
       const x01 = isCurveInverted ? 1 - dx / xRange : dx / xRange;
       const y01 = isCurveInverted ? 1 - dy / yRange : dy / yRange;
@@ -1933,10 +2077,16 @@ function applyMorph(
       /*
         Apply
       */
-      if (isHeight) targetArray[index * 3 + 1] += totalInfluence;
+      if (isHeight)
+        targetArray[index * 3 + 1] += isApplyModeAddition
+          ? totalInfluence
+          : -totalInfluence;
 
       // if (isDepth) targetArray[index * 3 + 2] -= totalInfluence;
-      if (isDepth) targetArray[index * 3 + 2] += totalInfluence;
+      if (isDepth)
+        targetArray[index * 3 + 2] += isApplyModeAddition
+          ? totalInfluence
+          : -totalInfluence;
 
       applied = true;
     }

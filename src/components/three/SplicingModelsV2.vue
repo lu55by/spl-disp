@@ -330,7 +330,8 @@ const init = async () => {
     CameraProps.Far,
   );
   // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  camera.position.set(-44, CameraProps.Pos.y * 0.65, 0);
   // camera.position.set(
   //   CameraProps.PosEarTopDebug.x,
   //   CameraProps.PosEarTopDebug.y,
@@ -648,6 +649,7 @@ const init = async () => {
       visualizerByCheek0WidthMorph, // Vector3[]
       visualizerByCheek1WidthMorph, // Vector3[]
       visualizerByJawWidthMorph, // Vector3[]
+      visualizerByJawDepthMorph, // Vector3[]
       visualizerByJawSidesWidthMorph, // Vector3[]
       visualizerByMandibleCornersWidthMorph, // Vector3[]
       visualizerByForeheadWidthMorph, // Vector3[]
@@ -976,6 +978,7 @@ const init = async () => {
           visualizerGroup.add(cheek1TipRVisMesh);
           break;
         case "jawWidth":
+        case "jawDepth":
         case "jawSidesWidth":
           visualizerGroup.add(jawTipLVisMesh);
           visualizerGroup.add(jawTipRVisMesh);
@@ -1144,10 +1147,14 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(visualizerByNostrilWidthMorph);
       // Mandible morph geometry from morph vertices
       const visualizerByMandibleMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByMandibleWidthMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMandibleWidthMorph,
+        );
       // Eye brow morph geometry from morph vertices
       const visualizerByEyeBrowMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByEyeBrowHeightMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByEyeBrowHeightMorph,
+        );
       // Mouse corners width morph geometry from morph vertices
       const visualizerByMouseCornersWidthMorphGeo =
         new THREE.BufferGeometry().setFromPoints(
@@ -1155,10 +1162,14 @@ const init = async () => {
         );
       // Ear middle morph geometry from morph vertices
       const visualizerByEarMiddleMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByEarMiddleWidthMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByEarMiddleWidthMorph,
+        );
       // Ear top morph geometry from morph vertices
       const visualizerByEarTopMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByEarTopThicknessMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByEarTopThicknessMorph,
+        );
       // Zygomatic arch morph geometry from morph vertices
       const visualizerByZygomaticArchMorphGeo =
         new THREE.BufferGeometry().setFromPoints(
@@ -1178,6 +1189,9 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByJawSidesWidthMorph,
         );
+      // Jaw depth morph geometry from morph vertices
+      const visualizerByJawDepthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(visualizerByJawDepthMorph);
       // Mandible corners width morph geometry from morph vertices
       const visualizerByMandibleCornersWidthMorphGeo =
         new THREE.BufferGeometry().setFromPoints(
@@ -1185,13 +1199,19 @@ const init = async () => {
         );
       // Forehead width morph geometry from morph vertices
       const visualizerByForeheadWidthMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByForeheadWidthMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByForeheadWidthMorph,
+        );
       // Forehead depth morph geometry from morph vertices
       const visualizerByForeheadDepthMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByForeheadDepthMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByForeheadDepthMorph,
+        );
       // Forehead height morph geometry from morph vertices
       const visualizerByForeheadHeightMorphGeo =
-        new THREE.BufferGeometry().setFromPoints(visualizerByForeheadHeightMorph);
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByForeheadHeightMorph,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -1250,6 +1270,11 @@ const init = async () => {
         visualizerByJawWidthMorphGeo,
         new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
       );
+      // Jaw depth morph points (Green)
+      const jawDepthMorphPoints = new THREE.Points(
+        visualizerByJawDepthMorphGeo,
+        new THREE.PointsMaterial({ color: "#0f0", size: 0.15 }),
+      );
       // Jaw sides width morph points (Green)
       const jawSidesWidthMorphPoints = new THREE.Points(
         visualizerByJawSidesWidthMorphGeo,
@@ -1292,6 +1317,7 @@ const init = async () => {
             cheek0WidthMorphPoints,
             cheek1WidthMorphPoints,
             jawWidthMorphPoints,
+            jawDepthMorphPoints,
             jawSidesWidthMorphPoints,
             mandibleCornersWidthMorphPoints,
             foreheadWidthMorphPoints,
@@ -1332,6 +1358,9 @@ const init = async () => {
         case "jawWidth":
           visualizerGroup.add(jawWidthMorphPoints);
           break;
+        case "jawDepth":
+          visualizerGroup.add(jawDepthMorphPoints);
+          break;
         case "jawSidesWidth":
           visualizerGroup.add(jawSidesWidthMorphPoints);
           break;
@@ -1367,13 +1396,14 @@ const init = async () => {
     cheek0Width
     cheek1Width
     jawWidth
+    jawDepth
     jawSidesWidth
     mandibleCornersWidth
     foreheadWidth
     foreheadDepth
     foreheadHeight
    */
-  const selectedVisualizer = "cheek1Width";
+  const selectedVisualizer = "jawDepth";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,

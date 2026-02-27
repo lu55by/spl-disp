@@ -108,8 +108,12 @@ export interface FacialMorphsVisualizers {
   visualizerByCheek1HeightMorph: Vector3[];
   // Jaw Width Morph
   visualizerByJawWidthMorph: Vector3[];
+  visualizerByJawHeightMorph: Vector3[];
+  visualizerByJawDepthMorph: Vector3[];
   // Jaw Sides Width Morph
   visualizerByJawSidesWidthMorph: Vector3[];
+  visualizerByJawSidesHeightMorph: Vector3[];
+  visualizerByJawSidesDepthMorph: Vector3[];
   // Mandible Corner Width Morph
   visualizerByMandibleCornersWidthMorph: Vector3[];
   // Forehead Morphs
