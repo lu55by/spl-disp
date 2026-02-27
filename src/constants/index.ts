@@ -130,22 +130,24 @@ export const UIContents = {
 
 // Morph Target
 export const MorphTargetLabelMapping = {
+  ForeheadWidth: "额头宽度",
+  ForeheadDepth: "额头深度",
+  ForeheadHeight: "额头高度",
+  ZygomaticArchWidth: "颧骨宽度",
+  ZygomaticArchDepth: "颧骨深度",
+  ZygomaticArchHeight: "颧骨高度",
+  Cheek0Width: "脸颊宽度",
+  Cheek1Width: "腮帮宽度",
   NoseHeight: "鼻高",
   NostrilWidth: "鼻翼宽度",
   MandibleWidth: "下颌宽度",
+  MandibleCornersWidth: "下颌角宽度",
   EyeBrowHeight: "眉毛高度",
   MouseCornersWidth: "嘴角宽度",
   EarMiddleWidth: "耳朵宽度",
   EarTopThickness: "耳朵厚度",
-  ZygomaticArchWidth: "颧骨宽度",
-  Cheek0Width: "脸颊宽度",
-  Cheek1Width: "腮帮宽度",
   JawWidth: "下巴宽度",
   JawSidesWidth: "下巴两侧宽度",
-  MandibleCornersWidth: "下颌角宽度",
-  ForeheadWidth: "额头宽度",
-  ForeheadDepth: "额头深度",
-  ForeheadHeight: "额头高度",
 };
 
 // Global Model

@@ -185,6 +185,8 @@ export function generateFacialMorphs(
   const visualizerByEarMiddleWidthMorph: THREE.Vector3[] = [];
   const visualizerByEarTopThicknessMorph: THREE.Vector3[] = [];
   const visualizerByZygomaticArchWidthMorph: THREE.Vector3[] = [];
+  const visualizerByZygomaticArchDepthMorph: THREE.Vector3[] = [];
+  const visualizerByZygomaticArchHeightMorph: THREE.Vector3[] = [];
   const visualizerByCheek0WidthMorph: THREE.Vector3[] = [];
   const visualizerByCheek1WidthMorph: THREE.Vector3[] = [];
   const visualizerByJawWidthMorph: THREE.Vector3[] = [];
@@ -580,6 +582,8 @@ export function generateFacialMorphs(
   const earMiddleWidthTarget = new Float32Array(positions.count * 3);
   const earTopThicknessTarget = new Float32Array(positions.count * 3);
   const zygomaticArchWidthTarget = new Float32Array(positions.count * 3);
+  const zygomaticArchHeightTarget = new Float32Array(positions.count * 3);
+  const zygomaticArchDepthTarget = new Float32Array(positions.count * 3);
   const cheek0WidthTarget = new Float32Array(positions.count * 3);
   const cheek1WidthTarget = new Float32Array(positions.count * 3);
   const jawWidthTarget = new Float32Array(positions.count * 3);
@@ -772,7 +776,7 @@ export function generateFacialMorphs(
       0.4,
     );
 
-    // --- H. GENERATE ZYGOMATIC ARCH TIPS MORPH (Width, actually it is Height) ---
+    // --- H.0 GENERATE ZYGOMATIC ARCH TIPS MORPH (Width, actually it is Height) ---
     applyMorph(
       vertex,
       i,
@@ -796,7 +800,55 @@ export function generateFacialMorphs(
       1.4,
     );
 
-    // --- I. GENERATE CHEEK MORPH 0 (Widening) ---
+    // --- H.1 GENERATE ZYGOMATIC ARCH TIPS MORPH (Height) ---
+    applyMorph(
+      vertex,
+      i,
+      zygomaticArchTipL,
+      null,
+      zygomaticArchTipR,
+      { xRange: 6, yRange: 6.5, zRange: 4 },
+      zygomaticArchHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 1,
+          totalInfMode: "zygomaticArchHeight",
+        },
+      },
+      visualizerByZygomaticArchHeightMorph,
+      2.8,
+    );
+
+    // --- H.2 GENERATE ZYGOMATIC ARCH TIPS MORPH (Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      zygomaticArchTipL,
+      null,
+      zygomaticArchTipR,
+      { xRange: 6, yRange: 6.5, zRange: 4 },
+      zygomaticArchDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 1,
+          totalInfMode: "zygomaticArchDepth",
+        },
+      },
+      visualizerByZygomaticArchDepthMorph,
+      1.4,
+    );
+
+    // --- I.0 GENERATE CHEEK MORPH 0 (Widening) ---
     applyMorph(
       vertex,
       i,
@@ -821,7 +873,7 @@ export function generateFacialMorphs(
       1.1,
     );
 
-    // --- J. GENERATE CHEEK MORPH 1 (Widening) ---
+    // --- I.1 GENERATE CHEEK MORPH 1 (Widening) ---
     applyMorph(
       vertex,
       i,
@@ -1015,6 +1067,14 @@ export function generateFacialMorphs(
     zygomaticArchWidthTarget,
     3,
   );
+  const zygomaticArchHeightAttr = new THREE.BufferAttribute(
+    zygomaticArchHeightTarget,
+    3,
+  );
+  const zygomaticArchDepthAttr = new THREE.BufferAttribute(
+    zygomaticArchDepthTarget,
+    3,
+  );
   const cheek0WidthAttr = new THREE.BufferAttribute(cheek0WidthTarget, 3);
   const cheek1WidthAttr = new THREE.BufferAttribute(cheek1WidthTarget, 3);
   const jawWidthAttr = new THREE.BufferAttribute(jawWidthTarget, 3);
@@ -1036,6 +1096,8 @@ export function generateFacialMorphs(
   earMiddleWidthAttr.name = "earMiddleWidth";
   earTopThicknessAttr.name = "earTopThickness";
   zygomaticArchWidthAttr.name = "zygomaticArchWidth";
+  zygomaticArchHeightAttr.name = "zygomaticArchHeight";
+  zygomaticArchDepthAttr.name = "zygomaticArchDepth";
   cheek0WidthAttr.name = "cheek0Width";
   cheek1WidthAttr.name = "cheek1Width";
   jawWidthAttr.name = "jawWidth";
@@ -1055,6 +1117,8 @@ export function generateFacialMorphs(
     earMiddleWidthAttr,
     earTopThicknessAttr,
     zygomaticArchWidthAttr,
+    zygomaticArchHeightAttr,
+    zygomaticArchDepthAttr,
     cheek0WidthAttr,
     cheek1WidthAttr,
     jawWidthAttr,
@@ -1141,6 +1205,8 @@ export function generateFacialMorphs(
     visualizerByEarMiddleWidthMorph,
     visualizerByEarTopThicknessMorph,
     visualizerByZygomaticArchWidthMorph,
+    visualizerByZygomaticArchDepthMorph,
+    visualizerByZygomaticArchHeightMorph,
     visualizerByCheek0WidthMorph,
     visualizerByCheek1WidthMorph,
     visualizerByJawWidthMorph,
@@ -1419,6 +1485,8 @@ export function generateFacialMorphsTst(
     visualizerByEarMiddleWidthMorph,
     visualizerByEarTopThicknessMorph,
     visualizerByZygomaticArchWidthMorph: [],
+    visualizerByZygomaticArchDepthMorph: [],
+    visualizerByZygomaticArchHeightMorph: [],
     visualizerByCheek0WidthMorph: [],
     visualizerByCheek1WidthMorph: [],
     visualizerByJawWidthMorph: [],
@@ -1541,6 +1609,8 @@ function applyMorph(
       totalInfMode:
         | "eyeBrowHeight"
         | "zygomaticArchWidth"
+        | "zygomaticArchHeight"
+        | "zygomaticArchDepth"
         | "mandibleCornersWidth"
         | "foreheadDepth"
         | "All";
@@ -1719,6 +1789,12 @@ function applyMorph(
             influenceZ *
             0.5 *
             totalInfluenceStrength;
+          break;
+        case "zygomaticArchHeight":
+          totalInfluence = influenceY * influenceZ * totalInfluenceStrength;
+          break;
+        case "zygomaticArchDepth":
+          totalInfluence = influenceY * influenceZ * totalInfluenceStrength;
           break;
         case "foreheadDepth":
           totalInfluence = influenceZ * totalInfluenceStrength;

@@ -161,10 +161,16 @@ interface MorphTargetGroup {
 }
 
 const MorphTargetGroupsDict = [
-  { name: "额头", labels: ["ForeheadWidth", "ForeheadDepth", "ForeheadHeight"] },
+  {
+    name: "额头",
+    labels: ["ForeheadWidth", "ForeheadDepth", "ForeheadHeight"],
+  },
   { name: "眉毛", labels: ["EyeBrowHeight"] },
   { name: "耳朵", labels: ["EarMiddleWidth", "EarTopThickness"] },
-  { name: "颧骨", labels: ["ZygomaticArchWidth"] },
+  {
+    name: "颧骨",
+    labels: ["ZygomaticArchWidth", "ZygomaticArchDepth", "ZygomaticArchHeight"],
+  },
   { name: "脸颊", labels: ["Cheek0Width", "Cheek1Width"] },
   { name: "鼻子", labels: ["NoseHeight", "NostrilWidth"] },
   { name: "嘴角", labels: ["MouseCornersWidth"] },
@@ -180,7 +186,7 @@ const groupedMorphTargetsData = computed(() => {
     "\n -- groupedMorphTargetsData -- dictionary of head node ->",
     dictionary,
   );
-  
+
   // Sort by index initially
   const allTargets = Object.entries(dictionary)
     .sort((a, b) => a[1] - b[1])
@@ -194,19 +200,21 @@ const groupedMorphTargetsData = computed(() => {
 
   // -> Group the morph targets by categories
   for (const groupDef of MorphTargetGroupsDict) {
-    const targetsInGroup = allTargets.filter(t => groupDef.labels.includes(t.label));
+    const targetsInGroup = allTargets.filter((t) =>
+      groupDef.labels.includes(t.label),
+    );
     if (targetsInGroup.length > 0) {
       grouped.push({
         groupName: groupDef.name,
         targets: targetsInGroup,
       });
       // Mark as processed
-      targetsInGroup.forEach(t => processedLabels.add(t.label));
+      targetsInGroup.forEach((t) => processedLabels.add(t.label));
     }
   }
 
   // -> Any remaining targets that didn't match a group
-  const otherTargets = allTargets.filter(t => !processedLabels.has(t.label));
+  const otherTargets = allTargets.filter((t) => !processedLabels.has(t.label));
   if (otherTargets.length > 0) {
     grouped.push({
       groupName: "其他",
@@ -358,13 +366,19 @@ onUnmounted(() => {
               >
                 <!-- Group Title -->
                 <div class="flex items-center gap-2 mb-1">
-                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
-                  <h4 class="text-[10px] text-cyan-300 font-bold tracking-widest uppercase">
+                  <div
+                    class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"
+                  ></div>
+                  <h4
+                    class="text-[10px] text-cyan-300 font-bold tracking-widest uppercase"
+                  >
                     {{ group.groupName }}
                   </h4>
-                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
+                  <div
+                    class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"
+                  ></div>
                 </div>
-                
+
                 <div
                   v-for="target in group.targets"
                   :key="target.morphTargetInfIdx"
@@ -374,7 +388,11 @@ onUnmounted(() => {
                     <label
                       class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
                     >
-                      {{ MorphTargetLabelMapping[target.label as keyof typeof MorphTargetLabelMapping] || target.label }}
+                      {{
+                        MorphTargetLabelMapping[
+                          target.label as keyof typeof MorphTargetLabelMapping
+                        ] || target.label
+                      }}
                     </label>
                     <div class="flex items-baseline gap-1">
                       <span class="font-mono text-xs text-cyan-400 font-bold">
@@ -384,7 +402,9 @@ onUnmounted(() => {
                           ]?.toFixed(2)
                         }}
                       </span>
-                      <span class="text-[8px] text-cyan-700 font-mono">val</span>
+                      <span class="text-[8px] text-cyan-700 font-mono"
+                        >val</span
+                      >
                     </div>
                   </div>
 
@@ -397,7 +417,9 @@ onUnmounted(() => {
                         class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
                         :style="{
                           width: `${
-                            ((headNodeinfluencesValues[target.morphTargetInfIdx] -
+                            ((headNodeinfluencesValues[
+                              target.morphTargetInfIdx
+                            ] -
                               getMorphMin(target.label)) /
                               (1 - getMorphMin(target.label))) *
                             100
@@ -411,7 +433,9 @@ onUnmounted(() => {
                       :min="getMorphMin(target.label)"
                       max="1"
                       step="0.01"
-                      :value="headNodeinfluencesValues[target.morphTargetInfIdx]"
+                      :value="
+                        headNodeinfluencesValues[target.morphTargetInfIdx]
+                      "
                       @input="
                         (e) =>
                           updateHeadNodeInfluence(
@@ -433,11 +457,17 @@ onUnmounted(() => {
               >
                 <!-- Group Title -->
                 <div class="flex items-center gap-2 mb-1">
-                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
-                  <h4 class="text-[10px] text-cyan-300 font-bold tracking-widest uppercase">
+                  <div
+                    class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"
+                  ></div>
+                  <h4
+                    class="text-[10px] text-cyan-300 font-bold tracking-widest uppercase"
+                  >
                     眼睛
                   </h4>
-                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
+                  <div
+                    class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"
+                  ></div>
                 </div>
 
                 <div class="space-y-3">
