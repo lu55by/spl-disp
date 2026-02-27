@@ -171,7 +171,8 @@ const MorphTargetGroupsDict = [
     name: "颧骨",
     labels: ["ZygomaticArchWidth", "ZygomaticArchDepth", "ZygomaticArchHeight"],
   },
-  { name: "脸颊", labels: ["Cheek0Width", "Cheek1Width"] },
+  { name: "脸颊", labels: ["Cheek0Width", "Cheek0Depth", "Cheek0Height"] },
+  { name: "腮帮", labels: ["Cheek1Width", "Cheek1Depth", "Cheek1Height"] },
   { name: "鼻子", labels: ["NoseHeight", "NostrilWidth"] },
   { name: "嘴角", labels: ["MouseCornersWidth"] },
   { name: "下颌", labels: ["MandibleWidth", "MandibleCornersWidth"] },
@@ -247,6 +248,12 @@ const getMorphMin = (label: string) => {
       return -0.4;
     case "Nose":
     case "MouseCornersWidth":
+    case "ZygomaticArchDepth":
+    case "ZygomaticArchHeight":
+    case "Cheek0Depth":
+    case "Cheek0Height":
+    case "Cheek1Depth":
+    case "Cheek1Height":
       return -1;
     default:
       return 0;

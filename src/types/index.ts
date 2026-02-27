@@ -99,9 +99,13 @@ export interface FacialMorphsVisualizers {
   visualizerByZygomaticArchDepthMorph: Vector3[];
   // Zygomatic Arch Height Morph
   visualizerByZygomaticArchHeightMorph: Vector3[];
-  // Face Width Morph
+  // Face Morphs
   visualizerByCheek0WidthMorph: Vector3[];
+  visualizerByCheek0DepthMorph: Vector3[];
+  visualizerByCheek0HeightMorph: Vector3[];
   visualizerByCheek1WidthMorph: Vector3[];
+  visualizerByCheek1DepthMorph: Vector3[];
+  visualizerByCheek1HeightMorph: Vector3[];
   // Jaw Width Morph
   visualizerByJawWidthMorph: Vector3[];
   // Jaw Sides Width Morph

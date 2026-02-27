@@ -1373,7 +1373,7 @@ const init = async () => {
     foreheadDepth
     foreheadHeight
    */
-  const selectedVisualizer = "zygomaticArch";
+  const selectedVisualizer = "cheek1Width";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,
