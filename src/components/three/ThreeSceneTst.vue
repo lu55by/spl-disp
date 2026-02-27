@@ -6,7 +6,9 @@
     <div class="fixed top-10 left-10 z-100 flex flex-col items-end gap-4">
       <button @click="handleExport" class="futuristic-export-btn">
         <div class="btn-content">
-          <span class="btn-glitch-text" data-text="EXPORT_MODEL">EXPORT_MODEL</span>
+          <span class="btn-glitch-text" data-text="EXPORT_MODEL"
+            >EXPORT_MODEL</span
+          >
           <div class="btn-decor-line"></div>
         </div>
         <div class="btn-corner top-left"></div>
@@ -53,10 +55,7 @@ import {
   type StandardMesh,
 } from "../../three/constants";
 import { csgSubtract } from "../../three/csg";
-import {
-  exportObjectToOBJ,
-  exportSplicingGroup,
-} from "../../three/exporters";
+import { exportObjectToOBJ, exportSplicingGroup } from "../../three/exporters";
 import { addTransformDebug, addTransformDebugInspector } from "../../three/gui";
 import { GUIGlobal } from "../../three/gui/global";
 import { loadObj } from "../../three/loaders/ModelLoader";
@@ -1217,7 +1216,6 @@ const init = async () => {
     morphFolder
       .add(headNode.morphTargetInfluences, 1, 0, 1, 0.01)
       .name("Ear Top Thickness");
-
   };
 
   // loadHairTst();

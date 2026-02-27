@@ -150,21 +150,71 @@ watch(isMorphTargetReady, (newVal) => {
 /**
  * Morph Target Data for the template
  */
-const headNodeMorphTargetsData = computed(() => {
+interface MorphTargetItem {
+  label: string;
+  morphTargetInfIdx: number;
+}
+
+interface MorphTargetGroup {
+  groupName: string;
+  targets: MorphTargetItem[];
+}
+
+const MorphTargetGroupsDict = [
+  { name: "额头", labels: ["ForeheadWidth", "ForeheadDepth", "ForeheadHeight"] },
+  { name: "眉毛", labels: ["EyeBrowHeight"] },
+  { name: "耳朵", labels: ["EarMiddleWidth", "EarTopThickness"] },
+  { name: "颧骨", labels: ["ZygomaticArchWidth"] },
+  { name: "脸颊", labels: ["Cheek0Width", "Cheek1Width"] },
+  { name: "鼻子", labels: ["NoseHeight", "NostrilWidth"] },
+  { name: "嘴角", labels: ["MouseCornersWidth"] },
+  { name: "下颌", labels: ["MandibleWidth", "MandibleCornersWidth"] },
+  { name: "下巴", labels: ["JawWidth", "JawSidesWidth"] },
+];
+
+const groupedMorphTargetsData = computed(() => {
   if (!headNode.value || !headNode.value.morphTargetDictionary) return [];
 
   const dictionary = headNode.value.morphTargetDictionary;
   console.log(
-    "\n -- headNodeMorphTargetsData -- dictionary of head node ->",
+    "\n -- groupedMorphTargetsData -- dictionary of head node ->",
     dictionary,
   );
-  // Sort by index
-  return Object.entries(dictionary)
+  
+  // Sort by index initially
+  const allTargets = Object.entries(dictionary)
     .sort((a, b) => a[1] - b[1])
     .map(([name, morphTargetInfIdx]) => ({
       label: name.charAt(0).toUpperCase() + name.slice(1),
       morphTargetInfIdx,
     }));
+
+  const grouped: MorphTargetGroup[] = [];
+  const processedLabels = new Set<string>();
+
+  // -> Group the morph targets by categories
+  for (const groupDef of MorphTargetGroupsDict) {
+    const targetsInGroup = allTargets.filter(t => groupDef.labels.includes(t.label));
+    if (targetsInGroup.length > 0) {
+      grouped.push({
+        groupName: groupDef.name,
+        targets: targetsInGroup,
+      });
+      // Mark as processed
+      targetsInGroup.forEach(t => processedLabels.add(t.label));
+    }
+  }
+
+  // -> Any remaining targets that didn't match a group
+  const otherTargets = allTargets.filter(t => !processedLabels.has(t.label));
+  if (otherTargets.length > 0) {
+    grouped.push({
+      groupName: "其他",
+      targets: otherTargets,
+    });
+  }
+
+  return grouped;
 });
 
 /**
@@ -244,7 +294,7 @@ onUnmounted(() => {
 <template>
   <Transition name="slide-fade">
     <div
-      v-if="isVisible && headNodeMorphTargetsData.length > 0"
+      v-if="isVisible && groupedMorphTargetsData.length > 0"
       class="fixed top-6 right-6 z-60 w-72 md:w-80 pointer-events-none group rounded-2xl"
       @click.stop
     >
@@ -300,136 +350,164 @@ onUnmounted(() => {
           <div class="p-5 pt-6 space-y-6">
             <!-- Sliders List -->
             <div class="space-y-6">
+              <!-- Morph Targets Grouped -->
               <div
-                v-for="target in headNodeMorphTargetsData"
-                :key="target.morphTargetInfIdx"
-                class="space-y-3"
+                v-for="group in groupedMorphTargetsData"
+                :key="group.groupName"
+                class="space-y-4 pt-4 border-t border-white/5 first:border-t-0 first:pt-0"
               >
-                <div class="flex justify-between items-end">
-                  <label
-                    class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
-                  >
-                    {{ MorphTargetLabelMapping[target.label] }}
-                  </label>
-                  <div class="flex items-baseline gap-1">
-                    <span class="font-mono text-xs text-cyan-400 font-bold">
-                      {{
-                        headNodeinfluencesValues[
-                          target.morphTargetInfIdx
-                        ]?.toFixed(2)
-                      }}
-                    </span>
-                    <span class="text-[8px] text-cyan-700 font-mono">val</span>
-                  </div>
+                <!-- Group Title -->
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
+                  <h4 class="text-[10px] text-cyan-300 font-bold tracking-widest uppercase">
+                    {{ group.groupName }}
+                  </h4>
+                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
                 </div>
-
-                <div class="relative group/slider">
-                  <!-- Slider Track Background -->
-                  <div
-                    class="absolute inset-y-[7px] w-full h-0.5 bg-white/5 rounded-full overflow-hidden"
-                  >
-                    <div
-                      class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
-                      :style="{
-                        width: `${
-                          ((headNodeinfluencesValues[target.morphTargetInfIdx] -
-                            getMorphMin(target.label)) /
-                            (1 - getMorphMin(target.label))) *
-                          100
-                        }%`,
-                      }"
-                    ></div>
+                
+                <div
+                  v-for="target in group.targets"
+                  :key="target.morphTargetInfIdx"
+                  class="space-y-3"
+                >
+                  <div class="flex justify-between items-end">
+                    <label
+                      class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
+                    >
+                      {{ MorphTargetLabelMapping[target.label as keyof typeof MorphTargetLabelMapping] || target.label }}
+                    </label>
+                    <div class="flex items-baseline gap-1">
+                      <span class="font-mono text-xs text-cyan-400 font-bold">
+                        {{
+                          headNodeinfluencesValues[
+                            target.morphTargetInfIdx
+                          ]?.toFixed(2)
+                        }}
+                      </span>
+                      <span class="text-[8px] text-cyan-700 font-mono">val</span>
+                    </div>
                   </div>
 
-                  <input
-                    type="range"
-                    :min="getMorphMin(target.label)"
-                    max="1"
-                    step="0.01"
-                    :value="headNodeinfluencesValues[target.morphTargetInfIdx]"
-                    @input="
-                      (e) =>
-                        updateHeadNodeInfluence(
-                          target.morphTargetInfIdx,
-                          parseFloat((e.target as HTMLInputElement).value),
-                        )
-                    "
-                    class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
-                  />
+                  <div class="relative group/slider">
+                    <!-- Slider Track Background -->
+                    <div
+                      class="absolute inset-y-[7px] w-full h-0.5 bg-white/5 rounded-full overflow-hidden"
+                    >
+                      <div
+                        class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
+                        :style="{
+                          width: `${
+                            ((headNodeinfluencesValues[target.morphTargetInfIdx] -
+                              getMorphMin(target.label)) /
+                              (1 - getMorphMin(target.label))) *
+                            100
+                          }%`,
+                        }"
+                      ></div>
+                    </div>
+
+                    <input
+                      type="range"
+                      :min="getMorphMin(target.label)"
+                      max="1"
+                      step="0.01"
+                      :value="headNodeinfluencesValues[target.morphTargetInfIdx]"
+                      @input="
+                        (e) =>
+                          updateHeadNodeInfluence(
+                            target.morphTargetInfIdx,
+                            parseFloat((e.target as HTMLInputElement).value),
+                          )
+                      "
+                      class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
+                    />
+                  </div>
                 </div>
               </div>
 
               <!-- Eye Size Slider -->
+              <!-- -> Updated to match and reuse the group layout visual style -->
               <div
                 v-if="eyeLNode && eyeRNode"
-                class="space-y-3 pt-4 border-t border-white/5"
+                class="space-y-4 pt-4 border-t border-white/5 first:border-t-0 first:pt-0"
               >
-                <div class="flex justify-between items-end">
-                  <label
-                    class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
-                  >
-                    眼睛大小
-                  </label>
-                  <div class="flex items-center gap-2">
-                    <div class="flex items-baseline gap-1">
-                      <span class="font-mono text-xs text-cyan-400 font-bold">
-                        {{ eyeScale.toFixed(2) }}
-                      </span>
-                      <span class="text-[8px] text-cyan-700 font-mono"
-                        >scale</span
-                      >
-                    </div>
-                    <!-- Reset Button -->
-                    <button
-                      @click="resetEyeScale"
-                      class="p-1.5 hover:bg-white/10 rounded-lg transition-all duration-300 group/reset border border-white/0 hover:border-white/10 active:scale-95"
-                      title="Reset Scale"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-3.5 h-3.5 text-cyan-500/50 group-hover/reset:text-cyan-400 group-hover/reset:rotate-180 transition-transform duration-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                        />
-                      </svg>
-                    </button>
-                  </div>
+                <!-- Group Title -->
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
+                  <h4 class="text-[10px] text-cyan-300 font-bold tracking-widest uppercase">
+                    眼睛
+                  </h4>
+                  <div class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0"></div>
                 </div>
 
-                <div class="relative group/slider">
-                  <!-- Slider Track Background -->
-                  <div
-                    class="absolute inset-y-[7px] w-full h-0.5 bg-white/5 rounded-full overflow-hidden"
-                  >
-                    <div
-                      class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
-                      :style="{
-                        width: `${((eyeScale - minEyeScale) / (maxEyeScale - minEyeScale)) * 100}%`,
-                      }"
-                    ></div>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-end">
+                    <label
+                      class="text-[10px] text-slate-400 font-bold tracking-widest uppercase"
+                    >
+                      眼睛大小
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <div class="flex items-baseline gap-1">
+                        <span class="font-mono text-xs text-cyan-400 font-bold">
+                          {{ eyeScale.toFixed(2) }}
+                        </span>
+                        <span class="text-[8px] text-cyan-700 font-mono"
+                          >scale</span
+                        >
+                      </div>
+                      <!-- Reset Button -->
+                      <button
+                        @click="resetEyeScale"
+                        class="p-1.5 hover:bg-white/10 rounded-lg transition-all duration-300 group/reset border border-white/0 hover:border-white/10 active:scale-95"
+                        title="Reset Scale"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-3.5 h-3.5 text-cyan-500/50 group-hover/reset:text-cyan-400 group-hover/reset:rotate-180 transition-transform duration-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
-                  <input
-                    type="range"
-                    :min="minEyeScale"
-                    :max="maxEyeScale"
-                    step="0.01"
-                    :value="eyeScale"
-                    @input="
-                      (e) =>
-                        updateEyeScale(
-                          parseFloat((e.target as HTMLInputElement).value),
-                        )
-                    "
-                    class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
-                  />
+                  <div class="relative group/slider">
+                    <!-- Slider Track Background -->
+                    <div
+                      class="absolute inset-y-[7px] w-full h-0.5 bg-white/5 rounded-full overflow-hidden"
+                    >
+                      <div
+                        class="h-full bg-linear-to-r from-cyan-600 to-cyan-400 transition-all duration-75"
+                        :style="{
+                          width: `${((eyeScale - minEyeScale) / (maxEyeScale - minEyeScale)) * 100}%`,
+                        }"
+                      ></div>
+                    </div>
+
+                    <input
+                      type="range"
+                      :min="minEyeScale"
+                      :max="maxEyeScale"
+                      step="0.01"
+                      :value="eyeScale"
+                      @input="
+                        (e) =>
+                          updateEyeScale(
+                            parseFloat((e.target as HTMLInputElement).value),
+                          )
+                      "
+                      class="relative w-full h-4 bg-transparent appearance-none cursor-pointer outline-none z-10"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
