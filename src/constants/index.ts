@@ -145,7 +145,9 @@ export const MorphTargetLabelMapping = {
   Cheek1Width: "腮帮宽度",
   Cheek1Depth: "腮帮深度",
   Cheek1Height: "腮帮高度",
-  // TODO: Add the Philtrum sides morphs (height, depth, width)
+  PhiltrumSidesWidth: "人中两侧宽度",
+  PhiltrumSidesHeight: "人中两侧高度",
+  PhiltrumSidesDepth: "人中两侧深度",
   JawWidth: "下巴宽度",
   JawHeight: "下巴高度",
   JawDepth: "下巴深度",

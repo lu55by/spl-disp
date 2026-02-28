@@ -169,6 +169,9 @@ export function generateFacialMorphs(
   let appleCheekTipR = new THREE.Vector3();
   let appleCheekTipLM = new THREE.Vector3();
   let appleCheekTipRM = new THREE.Vector3();
+  // Philtrum Sides Tips
+  let philtrumSidesTipL = new THREE.Vector3();
+  let philtrumSidesTipR = new THREE.Vector3();
 
   /*
     Vertices for visualization
@@ -215,6 +218,9 @@ export function generateFacialMorphs(
   const visualizerByAppleCheekWidthMorph: THREE.Vector3[] = [];
   const visualizerByAppleCheekDepthMorph: THREE.Vector3[] = [];
   const visualizerByAppleCheekHeightMorph: THREE.Vector3[] = [];
+  const visualizerByPhiltrumSidesWidthMorph: THREE.Vector3[] = [];
+  const visualizerByPhiltrumSidesDepthMorph: THREE.Vector3[] = [];
+  const visualizerByPhiltrumSidesHeightMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -616,6 +622,28 @@ export function generateFacialMorphs(
   );
 
   /**
+   * Ⅰ.ⅩⅠ PHILTRUM SIDES TIPS DETECTION
+   */
+  // Detect the philtrum sides tips based on the center vector of the eye nodes
+  const philtrumSidesTipOffsetX = 1.5;
+  const philtrumSidesTipOffsetY = -1;
+  philtrumSidesTipL.copy(nostrilTipL);
+  philtrumSidesTipR.copy(nostrilTipR);
+  philtrumSidesTipL.x -= philtrumSidesTipOffsetX;
+  philtrumSidesTipR.x += philtrumSidesTipOffsetX;
+  philtrumSidesTipL.y += philtrumSidesTipOffsetY;
+  philtrumSidesTipR.y += philtrumSidesTipOffsetY;
+
+  console.log(
+    "\n -- generateFacialMorphs -- philtrumSidesTipL calculated ->",
+    philtrumSidesTipL.z === -Infinity ? "Not Found" : philtrumSidesTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- philtrumSidesTipR calculated ->",
+    philtrumSidesTipR.z === -Infinity ? "Not Found" : philtrumSidesTipR,
+  );
+
+  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
@@ -652,6 +680,9 @@ export function generateFacialMorphs(
   const appleCheekWidthTarget = new Float32Array(positions.count * 3);
   const appleCheekHeightTarget = new Float32Array(positions.count * 3);
   const appleCheekDepthTarget = new Float32Array(positions.count * 3);
+  const philtrumSidesWidthTarget = new Float32Array(positions.count * 3);
+  const philtrumSidesHeightTarget = new Float32Array(positions.count * 3);
+  const philtrumSidesDepthTarget = new Float32Array(positions.count * 3);
 
   // 2.2 Traverse through the vertex count to generate the morphs
   for (let i = 0; i < positions.count; i++) {
@@ -1488,6 +1519,81 @@ export function generateFacialMorphs(
       visualizerByAppleCheekDepthMorph,
       1.9,
     );
+
+    // --- R.0 GENERATE PHILTRUM SIDES WIDTH MORPH (widening) ---
+    applyMorph(
+      vertex,
+      i,
+      philtrumSidesTipL,
+      null,
+      philtrumSidesTipR,
+      { xRange: 1.6, yRange: 1.4, zRange: 3 },
+      philtrumSidesWidthTarget,
+      "widening",
+      {
+        widening: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 1, y: 1, z: 1 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+        heightOrDepth: null,
+      },
+      visualizerByPhiltrumSidesWidthMorph,
+      1.3,
+    );
+
+    // --- R.1 GENERATE PHILTRUM SIDES HEIGHT MORPH (height) ---
+    applyMorph(
+      vertex,
+      i,
+      philtrumSidesTipL,
+      null,
+      philtrumSidesTipR,
+      { xRange: 2, yRange: 1.4, zRange: 3 },
+      philtrumSidesHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 1, y: 1, z: 1 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByPhiltrumSidesHeightMorph,
+      1.3,
+    );
+
+    // --- R.2 GENERATE PHILTRUM SIDES DEPTH MORPH (depth) ---
+    applyMorph(
+      vertex,
+      i,
+      philtrumSidesTipL,
+      null,
+      philtrumSidesTipR,
+      { xRange: 1.6, yRange: 2, zRange: 3 },
+      philtrumSidesDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 1, y: 1, z: 1 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByPhiltrumSidesDepthMorph,
+      1.3,
+    );
   }
 
   /**
@@ -1560,6 +1666,18 @@ export function generateFacialMorphs(
     appleCheekDepthTarget,
     3,
   );
+  const philtrumSidesWidthAttr = new THREE.BufferAttribute(
+    philtrumSidesWidthTarget,
+    3,
+  );
+  const philtrumSidesHeightAttr = new THREE.BufferAttribute(
+    philtrumSidesHeightTarget,
+    3,
+  );
+  const philtrumSidesDepthAttr = new THREE.BufferAttribute(
+    philtrumSidesDepthTarget,
+    3,
+  );
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseHeightAttr.name = "noseHeight";
@@ -1595,6 +1713,9 @@ export function generateFacialMorphs(
   appleCheekWidthAttr.name = "appleCheekWidth";
   appleCheekHeightAttr.name = "appleCheekHeight";
   appleCheekDepthAttr.name = "appleCheekDepth";
+  philtrumSidesWidthAttr.name = "philtrumSidesWidth";
+  philtrumSidesHeightAttr.name = "philtrumSidesHeight";
+  philtrumSidesDepthAttr.name = "philtrumSidesDepth";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -1631,6 +1752,9 @@ export function generateFacialMorphs(
     appleCheekWidthAttr,
     appleCheekHeightAttr,
     appleCheekDepthAttr,
+    philtrumSidesWidthAttr,
+    philtrumSidesHeightAttr,
+    philtrumSidesDepthAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -1697,6 +1821,9 @@ export function generateFacialMorphs(
     visualizerAppleCheekTipR: appleCheekTipR,
     visualizerAppleCheekTipLM: appleCheekTipLM,
     visualizerAppleCheekTipRM: appleCheekTipRM,
+    // Philtrum Sides Tips
+    visualizerPhiltrumSidesTipL: philtrumSidesTipL,
+    visualizerPhiltrumSidesTipR: philtrumSidesTipR,
     // Detection
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
@@ -1739,6 +1866,9 @@ export function generateFacialMorphs(
     visualizerByAppleCheekWidthMorph,
     visualizerByAppleCheekDepthMorph,
     visualizerByAppleCheekHeightMorph,
+    visualizerByPhiltrumSidesWidthMorph,
+    visualizerByPhiltrumSidesDepthMorph,
+    visualizerByPhiltrumSidesHeightMorph,
   };
 }
 
@@ -1997,6 +2127,8 @@ export function generateFacialMorphsTst(
     visualizerAppleCheekTipR: new THREE.Vector3(),
     visualizerAppleCheekTipLM: new THREE.Vector3(),
     visualizerAppleCheekTipRM: new THREE.Vector3(),
+    visualizerPhiltrumSidesTipL: new THREE.Vector3(),
+    visualizerPhiltrumSidesTipR: new THREE.Vector3(),
     // Detection
     visualizerByNoseTipDetection: [],
     visualizerByNostrilTipsDetection: [],
@@ -2039,6 +2171,9 @@ export function generateFacialMorphsTst(
     visualizerByAppleCheekWidthMorph: [],
     visualizerByAppleCheekDepthMorph: [],
     visualizerByAppleCheekHeightMorph: [],
+    visualizerByPhiltrumSidesWidthMorph: [],
+    visualizerByPhiltrumSidesDepthMorph: [],
+    visualizerByPhiltrumSidesHeightMorph: [],
   };
 }
 

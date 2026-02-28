@@ -330,8 +330,8 @@ const init = async () => {
     CameraProps.Far,
   );
   // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
-  camera.position.set(44, CameraProps.Pos.y * 0.65, 0);
+  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  // camera.position.set(-44, CameraProps.Pos.y * 0.65, 0);
   // camera.position.set(
   //   CameraProps.PosEarTopDebug.x,
   //   CameraProps.PosEarTopDebug.y,
@@ -633,6 +633,8 @@ const init = async () => {
       visualizerAppleCheekTipR, // Vector3
       visualizerAppleCheekTipLM, // Vector3
       visualizerAppleCheekTipRM, // Vector3
+      visualizerPhiltrumSidesTipL, // Vector3
+      visualizerPhiltrumSidesTipR, // Vector3
       // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
@@ -665,6 +667,9 @@ const init = async () => {
       visualizerByAppleCheekWidthMorph, // Vector3[]
       visualizerByAppleCheekDepthMorph, // Vector3[]
       visualizerByAppleCheekHeightMorph, // Vector3[]
+      visualizerByPhiltrumSidesWidthMorph, // Vector3[]
+      visualizerByPhiltrumSidesDepthMorph, // Vector3[]
+      visualizerByPhiltrumSidesHeightMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -912,6 +917,20 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#fff" }),
       );
       /*
+        Philtrum Sides Tip Left Visualizer
+      */
+      const philtrumSidesTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
+        Philtrum Sides Tip Right Visualizer
+      */
+      const philtrumSidesTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -945,6 +964,8 @@ const init = async () => {
       appleCheekTipRVisMesh.position.copy(visualizerAppleCheekTipR);
       appleCheekTipLMVisMesh.position.copy(visualizerAppleCheekTipLM);
       appleCheekTipRMVisMesh.position.copy(visualizerAppleCheekTipRM);
+      philtrumSidesTipLVisMesh.position.copy(visualizerPhiltrumSidesTipL);
+      philtrumSidesTipRVisMesh.position.copy(visualizerPhiltrumSidesTipR);
       /*
         Add to scene
       */
@@ -982,6 +1003,8 @@ const init = async () => {
             appleCheekTipRVisMesh,
             appleCheekTipLMVisMesh,
             appleCheekTipRMVisMesh,
+            philtrumSidesTipLVisMesh,
+            philtrumSidesTipRVisMesh,
           );
           break;
         case "nose":
@@ -1052,6 +1075,12 @@ const init = async () => {
           visualizerGroup.add(appleCheekTipRVisMesh);
           visualizerGroup.add(appleCheekTipLMVisMesh);
           visualizerGroup.add(appleCheekTipRMVisMesh);
+          break;
+        case "philtrumSidesWidth":
+        case "philtrumSidesHeight":
+        case "philtrumSidesDepth":
+          visualizerGroup.add(philtrumSidesTipLVisMesh);
+          visualizerGroup.add(philtrumSidesTipRVisMesh);
           break;
       }
     };
@@ -1299,6 +1328,21 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByAppleCheekHeightMorph,
         );
+      // Philtrum sides width morph geometry from morph vertices
+      const visualizerByPhiltrumSidesWidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByPhiltrumSidesWidthMorph,
+        );
+      // Philtrum sides depth morph geometry from morph vertices
+      const visualizerByPhiltrumSidesDepthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByPhiltrumSidesDepthMorph,
+        );
+      // Philtrum sides height morph geometry from morph vertices
+      const visualizerByPhiltrumSidesHeightMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByPhiltrumSidesHeightMorph,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -1416,6 +1460,21 @@ const init = async () => {
         visualizerByAppleCheekHeightMorphGeo,
         new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
       );
+      // Philtrum sides width morph points (White)
+      const philtrumSidesWidthMorphPoints = new THREE.Points(
+        visualizerByPhiltrumSidesWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
+      // Philtrum sides depth morph points (White)
+      const philtrumSidesDepthMorphPoints = new THREE.Points(
+        visualizerByPhiltrumSidesDepthMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
+      // Philtrum sides height morph points (White)
+      const philtrumSidesHeightMorphPoints = new THREE.Points(
+        visualizerByPhiltrumSidesHeightMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -1445,6 +1504,9 @@ const init = async () => {
             appleCheekWidthMorphPoints,
             appleCheekDepthMorphPoints,
             appleCheekHeightMorphPoints,
+            philtrumSidesWidthMorphPoints,
+            philtrumSidesDepthMorphPoints,
+            philtrumSidesHeightMorphPoints,
           );
           break;
         case "nose":
@@ -1516,6 +1578,15 @@ const init = async () => {
         case "appleCheekHeight":
           visualizerGroup.add(appleCheekHeightMorphPoints);
           break;
+        case "philtrumSidesWidth":
+          visualizerGroup.add(philtrumSidesWidthMorphPoints);
+          break;
+        case "philtrumSidesDepth":
+          visualizerGroup.add(philtrumSidesDepthMorphPoints);
+          break;
+        case "philtrumSidesHeight":
+          visualizerGroup.add(philtrumSidesHeightMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -1548,8 +1619,11 @@ const init = async () => {
     appleCheekWidth
     appleCheekHeight
     appleCheekDepth
+    philtrumSidesWidth
+    philtrumSidesHeight
+    philtrumSidesDepth
    */
-  const selectedVisualizer = "appleCheekDepth";
+  const selectedVisualizer = "philtrumSidesDepth";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,

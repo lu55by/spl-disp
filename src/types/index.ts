@@ -64,6 +64,9 @@ export interface FacialMorphsVisualizers {
   visualizerAppleCheekTipR: Vector3;
   visualizerAppleCheekTipLM: Vector3;
   visualizerAppleCheekTipRM: Vector3;
+  // Philtrum Sides Tips
+  visualizerPhiltrumSidesTipL: Vector3;
+  visualizerPhiltrumSidesTipR: Vector3;
   /*
     Detection
   */
@@ -133,6 +136,10 @@ export interface FacialMorphsVisualizers {
   visualizerByAppleCheekWidthMorph: Vector3[];
   visualizerByAppleCheekHeightMorph: Vector3[];
   visualizerByAppleCheekDepthMorph: Vector3[];
+  // Philtrum Sides Morphs
+  visualizerByPhiltrumSidesWidthMorph: Vector3[];
+  visualizerByPhiltrumSidesHeightMorph: Vector3[];
+  visualizerByPhiltrumSidesDepthMorph: Vector3[];
 }
 
 /*

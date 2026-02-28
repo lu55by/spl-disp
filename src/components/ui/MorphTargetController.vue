@@ -196,6 +196,10 @@ const MorphTargetGroupsDict = [
     name: "苹果肌",
     labels: ["AppleCheekWidth", "AppleCheekHeight", "AppleCheekDepth"],
   },
+  {
+    name: "人中两侧",
+    labels: ["PhiltrumSidesWidth", "PhiltrumSidesHeight", "PhiltrumSidesDepth"],
+  },
 ];
 
 const groupedMorphTargetsData = computed(() => {
@@ -270,6 +274,7 @@ const getMorphMin = (label: string) => {
     case "JawDepth":
     case "JawSidesDepth":
     case "AppleCheekHeight":
+    case "PhiltrumSidesDepth":
       return -0.4;
     case "Nose":
     case "MouseCornersWidth":
@@ -284,6 +289,8 @@ const getMorphMin = (label: string) => {
     case "MandibleHeight":
     case "MandibleDepth":
     case "AppleCheekWidth":
+    case "PhiltrumSidesWidth":
+    case "PhiltrumSidesHeight":
       return -1;
     default:
       return 0;
