@@ -85,6 +85,8 @@ export interface FacialMorphsVisualizers {
   visualizerByNostrilWidthMorph: Vector3[];
   // Mandible Morph
   visualizerByMandibleWidthMorph: Vector3[];
+  visualizerByMandibleHeightMorph: Vector3[];
+  visualizerByMandibleDepthMorph: Vector3[];
   // Eye Brow Morph
   visualizerByEyeBrowHeightMorph: Vector3[];
   // Mouse Corners Width Morph
@@ -116,6 +118,8 @@ export interface FacialMorphsVisualizers {
   visualizerByJawSidesDepthMorph: Vector3[];
   // Mandible Corner Width Morph
   visualizerByMandibleCornersWidthMorph: Vector3[];
+  visualizerByMandibleCornersHeightMorph: Vector3[];
+  visualizerByMandibleCornersDepthMorph: Vector3[];
   // Forehead Morphs
   visualizerByForeheadWidthMorph: Vector3[];
   visualizerByForeheadDepthMorph: Vector3[];

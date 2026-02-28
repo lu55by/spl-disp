@@ -136,26 +136,35 @@ export const MorphTargetLabelMapping = {
   ZygomaticArchWidth: "颧骨宽度",
   ZygomaticArchDepth: "颧骨深度",
   ZygomaticArchHeight: "颧骨高度",
+  // TODO: Add the Apple Cheek morphs (height, depth, width)
   Cheek0Width: "脸颊宽度",
   Cheek0Depth: "脸颊深度",
   Cheek0Height: "脸颊高度",
   Cheek1Width: "腮帮宽度",
   Cheek1Depth: "腮帮深度",
   Cheek1Height: "腮帮高度",
-  NoseHeight: "鼻高",
-  NostrilWidth: "鼻翼宽度",
-  MandibleWidth: "下颌宽度",
-  MandibleCornersWidth: "下颌角宽度",
-  EyeBrowHeight: "眉毛高度",
-  MouseCornersWidth: "嘴角宽度",
-  EarMiddleWidth: "耳朵宽度",
-  EarTopThickness: "耳朵厚度",
+  // TODO: Add the Philtrum sides morphs (height, depth, width)
   JawWidth: "下巴宽度",
   JawHeight: "下巴高度",
   JawDepth: "下巴深度",
   JawSidesWidth: "下巴两侧宽度",
   JawSidesHeight: "下巴两侧高度",
   JawSidesDepth: "下巴两侧深度",
+  NoseHeight: "鼻高",
+  NostrilWidth: "鼻翼宽度",
+  // TODO: Add the height and depth morphs of the mandible
+  MandibleWidth: "下颌宽度",
+  MandibleHeight: "下颌高度",
+  MandibleDepth: "下颌深度",
+  // TODO: Add the height and depth morphs of the mandible corners
+  MandibleCornersWidth: "下颌角宽度",
+  MandibleCornersHeight: "下颌角高度",
+  MandibleCornersDepth: "下颌角深度",
+  EyeBrowHeight: "眉毛高度",
+  MouseCornersWidth: "嘴角宽度",
+  // TODO: Add the height, depth, size morphs of the ear
+  EarMiddleWidth: "耳朵宽度",
+  EarTopThickness: "耳朵厚度",
 };
 
 // Global Model

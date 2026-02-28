@@ -180,6 +180,8 @@ export function generateFacialMorphs(
   const visualizerByNoseHeightMorph: THREE.Vector3[] = [];
   const visualizerByNostrilWidthMorph: THREE.Vector3[] = [];
   const visualizerByMandibleWidthMorph: THREE.Vector3[] = [];
+  const visualizerByMandibleHeightMorph: THREE.Vector3[] = [];
+  const visualizerByMandibleDepthMorph: THREE.Vector3[] = [];
   const visualizerByEyeBrowHeightMorph: THREE.Vector3[] = [];
   const visualizerByMouseCornersWidthMorph: THREE.Vector3[] = [];
   const visualizerByEarMiddleWidthMorph: THREE.Vector3[] = [];
@@ -200,6 +202,8 @@ export function generateFacialMorphs(
   const visualizerByJawSidesHeightMorph: THREE.Vector3[] = [];
   const visualizerByJawSidesDepthMorph: THREE.Vector3[] = [];
   const visualizerByMandibleCornersWidthMorph: THREE.Vector3[] = [];
+  const visualizerByMandibleCornersHeightMorph: THREE.Vector3[] = [];
+  const visualizerByMandibleCornersDepthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadWidthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadDepthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadHeightMorph: THREE.Vector3[] = [];
@@ -585,6 +589,8 @@ export function generateFacialMorphs(
   const noseHeightTarget = new Float32Array(positions.count * 3);
   const nostrilWidthTarget = new Float32Array(positions.count * 3);
   const mandibleWidthTarget = new Float32Array(positions.count * 3);
+  const mandibleHeightTarget = new Float32Array(positions.count * 3);
+  const mandibleDepthTarget = new Float32Array(positions.count * 3);
   const eyeBrowHeightTarget = new Float32Array(positions.count * 3);
   const mouseCornersWidthTarget = new Float32Array(positions.count * 3);
   const earMiddleWidthTarget = new Float32Array(positions.count * 3);
@@ -605,6 +611,8 @@ export function generateFacialMorphs(
   const jawSidesHeightTarget = new Float32Array(positions.count * 3);
   const jawSidesDepthTarget = new Float32Array(positions.count * 3);
   const mandibleCornersWidthTarget = new Float32Array(positions.count * 3);
+  const mandibleCornersHeightTarget = new Float32Array(positions.count * 3);
+  const mandibleCornersDepthTarget = new Float32Array(positions.count * 3);
   const foreheadWidthTarget = new Float32Array(positions.count * 3);
   const foreheadDepthTarget = new Float32Array(positions.count * 3);
   const foreheadHeightTarget = new Float32Array(positions.count * 3);
@@ -663,7 +671,7 @@ export function generateFacialMorphs(
       0.8,
     );
 
-    // --- C. GENERATE MANDIBLE WIDTH MORPH (Widening) ---
+    // --- C.0 GENERATE MANDIBLE WIDTH MORPH (Widening) ---
     applyMorph(
       vertex,
       i,
@@ -686,6 +694,56 @@ export function generateFacialMorphs(
       },
       visualizerByMandibleWidthMorph,
       1.25,
+    );
+
+    // --- C.1 GENERATE MANDIBLE HEIGHT MORPH (Height) ---
+    applyMorph(
+      vertex,
+      i,
+      mandibleTipL,
+      null,
+      mandibleTipR,
+      { xRange: 5, yRange: 6.0, zRange: 2.5 },
+      mandibleHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 1.2,
+          totalInfMode: "All",
+          isApplyModeAddition: false,
+        },
+      },
+      visualizerByMandibleHeightMorph,
+      3.5,
+    );
+
+    // --- C.2 GENERATE MANDIBLE DEPTH MORPH (Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      mandibleTipL,
+      null,
+      mandibleTipR,
+      { xRange: 5, yRange: 3, zRange: 3.5 },
+      mandibleDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: 1,
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByMandibleDepthMorph,
+      2,
     );
 
     // --- D. GENERATE EYE BROW HEIGHT MORPH (Height) ---
@@ -1278,6 +1336,8 @@ export function generateFacialMorphs(
   const noseHeightAttr = new THREE.BufferAttribute(noseHeightTarget, 3);
   const nostrilWidthAttr = new THREE.BufferAttribute(nostrilWidthTarget, 3);
   const mandibleWidthAttr = new THREE.BufferAttribute(mandibleWidthTarget, 3);
+  const mandibleHeightAttr = new THREE.BufferAttribute(mandibleHeightTarget, 3);
+  const mandibleDepthAttr = new THREE.BufferAttribute(mandibleDepthTarget, 3);
   const eyeBrowHeightAttr = new THREE.BufferAttribute(eyeBrowHeightTarget, 3);
   const mouseCornersWidthAttr = new THREE.BufferAttribute(
     mouseCornersWidthTarget,
@@ -1316,6 +1376,14 @@ export function generateFacialMorphs(
     mandibleCornersWidthTarget,
     3,
   );
+  const mandibleCornersHeightAttr = new THREE.BufferAttribute(
+    mandibleCornersHeightTarget,
+    3,
+  );
+  const mandibleCornersDepthAttr = new THREE.BufferAttribute(
+    mandibleCornersDepthTarget,
+    3,
+  );
   const foreheadWidthAttr = new THREE.BufferAttribute(foreheadWidthTarget, 3);
   const foreheadDepthAttr = new THREE.BufferAttribute(foreheadDepthTarget, 3);
   const foreheadHeightAttr = new THREE.BufferAttribute(foreheadHeightTarget, 3);
@@ -1324,6 +1392,8 @@ export function generateFacialMorphs(
   noseHeightAttr.name = "noseHeight";
   nostrilWidthAttr.name = "nostrilWidth";
   mandibleWidthAttr.name = "mandibleWidth";
+  mandibleHeightAttr.name = "mandibleHeight";
+  mandibleDepthAttr.name = "mandibleDepth";
   eyeBrowHeightAttr.name = "eyeBrowHeight";
   mouseCornersWidthAttr.name = "mouseCornersWidth";
   earMiddleWidthAttr.name = "earMiddleWidth";
@@ -1344,6 +1414,8 @@ export function generateFacialMorphs(
   jawSidesHeightAttr.name = "jawSidesHeight";
   jawSidesDepthAttr.name = "jawSidesDepth";
   mandibleCornersWidthAttr.name = "mandibleCornersWidth";
+  mandibleCornersHeightAttr.name = "mandibleCornersHeight";
+  mandibleCornersDepthAttr.name = "mandibleCornersDepth";
   foreheadWidthAttr.name = "foreheadWidth";
   foreheadDepthAttr.name = "foreheadDepth";
   foreheadHeightAttr.name = "foreheadHeight";
@@ -1353,6 +1425,8 @@ export function generateFacialMorphs(
     noseHeightAttr,
     nostrilWidthAttr,
     mandibleWidthAttr,
+    mandibleHeightAttr,
+    mandibleDepthAttr,
     eyeBrowHeightAttr,
     mouseCornersWidthAttr,
     earMiddleWidthAttr,
@@ -1373,6 +1447,8 @@ export function generateFacialMorphs(
     jawSidesHeightAttr,
     jawSidesDepthAttr,
     mandibleCornersWidthAttr,
+    mandibleCornersHeightAttr,
+    mandibleCornersDepthAttr,
     foreheadWidthAttr,
     foreheadDepthAttr,
     foreheadHeightAttr,
@@ -1449,6 +1525,8 @@ export function generateFacialMorphs(
     visualizerByNoseHeightMorph,
     visualizerByNostrilWidthMorph,
     visualizerByMandibleWidthMorph,
+    visualizerByMandibleHeightMorph,
+    visualizerByMandibleDepthMorph,
     visualizerByEyeBrowHeightMorph,
     visualizerByMouseCornersWidthMorph,
     visualizerByEarMiddleWidthMorph,
@@ -1469,6 +1547,8 @@ export function generateFacialMorphs(
     visualizerByJawSidesHeightMorph,
     visualizerByJawSidesDepthMorph,
     visualizerByMandibleCornersWidthMorph,
+    visualizerByMandibleCornersHeightMorph,
+    visualizerByMandibleCornersDepthMorph,
     visualizerByForeheadWidthMorph,
     visualizerByForeheadDepthMorph,
     visualizerByForeheadHeightMorph,
@@ -1738,6 +1818,8 @@ export function generateFacialMorphsTst(
     visualizerByNoseHeightMorph: [],
     visualizerByNostrilWidthMorph: [],
     visualizerByMandibleWidthMorph: [],
+    visualizerByMandibleHeightMorph: [],
+    visualizerByMandibleDepthMorph: [],
     visualizerByEyeBrowHeightMorph: [],
     visualizerByMouseCornersWidthMorph: [],
     visualizerByEarMiddleWidthMorph,
@@ -1758,6 +1840,8 @@ export function generateFacialMorphsTst(
     visualizerByJawSidesHeightMorph: [],
     visualizerByJawSidesDepthMorph: [],
     visualizerByMandibleCornersWidthMorph: [],
+    visualizerByMandibleCornersHeightMorph: [],
+    visualizerByMandibleCornersDepthMorph: [],
     visualizerByForeheadWidthMorph: [],
     visualizerByForeheadDepthMorph: [],
     visualizerByForeheadHeightMorph: [],

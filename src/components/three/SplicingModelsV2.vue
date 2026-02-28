@@ -330,8 +330,8 @@ const init = async () => {
     CameraProps.Far,
   );
   // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
-  camera.position.set(-44, CameraProps.Pos.y * 0.65, 0);
+  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  // camera.position.set(-44, CameraProps.Pos.y * 0.65, 0);
   // camera.position.set(
   //   CameraProps.PosEarTopDebug.x,
   //   CameraProps.PosEarTopDebug.y,
@@ -640,6 +640,7 @@ const init = async () => {
       // Morph
       visualizerByNoseHeightMorph, // Vector3[]
       visualizerByMandibleWidthMorph, // Vector3[]
+      visualizerByMandibleDepthMorph, // Vector3[]
       visualizerByNostrilWidthMorph, // Vector3[]
       visualizerByEyeBrowHeightMorph, // Vector3[]
       visualizerByMouseCornersWidthMorph, // Vector3[]
@@ -945,7 +946,9 @@ const init = async () => {
           visualizerGroup.add(nostrilTipLVisMesh);
           visualizerGroup.add(nostrilTipRVisMesh);
           break;
-        case "mandible":
+        case "mandibleWidth":
+        case "mandibleHeight":
+        case "mandibleDepth":
           visualizerGroup.add(mandibleTipLVisMesh);
           visualizerGroup.add(mandibleTipRVisMesh);
           break;
@@ -1146,9 +1149,13 @@ const init = async () => {
       const visualizerByNostrilMorphGeo =
         new THREE.BufferGeometry().setFromPoints(visualizerByNostrilWidthMorph);
       // Mandible morph geometry from morph vertices
-      const visualizerByMandibleMorphGeo =
+      const visualizerByMandibleWidthMorphGeo =
         new THREE.BufferGeometry().setFromPoints(
           visualizerByMandibleWidthMorph,
+        );
+      const visualizerByMandibleDepthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMandibleDepthMorph,
         );
       // Eye brow morph geometry from morph vertices
       const visualizerByEyeBrowMorphGeo =
@@ -1226,8 +1233,12 @@ const init = async () => {
         new THREE.PointsMaterial({ color: "#00f", size: 0.15 }),
       );
       // Mandible morph points (Cyan)
-      const mandibleMorphPoints = new THREE.Points(
-        visualizerByMandibleMorphGeo,
+      const mandibleWidthMorphPoints = new THREE.Points(
+        visualizerByMandibleWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#0ff", size: 0.15 }),
+      );
+      const mandibleDepthMorphPoints = new THREE.Points(
+        visualizerByMandibleDepthMorphGeo,
         new THREE.PointsMaterial({ color: "#0ff", size: 0.15 }),
       );
       // Eye brow morph points (Yellow)
@@ -1308,7 +1319,8 @@ const init = async () => {
           visualizerGroup.add(
             noseMorphPoints,
             nostrilMorphPoints,
-            mandibleMorphPoints,
+            mandibleWidthMorphPoints,
+            mandibleDepthMorphPoints,
             eyeBrowMorphPoints,
             mouseCornersWidthMorphPoints,
             earMiddleMorphPoints,
@@ -1331,8 +1343,11 @@ const init = async () => {
         case "nostril":
           visualizerGroup.add(nostrilMorphPoints);
           break;
-        case "mandible":
-          visualizerGroup.add(mandibleMorphPoints);
+        case "mandibleWidth":
+          visualizerGroup.add(mandibleWidthMorphPoints);
+          break;
+        case "mandibleDepth":
+          visualizerGroup.add(mandibleDepthMorphPoints);
           break;
         case "eyeBrow":
           visualizerGroup.add(eyeBrowMorphPoints);
@@ -1387,7 +1402,8 @@ const init = async () => {
     all
     nose
     nostril
-    mandible
+    mandibleWidth
+    mandibleDepth
     eyeBrow
     mouseCornersWidth
     earMiddle
@@ -1403,7 +1419,7 @@ const init = async () => {
     foreheadDepth
     foreheadHeight
    */
-  const selectedVisualizer = "jawDepth";
+  const selectedVisualizer = "none";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,
