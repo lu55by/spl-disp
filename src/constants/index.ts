@@ -136,7 +136,9 @@ export const MorphTargetLabelMapping = {
   ZygomaticArchWidth: "颧骨宽度",
   ZygomaticArchDepth: "颧骨深度",
   ZygomaticArchHeight: "颧骨高度",
-  // TODO: Add the Apple Cheek morphs (height, depth, width)
+  AppleCheekWidth: "苹果肌宽度",
+  AppleCheekDepth: "苹果肌深度",
+  AppleCheekHeight: "苹果肌高度",
   Cheek0Width: "脸颊宽度",
   Cheek0Depth: "脸颊深度",
   Cheek0Height: "脸颊高度",
@@ -152,11 +154,9 @@ export const MorphTargetLabelMapping = {
   JawSidesDepth: "下巴两侧深度",
   NoseHeight: "鼻高",
   NostrilWidth: "鼻翼宽度",
-  // TODO: Add the height and depth morphs of the mandible
   MandibleWidth: "下颌宽度",
   MandibleHeight: "下颌高度",
   MandibleDepth: "下颌深度",
-  // TODO: Add the height and depth morphs of the mandible corners
   MandibleCornersWidth: "下颌角宽度",
   MandibleCornersHeight: "下颌角高度",
   MandibleCornersDepth: "下颌角深度",

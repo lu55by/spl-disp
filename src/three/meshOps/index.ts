@@ -164,6 +164,11 @@ export function generateFacialMorphs(
   let foreheadTipL = new THREE.Vector3();
   let foreheadTipR = new THREE.Vector3();
   let foreheadTipM = new THREE.Vector3();
+  // Apple Cheek Tips
+  let appleCheekTipL = new THREE.Vector3();
+  let appleCheekTipR = new THREE.Vector3();
+  let appleCheekTipLM = new THREE.Vector3();
+  let appleCheekTipRM = new THREE.Vector3();
 
   /*
     Vertices for visualization
@@ -207,6 +212,9 @@ export function generateFacialMorphs(
   const visualizerByForeheadWidthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadDepthMorph: THREE.Vector3[] = [];
   const visualizerByForeheadHeightMorph: THREE.Vector3[] = [];
+  const visualizerByAppleCheekWidthMorph: THREE.Vector3[] = [];
+  const visualizerByAppleCheekDepthMorph: THREE.Vector3[] = [];
+  const visualizerByAppleCheekHeightMorph: THREE.Vector3[] = [];
 
   /**
    * Ⅰ.Ⅰ NOSE TIP DETECTION
@@ -583,6 +591,31 @@ export function generateFacialMorphs(
   );
 
   /**
+   * Ⅰ.Ⅹ APPLE CHEEK TIPS DETECTION
+   */
+  // Detect the apple cheek tips based on the center vector of the eye nodes
+  const appleCheekTipOffsetX = 2;
+  appleCheekTipL.x = centerEyeRNode.x - appleCheekTipOffsetX;
+  appleCheekTipR.x = centerEyeLNode.x + appleCheekTipOffsetX;
+  appleCheekTipL.y = appleCheekTipR.y = noseTip.y + 0.5;
+  appleCheekTipL.z = appleCheekTipR.z = centerEyeLNode.z + 1.3;
+  appleCheekTipLM.copy(appleCheekTipL);
+  appleCheekTipRM.copy(appleCheekTipR);
+  appleCheekTipLM.x += appleCheekTipOffsetX * 0.5;
+  appleCheekTipRM.x -= appleCheekTipOffsetX * 0.5;
+  appleCheekTipLM.z += 1.3;
+  appleCheekTipRM.z += 1.3;
+
+  console.log(
+    "\n -- generateFacialMorphs -- appleCheekTipL calculated ->",
+    appleCheekTipL.z === -Infinity ? "Not Found" : appleCheekTipL,
+  );
+  console.log(
+    "\n -- generateFacialMorphs -- appleCheekTipR calculated ->",
+    appleCheekTipR.z === -Infinity ? "Not Found" : appleCheekTipR,
+  );
+
+  /**
    * Ⅱ. CREATE BUFFERS FOR MORPHS
    */
   // 2.1 Initialize target arrays with zeros to store deltas (Relative Morph Targets)
@@ -616,6 +649,9 @@ export function generateFacialMorphs(
   const foreheadWidthTarget = new Float32Array(positions.count * 3);
   const foreheadDepthTarget = new Float32Array(positions.count * 3);
   const foreheadHeightTarget = new Float32Array(positions.count * 3);
+  const appleCheekWidthTarget = new Float32Array(positions.count * 3);
+  const appleCheekHeightTarget = new Float32Array(positions.count * 3);
+  const appleCheekDepthTarget = new Float32Array(positions.count * 3);
 
   // 2.2 Traverse through the vertex count to generate the morphs
   for (let i = 0; i < positions.count; i++) {
@@ -1377,6 +1413,81 @@ export function generateFacialMorphs(
       visualizerByForeheadHeightMorph,
       2.8,
     );
+
+    // --- Q.0 GENERATE APPLE CHEEK WIDTH MORPH (widening) ---
+    applyMorph(
+      vertex,
+      i,
+      appleCheekTipL,
+      null,
+      appleCheekTipR,
+      { xRange: 1.4, yRange: 1.4, zRange: 3 },
+      appleCheekWidthTarget,
+      "widening",
+      {
+        widening: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 1, y: 0.7, z: 1 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+        heightOrDepth: null,
+      },
+      visualizerByAppleCheekWidthMorph,
+      1.3,
+    );
+
+    // --- Q.1 GENERATE APPLE CHEEK HEIGHT MORPH (height) ---
+    applyMorph(
+      vertex,
+      i,
+      appleCheekTipLM,
+      null,
+      appleCheekTipRM,
+      { xRange: 2, yRange: 1.4, zRange: 3 },
+      appleCheekHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 1, y: 1, z: 1 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByAppleCheekHeightMorph,
+      2.8,
+    );
+
+    // --- Q.2 GENERATE APPLE CHEEK DEPTH MORPH (depth) ---
+    applyMorph(
+      vertex,
+      i,
+      appleCheekTipLM,
+      null,
+      appleCheekTipRM,
+      { xRange: 1.4, yRange: 2, zRange: 3 },
+      appleCheekDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 0.7, y: 3, z: 0.7 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByAppleCheekDepthMorph,
+      1.9,
+    );
   }
 
   /**
@@ -1437,6 +1548,18 @@ export function generateFacialMorphs(
   const foreheadWidthAttr = new THREE.BufferAttribute(foreheadWidthTarget, 3);
   const foreheadDepthAttr = new THREE.BufferAttribute(foreheadDepthTarget, 3);
   const foreheadHeightAttr = new THREE.BufferAttribute(foreheadHeightTarget, 3);
+  const appleCheekWidthAttr = new THREE.BufferAttribute(
+    appleCheekWidthTarget,
+    3,
+  );
+  const appleCheekHeightAttr = new THREE.BufferAttribute(
+    appleCheekHeightTarget,
+    3,
+  );
+  const appleCheekDepthAttr = new THREE.BufferAttribute(
+    appleCheekDepthTarget,
+    3,
+  );
 
   // 3.2 Assign names to the BufferAttributes to correspond with the morphTargetDictionary keys
   noseHeightAttr.name = "noseHeight";
@@ -1469,6 +1592,9 @@ export function generateFacialMorphs(
   foreheadWidthAttr.name = "foreheadWidth";
   foreheadDepthAttr.name = "foreheadDepth";
   foreheadHeightAttr.name = "foreheadHeight";
+  appleCheekWidthAttr.name = "appleCheekWidth";
+  appleCheekHeightAttr.name = "appleCheekHeight";
+  appleCheekDepthAttr.name = "appleCheekDepth";
 
   // 3.3 Assign the BufferAttributes to the position attribute of the geometry morphAttributes
   geo.morphAttributes.position = [
@@ -1502,6 +1628,9 @@ export function generateFacialMorphs(
     foreheadWidthAttr,
     foreheadDepthAttr,
     foreheadHeightAttr,
+    appleCheekWidthAttr,
+    appleCheekHeightAttr,
+    appleCheekDepthAttr,
   ];
 
   // 3.4 Required for lighting to update correctly when morphed
@@ -1563,6 +1692,11 @@ export function generateFacialMorphs(
     visualizerForeheadTipL: foreheadTipL,
     visualizerForeheadTipR: foreheadTipR,
     visualizerForeheadTipM: foreheadTipM,
+    // Apple Cheek Tips
+    visualizerAppleCheekTipL: appleCheekTipL,
+    visualizerAppleCheekTipR: appleCheekTipR,
+    visualizerAppleCheekTipLM: appleCheekTipLM,
+    visualizerAppleCheekTipRM: appleCheekTipRM,
     // Detection
     visualizerByNoseTipDetection,
     visualizerByNostrilTipsDetection,
@@ -1602,6 +1736,9 @@ export function generateFacialMorphs(
     visualizerByForeheadWidthMorph,
     visualizerByForeheadDepthMorph,
     visualizerByForeheadHeightMorph,
+    visualizerByAppleCheekWidthMorph,
+    visualizerByAppleCheekDepthMorph,
+    visualizerByAppleCheekHeightMorph,
   };
 }
 
@@ -1856,6 +1993,10 @@ export function generateFacialMorphsTst(
     visualizerForeheadTipL: new THREE.Vector3(),
     visualizerForeheadTipR: new THREE.Vector3(),
     visualizerForeheadTipM: new THREE.Vector3(),
+    visualizerAppleCheekTipL: new THREE.Vector3(),
+    visualizerAppleCheekTipR: new THREE.Vector3(),
+    visualizerAppleCheekTipLM: new THREE.Vector3(),
+    visualizerAppleCheekTipRM: new THREE.Vector3(),
     // Detection
     visualizerByNoseTipDetection: [],
     visualizerByNostrilTipsDetection: [],
@@ -1895,6 +2036,9 @@ export function generateFacialMorphsTst(
     visualizerByForeheadWidthMorph: [],
     visualizerByForeheadDepthMorph: [],
     visualizerByForeheadHeightMorph: [],
+    visualizerByAppleCheekWidthMorph: [],
+    visualizerByAppleCheekDepthMorph: [],
+    visualizerByAppleCheekHeightMorph: [],
   };
 }
 
@@ -1998,7 +2142,11 @@ function applyMorph(
       infFrequency: { x: number; y: number; z: number };
       infAmplitude: { x: number; y: number; z: number };
       power: { x: number; y: number; z: number };
-      totalInfMode: "jawSidesWidth" | "foreheadWidth" | "All";
+      totalInfMode:
+        | "jawSidesWidth"
+        | "foreheadWidth"
+        | "appleCheekWidth"
+        | "All";
       isApplyModeAddition: boolean;
     } | null;
     heightOrDepth: {
@@ -2105,6 +2253,9 @@ function applyMorph(
             vertex.y < targetTip.y
               ? 0
               : influenceX * influenceY * totalInfluenceStrength;
+          break;
+        case "appleCheekWidth":
+          totalInfluence = influenceY * influenceZ * totalInfluenceStrength;
           break;
         case "All":
           totalInfluence =

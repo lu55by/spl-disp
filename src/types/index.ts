@@ -59,6 +59,11 @@ export interface FacialMorphsVisualizers {
   visualizerForeheadTipL: Vector3;
   visualizerForeheadTipR: Vector3;
   visualizerForeheadTipM: Vector3;
+  // Apple Cheek Tips
+  visualizerAppleCheekTipL: Vector3;
+  visualizerAppleCheekTipR: Vector3;
+  visualizerAppleCheekTipLM: Vector3;
+  visualizerAppleCheekTipRM: Vector3;
   /*
     Detection
   */
@@ -124,6 +129,10 @@ export interface FacialMorphsVisualizers {
   visualizerByForeheadWidthMorph: Vector3[];
   visualizerByForeheadDepthMorph: Vector3[];
   visualizerByForeheadHeightMorph: Vector3[];
+  // Apple Cheek Morphs
+  visualizerByAppleCheekWidthMorph: Vector3[];
+  visualizerByAppleCheekHeightMorph: Vector3[];
+  visualizerByAppleCheekDepthMorph: Vector3[];
 }
 
 /*

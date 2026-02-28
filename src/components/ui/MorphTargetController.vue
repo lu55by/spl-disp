@@ -181,12 +181,20 @@ const MorphTargetGroupsDict = [
   },
   {
     name: "下颌角",
-    labels: ["MandibleCornersWidth", "MandibleCornersHeight", "MandibleCornersDepth"],
+    labels: [
+      "MandibleCornersWidth",
+      "MandibleCornersHeight",
+      "MandibleCornersDepth",
+    ],
   },
   { name: "下巴", labels: ["JawWidth", "JawHeight", "JawDepth"] },
   {
     name: "下巴两侧",
     labels: ["JawSidesWidth", "JawSidesHeight", "JawSidesDepth"],
+  },
+  {
+    name: "苹果肌",
+    labels: ["AppleCheekWidth", "AppleCheekHeight", "AppleCheekDepth"],
   },
 ];
 
@@ -253,6 +261,7 @@ const updateHeadNodeInfluence = (index: number, value: number) => {
 const getMorphMin = (label: string) => {
   switch (label) {
     case "JawSidesHeight":
+    case "AppleCheekDepth":
       return -0.15;
     case "JawSidesWidth":
     case "ForeheadWidth":
@@ -260,6 +269,7 @@ const getMorphMin = (label: string) => {
     case "ForeheadHeight":
     case "JawDepth":
     case "JawSidesDepth":
+    case "AppleCheekHeight":
       return -0.4;
     case "Nose":
     case "MouseCornersWidth":
@@ -273,6 +283,7 @@ const getMorphMin = (label: string) => {
     case "Cheek1Height":
     case "MandibleHeight":
     case "MandibleDepth":
+    case "AppleCheekWidth":
       return -1;
     default:
       return 0;

@@ -330,8 +330,8 @@ const init = async () => {
     CameraProps.Far,
   );
   // camera.position.set(CameraProps.Pos.x, CameraProps.Pos.y, CameraProps.Pos.z);
-  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
-  // camera.position.set(-44, CameraProps.Pos.y * 0.65, 0);
+  // camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
+  camera.position.set(44, CameraProps.Pos.y * 0.65, 0);
   // camera.position.set(
   //   CameraProps.PosEarTopDebug.x,
   //   CameraProps.PosEarTopDebug.y,
@@ -629,6 +629,10 @@ const init = async () => {
       visualizerForeheadTipL, // Vector3
       visualizerForeheadTipR, // Vector3
       visualizerForeheadTipM, // Vector3
+      visualizerAppleCheekTipL, // Vector3
+      visualizerAppleCheekTipR, // Vector3
+      visualizerAppleCheekTipLM, // Vector3
+      visualizerAppleCheekTipRM, // Vector3
       // Detection
       visualizerByNoseTipDetection, // Vector3[]
       visualizerByNostrilTipsDetection, // Vector3[]
@@ -658,6 +662,9 @@ const init = async () => {
       visualizerByForeheadWidthMorph, // Vector3[]
       visualizerByForeheadDepthMorph, // Vector3[]
       visualizerByForeheadHeightMorph, // Vector3[]
+      visualizerByAppleCheekWidthMorph, // Vector3[]
+      visualizerByAppleCheekDepthMorph, // Vector3[]
+      visualizerByAppleCheekHeightMorph, // Vector3[]
     } = generateFacialMorphs(
       splicingGroupGlobal,
       hasManualTips
@@ -877,6 +884,34 @@ const init = async () => {
         new THREE.MeshBasicMaterial({ color: "#fff" }),
       );
       /*
+        Apple Cheek Tip Left Visualizer
+      */
+      const appleCheekTipLVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
+        Apple Cheek Tip Right Visualizer
+      */
+      const appleCheekTipRVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
+        Apple Cheek Tip Left Middle Visualizer
+      */
+      const appleCheekTipLMVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
+        Apple Cheek Tip Right Middle Visualizer
+      */
+      const appleCheekTipRMVisMesh = new THREE.Mesh(
+        sharedSphereGeo,
+        new THREE.MeshBasicMaterial({ color: "#fff" }),
+      );
+      /*
         Set positions
       */
       noseTipVisMesh.position.copy(visualizerNoseTip);
@@ -906,6 +941,10 @@ const init = async () => {
       foreheadTipLVisMesh.position.copy(visualizerForeheadTipL);
       foreheadTipRVisMesh.position.copy(visualizerForeheadTipR);
       foreheadTipMVisMesh.position.copy(visualizerForeheadTipM);
+      appleCheekTipLVisMesh.position.copy(visualizerAppleCheekTipL);
+      appleCheekTipRVisMesh.position.copy(visualizerAppleCheekTipR);
+      appleCheekTipLMVisMesh.position.copy(visualizerAppleCheekTipLM);
+      appleCheekTipRMVisMesh.position.copy(visualizerAppleCheekTipRM);
       /*
         Add to scene
       */
@@ -939,6 +978,10 @@ const init = async () => {
             foreheadTipLVisMesh,
             foreheadTipRVisMesh,
             foreheadTipMVisMesh,
+            appleCheekTipLVisMesh,
+            appleCheekTipRVisMesh,
+            appleCheekTipLMVisMesh,
+            appleCheekTipRMVisMesh,
           );
           break;
         case "nose":
@@ -1001,6 +1044,14 @@ const init = async () => {
           visualizerGroup.add(foreheadTipLVisMesh);
           visualizerGroup.add(foreheadTipRVisMesh);
           visualizerGroup.add(foreheadTipMVisMesh);
+          break;
+        case "appleCheekWidth":
+        case "appleCheekDepth":
+        case "appleCheekHeight":
+          visualizerGroup.add(appleCheekTipLVisMesh);
+          visualizerGroup.add(appleCheekTipRVisMesh);
+          visualizerGroup.add(appleCheekTipLMVisMesh);
+          visualizerGroup.add(appleCheekTipRMVisMesh);
           break;
       }
     };
@@ -1233,6 +1284,21 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByForeheadHeightMorph,
         );
+      // Apple cheek width morph geometry from morph vertices
+      const visualizerByAppleCheekWidthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByAppleCheekWidthMorph,
+        );
+      // Apple cheek depth morph geometry from morph vertices
+      const visualizerByAppleCheekDepthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByAppleCheekDepthMorph,
+        );
+      // Apple cheek height morph geometry from morph vertices
+      const visualizerByAppleCheekHeightMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByAppleCheekHeightMorph,
+        );
       /*
         Create points from the corresponding geometries
       */
@@ -1335,6 +1401,21 @@ const init = async () => {
         visualizerByForeheadHeightMorphGeo,
         new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
       );
+      // Apple cheek width morph points (White)
+      const appleCheekWidthMorphPoints = new THREE.Points(
+        visualizerByAppleCheekWidthMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
+      // Apple cheek depth morph points (White)
+      const appleCheekDepthMorphPoints = new THREE.Points(
+        visualizerByAppleCheekDepthMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
+      // Apple cheek height morph points (White)
+      const appleCheekHeightMorphPoints = new THREE.Points(
+        visualizerByAppleCheekHeightMorphGeo,
+        new THREE.PointsMaterial({ color: "#fff", size: 0.15 }),
+      );
       /*
         Add to scene
       */
@@ -1361,6 +1442,9 @@ const init = async () => {
             foreheadWidthMorphPoints,
             foreheadDepthMorphPoints,
             foreheadHeightMorphPoints,
+            appleCheekWidthMorphPoints,
+            appleCheekDepthMorphPoints,
+            appleCheekHeightMorphPoints,
           );
           break;
         case "nose":
@@ -1423,6 +1507,15 @@ const init = async () => {
         case "foreheadHeight":
           visualizerGroup.add(foreheadHeightMorphPoints);
           break;
+        case "appleCheekWidth":
+          visualizerGroup.add(appleCheekWidthMorphPoints);
+          break;
+        case "appleCheekDepth":
+          visualizerGroup.add(appleCheekDepthMorphPoints);
+          break;
+        case "appleCheekHeight":
+          visualizerGroup.add(appleCheekHeightMorphPoints);
+          break;
       }
     };
     visualizeMorphingVertices(visualizer);
@@ -1452,8 +1545,11 @@ const init = async () => {
     foreheadWidth
     foreheadDepth
     foreheadHeight
+    appleCheekWidth
+    appleCheekHeight
+    appleCheekDepth
    */
-  const selectedVisualizer = "mandibleCornersDepth";
+  const selectedVisualizer = "appleCheekDepth";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,
