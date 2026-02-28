@@ -637,7 +637,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: Math.PI * 0.5 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 0.8,
+          power: { x: 0.8, y: 0.8, z: 0.8 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -661,7 +661,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -686,7 +686,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -712,7 +712,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1.2,
+          power: { x: 1.2, y: 1.2, z: 1.2 },
           totalInfMode: "All",
           isApplyModeAddition: false,
         },
@@ -737,7 +737,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -762,7 +762,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "eyeBrowHeight",
           isApplyModeAddition: true,
         },
@@ -786,7 +786,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -811,7 +811,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -819,7 +819,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -843,7 +843,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -869,7 +869,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "zygomaticArchWidth",
           isApplyModeAddition: true,
         },
@@ -894,7 +894,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "zygomaticArchHeight",
           isApplyModeAddition: true,
         },
@@ -919,7 +919,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "zygomaticArchDepth",
           isApplyModeAddition: true,
         },
@@ -943,7 +943,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -969,7 +969,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -994,7 +994,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1018,7 +1018,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1044,7 +1044,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1069,7 +1069,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1093,7 +1093,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1119,7 +1119,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 0.7, y: 1, z: 1 },
-          power: 1.5,
+          power: { x: 1.5, y: 1.5, z: 1.5 },
           totalInfMode: "All",
           isApplyModeAddition: false,
         },
@@ -1144,7 +1144,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 0.7, y: 1, z: 1 },
-          power: 0.6,
+          power: { x: 0.6, y: 0.6, z: 0.6 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1168,7 +1168,7 @@ export function generateFacialMorphs(
           isCurveInverted: false,
           infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "jawSidesWidth",
           isApplyModeAddition: false,
         },
@@ -1194,7 +1194,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1.5,
+          power: { x: 1.5, y: 1.5, z: 1.5 },
           totalInfMode: "All",
           isApplyModeAddition: false,
         },
@@ -1219,7 +1219,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 0.8,
+          power: { x: 0.8, y: 0.8, z: 0.8 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1228,7 +1228,7 @@ export function generateFacialMorphs(
       3.5,
     );
 
-    // --- M. GENERATE MANDIBLE CORNERS WIDTH MORPH (Depth) ---
+    // --- M.0 GENERATE MANDIBLE CORNERS WIDTH MORPH (Depth) ---
     applyMorph(
       vertex,
       i,
@@ -1244,12 +1244,62 @@ export function generateFacialMorphs(
           isCurveInverted: false,
           infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "mandibleCornersWidth",
           isApplyModeAddition: true,
         },
       },
       visualizerByMandibleCornersWidthMorph,
+      1.05,
+    );
+
+    // --- M.1 GENERATE MANDIBLE CORNERS HEIGHT MORPH (Height) ---
+    applyMorph(
+      vertex,
+      i,
+      mandibleCornerTipL,
+      null,
+      mandibleCornerTipR,
+      { xRange: 6, yRange: 3, zRange: 4 },
+      mandibleCornersHeightTarget,
+      "height",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 0.6, y: 0.6, z: 0.6 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByMandibleCornersHeightMorph,
+      1.2,
+    );
+
+    // --- M.2 GENERATE MANDIBLE CORNERS DEPTH MORPH (Depth) ---
+    applyMorph(
+      vertex,
+      i,
+      mandibleCornerTipL,
+      null,
+      mandibleCornerTipR,
+      { xRange: 6, yRange: 3, zRange: 4 },
+      mandibleCornersDepthTarget,
+      "depth",
+      {
+        widening: null,
+        heightOrDepth: {
+          isCurveInverted: true,
+          infFrequency: { x: 1, y: 1, z: 1 },
+          infAmplitude: { x: 1, y: 1, z: 1 },
+          power: { x: 1, y: 2, z: 1 },
+          totalInfMode: "All",
+          isApplyModeAddition: true,
+        },
+      },
+      visualizerByMandibleCornersDepthMorph,
       1.05,
     );
 
@@ -1268,7 +1318,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: Math.PI, y: Math.PI, z: Math.PI },
           infAmplitude: { x: 0.1, y: 1, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "foreheadWidth",
           isApplyModeAddition: true,
         },
@@ -1294,7 +1344,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 0.5 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1319,7 +1369,7 @@ export function generateFacialMorphs(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 0.5, z: 1 },
-          power: 1,
+          power: { x: 1, y: 1, z: 1 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1705,7 +1755,7 @@ export function generateFacialMorphsTst(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1713,7 +1763,7 @@ export function generateFacialMorphsTst(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1737,7 +1787,7 @@ export function generateFacialMorphsTst(
           isCurveInverted: true,
           infFrequency: { x: 1, y: 1, z: 1 },
           infAmplitude: { x: 1, y: 1, z: 1 },
-          power: 2,
+          power: { x: 2, y: 2, z: 2 },
           totalInfMode: "All",
           isApplyModeAddition: true,
         },
@@ -1947,7 +1997,7 @@ function applyMorph(
       isCurveInverted: boolean;
       infFrequency: { x: number; y: number; z: number };
       infAmplitude: { x: number; y: number; z: number };
-      power: number;
+      power: { x: number; y: number; z: number };
       totalInfMode: "jawSidesWidth" | "foreheadWidth" | "All";
       isApplyModeAddition: boolean;
     } | null;
@@ -1955,7 +2005,7 @@ function applyMorph(
       isCurveInverted: boolean;
       infFrequency: { x: number; y: number; z: number };
       infAmplitude: { x: number; y: number; z: number };
-      power: number;
+      power: { x: number; y: number; z: number };
       totalInfMode:
         | "eyeBrowHeight"
         | "zygomaticArchWidth"
@@ -2030,17 +2080,17 @@ function applyMorph(
       /*
         Inf X
       */
-      const influenceX = Math.pow(Math.sin(angleX) * infAmplitude.x, power);
+      const influenceX = Math.pow(Math.sin(angleX) * infAmplitude.x, power.x);
 
       /*
         Inf Y
       */
-      const influenceY = Math.pow(Math.sin(angleY) * infAmplitude.y, power);
+      const influenceY = Math.pow(Math.sin(angleY) * infAmplitude.y, power.y);
 
       /*
         Inf Z
       */
-      const influenceZ = Math.pow(Math.sin(angleZ) * infAmplitude.z, power);
+      const influenceZ = Math.pow(Math.sin(angleZ) * infAmplitude.z, power.z);
 
       /*
         Total Inf
@@ -2110,17 +2160,17 @@ function applyMorph(
       const influenceX =
         totalInfMode === "eyeBrowHeight"
           ? 1
-          : Math.pow(Math.sin(angleX) * infAmplitude.x, power);
+          : Math.pow(Math.sin(angleX) * infAmplitude.x, power.x);
 
       /*
         Inf Y
       */
-      const influenceY = Math.pow(Math.sin(angleY) * infAmplitude.y, power);
+      const influenceY = Math.pow(Math.sin(angleY) * infAmplitude.y, power.y);
 
       /*
         Inf Z
       */
-      const influenceZ = Math.pow(Math.sin(angleZ) * infAmplitude.z, power);
+      const influenceZ = Math.pow(Math.sin(angleZ) * infAmplitude.z, power.z);
 
       /*
         Total Inf

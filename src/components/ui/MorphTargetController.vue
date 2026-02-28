@@ -263,6 +263,8 @@ const getMorphMin = (label: string) => {
       return -0.4;
     case "Nose":
     case "MouseCornersWidth":
+    case "MandibleCornersHeight":
+    case "MandibleCornersDepth":
     case "ZygomaticArchDepth":
     case "ZygomaticArchHeight":
     case "Cheek0Depth":

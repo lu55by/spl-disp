@@ -653,6 +653,8 @@ const init = async () => {
       visualizerByJawDepthMorph, // Vector3[]
       visualizerByJawSidesWidthMorph, // Vector3[]
       visualizerByMandibleCornersWidthMorph, // Vector3[]
+      visualizerByMandibleCornersHeightMorph, // Vector3[]
+      visualizerByMandibleCornersDepthMorph, // Vector3[]
       visualizerByForeheadWidthMorph, // Vector3[]
       visualizerByForeheadDepthMorph, // Vector3[]
       visualizerByForeheadHeightMorph, // Vector3[]
@@ -988,6 +990,8 @@ const init = async () => {
           visualizerGroup.add(jawTipMVisMesh);
           break;
         case "mandibleCornersWidth":
+        case "mandibleCornersHeight":
+        case "mandibleCornersDepth":
           visualizerGroup.add(mandibleCornerTipLVisMesh);
           visualizerGroup.add(mandibleCornerTipRVisMesh);
           break;
@@ -1204,6 +1208,16 @@ const init = async () => {
         new THREE.BufferGeometry().setFromPoints(
           visualizerByMandibleCornersWidthMorph,
         );
+      // Mandible corners height morph geometry from morph vertices
+      const visualizerByMandibleCornersHeightMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMandibleCornersHeightMorph,
+        );
+      // Mandible corners depth morph geometry from morph vertices
+      const visualizerByMandibleCornersDepthMorphGeo =
+        new THREE.BufferGeometry().setFromPoints(
+          visualizerByMandibleCornersDepthMorph,
+        );
       // Forehead width morph geometry from morph vertices
       const visualizerByForeheadWidthMorphGeo =
         new THREE.BufferGeometry().setFromPoints(
@@ -1296,6 +1310,16 @@ const init = async () => {
         visualizerByMandibleCornersWidthMorphGeo,
         new THREE.PointsMaterial({ color: "#f80", size: 0.15 }),
       );
+      // Mandible corners height morph points (Orange)
+      const mandibleCornersHeightMorphPoints = new THREE.Points(
+        visualizerByMandibleCornersHeightMorphGeo,
+        new THREE.PointsMaterial({ color: "#f80", size: 0.15 }),
+      );
+      // Mandible corners depth morph points (Orange)
+      const mandibleCornersDepthMorphPoints = new THREE.Points(
+        visualizerByMandibleCornersDepthMorphGeo,
+        new THREE.PointsMaterial({ color: "#f80", size: 0.15 }),
+      );
       // Forehead width morph points (White)
       const foreheadWidthMorphPoints = new THREE.Points(
         visualizerByForeheadWidthMorphGeo,
@@ -1332,6 +1356,8 @@ const init = async () => {
             jawDepthMorphPoints,
             jawSidesWidthMorphPoints,
             mandibleCornersWidthMorphPoints,
+            mandibleCornersHeightMorphPoints,
+            mandibleCornersDepthMorphPoints,
             foreheadWidthMorphPoints,
             foreheadDepthMorphPoints,
             foreheadHeightMorphPoints,
@@ -1382,6 +1408,12 @@ const init = async () => {
         case "mandibleCornersWidth":
           visualizerGroup.add(mandibleCornersWidthMorphPoints);
           break;
+        case "mandibleCornersHeight":
+          visualizerGroup.add(mandibleCornersHeightMorphPoints);
+          break;
+        case "mandibleCornersDepth":
+          visualizerGroup.add(mandibleCornersDepthMorphPoints);
+          break;
         case "foreheadWidth":
           visualizerGroup.add(foreheadWidthMorphPoints);
           break;
@@ -1415,11 +1447,13 @@ const init = async () => {
     jawDepth
     jawSidesWidth
     mandibleCornersWidth
+    mandibleCornersHeight
+    mandibleCornersDepth
     foreheadWidth
     foreheadDepth
     foreheadHeight
    */
-  const selectedVisualizer = "none";
+  const selectedVisualizer = "mandibleCornersDepth";
   IsDevelopment &&
     generateFacialMorphsAndVisualizers(
       isVisualizerDisabled,
