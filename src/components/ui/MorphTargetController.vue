@@ -173,7 +173,8 @@ const MorphTargetGroupsDict = [
   },
   { name: "脸颊", labels: ["Cheek0Width", "Cheek0Depth", "Cheek0Height"] },
   { name: "腮帮", labels: ["Cheek1Width", "Cheek1Depth", "Cheek1Height"] },
-  { name: "鼻子", labels: ["NoseHeight", "NostrilWidth"] },
+  { name: "鼻子", labels: ["NoseHeight"] },
+  { name: "鼻翼", labels: ["NostrilWidth"] },
   { name: "嘴角", labels: ["MouseCornersWidth"] },
   {
     name: "下颌",
@@ -317,7 +318,22 @@ const resetEyeScale = () => {
  * Reset all morph target influences of the head node.
  */
 const resetAllMorphTargets = () => {
-  if (headNode.value) headNode.value.updateMorphTargets();
+  if (headNode.value && headNode.value.morphTargetInfluences) {
+    // -> Reset all influences to 0
+    headNode.value.morphTargetInfluences.forEach((_, i) => {
+      updateHeadNodeInfluence(i, 0);
+    });
+  }
+};
+
+/**
+ * Reset all morph targets within a specific group to 0.
+ */
+const resetGroupMorphTargets = (group: MorphTargetGroup) => {
+  group.targets.forEach((target) => {
+    // -> Reset each target in the group to 0
+    updateHeadNodeInfluence(target.morphTargetInfIdx, 0);
+  });
 };
 
 /**
@@ -441,40 +457,64 @@ onUnmounted(() => {
                 :key="group.groupName"
                 class="space-y-4 pt-4 border-t border-white/5 first:border-t-0 first:pt-0"
               >
-                <!-- Group Title Button -->
-                <button
-                  @click="toggleGroup(group.groupName)"
-                  class="w-full flex items-center gap-2 mb-1 group/btn cursor-pointer py-1 outline-none"
-                >
+                <!-- Group Title (with Toggles and Reset) -->
+                <div class="w-full flex items-center gap-2 mb-1 group/btn py-1">
                   <div
                     class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 opacity-30 group-hover/btn:opacity-100 transition-opacity"
                   ></div>
                   <div
-                    class="flex items-center gap-2 text-[10px] text-cyan-300 font-bold tracking-widest uppercase"
+                    class="flex items-center gap-2 text-[10px] text-cyan-300 font-bold tracking-widest uppercase px-1"
                   >
-                    <span>{{ group.groupName }}</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3 transition-transform duration-300"
-                      :class="{
-                        'rotate-180': isGroupExpanded(group.groupName),
-                      }"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                    <button
+                      @click="toggleGroup(group.groupName)"
+                      class="flex items-center gap-2 cursor-pointer outline-none hover:text-cyan-100 transition-colors"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <span>{{ group.groupName }}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-3 h-3 transition-transform duration-300"
+                        :class="{
+                          'rotate-180': isGroupExpanded(group.groupName),
+                        }"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    <!-- Reset Group Button -->
+                    <button
+                      @click="resetGroupMorphTargets(group)"
+                      class="p-1 hover:bg-white/10 rounded-lg transition-all duration-300 group/reset-sub border border-white/0 hover:border-white/10 active:scale-95 cursor-pointer"
+                      title="重置该组"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-2.5 h-2.5 text-cyan-500/50 group-hover/reset-sub:text-cyan-400 group-hover/reset-sub:rotate-180 transition-transform duration-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </button>
                   </div>
                   <div
                     class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 opacity-30 group-hover/btn:opacity-100 transition-opacity"
                   ></div>
-                </button>
+                </div>
 
                 <!-- Group Content -->
                 <Transition name="expand-fade">
@@ -564,38 +604,62 @@ onUnmounted(() => {
                 v-if="eyeLNode && eyeRNode"
                 class="space-y-4 pt-4 border-t border-white/5 first:border-t-0 first:pt-0"
               >
-                <!-- Group Title Button (Eyes) -->
-                <button
-                  @click="toggleGroup('眼睛')"
-                  class="w-full flex items-center gap-2 mb-1 group/btn cursor-pointer py-1 outline-none"
-                >
+                <!-- Group Title (Eyes) -->
+                <div class="w-full flex items-center gap-2 mb-1 group/btn py-1">
                   <div
                     class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 opacity-30 group-hover/btn:opacity-100 transition-opacity"
                   ></div>
                   <div
-                    class="flex items-center gap-2 text-[10px] text-cyan-300 font-bold tracking-widest uppercase"
+                    class="flex items-center gap-2 text-[10px] text-cyan-300 font-bold tracking-widest uppercase px-1"
                   >
-                    <span>眼睛</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3 transition-transform duration-300"
-                      :class="{ 'rotate-180': isGroupExpanded('眼睛') }"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                    <button
+                      @click="toggleGroup('眼睛')"
+                      class="flex items-center gap-2 cursor-pointer outline-none hover:text-cyan-100 transition-colors"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <span>眼睛</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-3 h-3 transition-transform duration-300"
+                        :class="{ 'rotate-180': isGroupExpanded('眼睛') }"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    <!-- Reset Group Button (Eyes) -->
+                    <button
+                      @click="resetEyeScale"
+                      class="p-1 hover:bg-white/10 rounded-lg transition-all duration-300 group/reset-sub border border-white/0 hover:border-white/10 active:scale-95 cursor-pointer"
+                      title="重置该组"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-2.5 h-2.5 text-cyan-500/50 group-hover/reset-sub:text-cyan-400 group-hover/reset-sub:rotate-180 transition-transform duration-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </button>
                   </div>
                   <div
                     class="h-px flex-1 bg-linear-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 opacity-30 group-hover/btn:opacity-100 transition-opacity"
                   ></div>
-                </button>
+                </div>
 
                 <Transition name="expand-fade">
                   <div v-show="isGroupExpanded('眼睛')" class="space-y-4 pt-2">
@@ -617,27 +681,6 @@ onUnmounted(() => {
                               >scale</span
                             >
                           </div>
-                          <!-- Reset Button -->
-                          <button
-                            @click="resetEyeScale"
-                            class="p-1.5 hover:bg-white/10 rounded-lg transition-all duration-300 group/reset border border-white/0 hover:border-white/10 active:scale-95"
-                            title="Reset Scale"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              class="w-3.5 h-3.5 text-cyan-500/50 group-hover/reset:text-cyan-400 group-hover/reset:rotate-180 transition-transform duration-500"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                              />
-                            </svg>
-                          </button>
                         </div>
                       </div>
 
