@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { getCutHeadNew } from "@/three/utils/csgCutHeadNew";
 import { AxesHelper } from "three";
 import { type Brush } from "three-bvh-csg";
 import { UltraHDRLoader } from "three/examples/jsm/Addons.js";
@@ -68,9 +69,9 @@ import {
   applyTextures2LoadedHeadModelAsync,
   combineMeshesToGroup,
   generateFacialMorphs,
-  generateFacialMorphsTst,
+  getObject3DBoundingBoxCenter,
   modifyNewVerticesUv,
-  scaleGroupToHeight,
+  scaleGroupToHeight
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
@@ -113,6 +114,10 @@ let camera: THREE.PerspectiveCamera,
 const width = window.innerWidth;
 const height = window.innerHeight;
 
+// Orbit Controls Target Center
+// const orbitControlsTargetCenter = new THREE.Vector3(0, 148.05, 0);
+const orbitControlsTargetCenter = new THREE.Vector3(0, 0, 0);
+
 // Init scene fn
 const init = async () => {
   // const width = canvasEle.value!.clientWidth
@@ -127,11 +132,12 @@ const init = async () => {
     CameraProps.Near,
     CameraProps.Far,
   );
-  camera.position.set(
-    CameraProps.PosNormal.x,
-    CameraProps.PosNormal.y,
-    CameraProps.PosNormal.z,
-  );
+  // camera.position.set(
+  //   CameraProps.PosNormal.x,
+  //   CameraProps.PosNormal.y,
+  //   CameraProps.PosNormal.z,
+  // );
+  camera.position.set(0, CameraProps.Pos.y * 0.65, CameraProps.Pos.z * 1.1);
   // addTransformDebug("Camera", gui, camera);
 
   /**
@@ -835,7 +841,7 @@ const init = async () => {
     let cutHeadBoundingBoxArr: { headPath: string; boundingBox: THREE.Box3 }[] =
       [];
 
-    for (let i = 0; i < headMale2CutPaths.length; i++) {
+    for (let i = 0; i < 1; i++) {
       isFemale = i >= femaleHeadStartIdx;
       const headPath = headMale2CutPaths[i];
       const cutHead = await csgCutHeadFnTstV3(
@@ -1132,90 +1138,117 @@ const init = async () => {
     const headModel = (await OBJLoaderInstance.loadAsync(
       "models/head/v2/new-head-01.obj",
     )) as THREE.Group;
-
-    // Store the reference for exporting
-    headModelRef.value = headModel;
-
-    scene.add(headModel);
-    const headTex = await loadTexture("models/head/v2/map.png");
     const headNode = headModel.children[0] as PhongMesh;
+
+    // Apply Texture, PBR Material and Double Side
+    const headTex = await loadTexture("models/head/v2/map.png");
     headNode.material.map = headTex;
     console.log("\n -- headV2Tst -- headModel ->", headModel);
     applyPBRMaterialAndSRGBColorSpace(headModel, true);
     applyDoubleSide(headModel);
 
+    // Reposition and scale the head model
+    headModel.position.y = 148.05;
+    headModel.scale.setScalar(9.5);
+
+    // Perform the CSG operation
+    const cutHead = await getCutHeadNew(headModel, LoadedCuttersModel);
+    console.log("\n -- headV2Tst -- cutHead ->", cutHead);
+    applyPBRMaterialAndSRGBColorSpace(cutHead, true);
+    applyDoubleSide(cutHead);
+
+    // Offset on the X axis for comparison
+    headModel.position.x -= 1;
+    cutHead.position.x += 1;
+    // scene.add(headModel, cutHead, LoadedCuttersModel);
+    scene.add(cutHead);
+
+    // Store the reference for exporting
+    // headModelRef.value = headModel;
+    headModelRef.value = cutHead;
+
+    // Ensure the transformation is accounted for before calculating the center
+    const boundingBoxCenter = getObject3DBoundingBoxCenter(cutHead);
+    orbitControlsTargetCenter.copy(boundingBoxCenter);
+
     /*
       Generate facial morphs
     */
-    const {
-      visualizerEarMiddleTipL, // Vector3
-      visualizerEarMiddleTipR, // Vector3
-      visualizerEarTopTipL, // Vector3
-      visualizerEarTopTipR, // Vector3
-      visualizerByEarMiddleWidthMorph, // Vector3[]
-      visualizerByEarTopThicknessMorph, // Vector3[]
-    } = generateFacialMorphsTst(headModel);
+    // const {
+    //   visualizerEarMiddleTipL, // Vector3
+    //   visualizerEarMiddleTipR, // Vector3
+    //   visualizerEarTopTipL, // Vector3
+    //   visualizerEarTopTipR, // Vector3
+    //   visualizerByEarMiddleWidthMorph, // Vector3[]
+    //   visualizerByEarTopThicknessMorph, // Vector3[]
+    // } = generateFacialMorphsTst(headModel);
 
-    console.log(
-      "\n -- headV2Tst -- headModel after generating facial morphs ->",
-      headModel,
-    );
+    // console.log(
+    //   "\n -- headV2Tst -- headModel after generating facial morphs ->",
+    //   headModel,
+    // );
 
     // Add visualizers to the scene
-    // Tips
-    const earMiddleTipL = new THREE.Mesh(
-      new THREE.SphereGeometry(0.01, 16, 16),
-      new THREE.MeshBasicMaterial({ color: 0xff0000 }),
-    );
-    earMiddleTipL.position.copy(visualizerEarMiddleTipL);
-    scene.add(earMiddleTipL);
+    // const addVisualizers = () => {
+    //   // Tips
+    //   const earMiddleTipL = new THREE.Mesh(
+    //     new THREE.SphereGeometry(0.01, 16, 16),
+    //     new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+    //   );
+    //   earMiddleTipL.position.copy(visualizerEarMiddleTipL);
+    //   scene.add(earMiddleTipL);
 
-    const earMiddleTipR = new THREE.Mesh(
-      new THREE.SphereGeometry(0.01, 16, 16),
-      new THREE.MeshBasicMaterial({ color: 0xff0000 }),
-    );
-    earMiddleTipR.position.copy(visualizerEarMiddleTipR);
-    scene.add(earMiddleTipR);
+    //   const earMiddleTipR = new THREE.Mesh(
+    //     new THREE.SphereGeometry(0.01, 16, 16),
+    //     new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+    //   );
+    //   earMiddleTipR.position.copy(visualizerEarMiddleTipR);
+    //   scene.add(earMiddleTipR);
 
-    const earTopTipL = new THREE.Mesh(
-      new THREE.SphereGeometry(0.01, 16, 16),
-      new THREE.MeshBasicMaterial({ color: "#0ff" }),
-    );
-    earTopTipL.position.copy(visualizerEarTopTipL);
-    scene.add(earTopTipL);
+    //   const earTopTipL = new THREE.Mesh(
+    //     new THREE.SphereGeometry(0.01, 16, 16),
+    //     new THREE.MeshBasicMaterial({ color: "#0ff" }),
+    //   );
+    //   earTopTipL.position.copy(visualizerEarTopTipL);
+    //   scene.add(earTopTipL);
 
-    const earTopTipR = new THREE.Mesh(
-      new THREE.SphereGeometry(0.01, 16, 16),
-      new THREE.MeshBasicMaterial({ color: "#0ff" }),
-    );
-    earTopTipR.position.copy(visualizerEarTopTipR);
-    scene.add(earTopTipR);
+    //   const earTopTipR = new THREE.Mesh(
+    //     new THREE.SphereGeometry(0.01, 16, 16),
+    //     new THREE.MeshBasicMaterial({ color: "#0ff" }),
+    //   );
+    //   earTopTipR.position.copy(visualizerEarTopTipR);
+    //   scene.add(earTopTipR);
 
-    // Morphs
-    const visualizerByEarMiddleMorphGeo =
-      new THREE.BufferGeometry().setFromPoints(visualizerByEarMiddleWidthMorph);
-    const earMiddleMorphPoints = new THREE.Points(
-      visualizerByEarMiddleMorphGeo,
-      new THREE.PointsMaterial({ color: 0xff0000, size: 0.01 }),
-    );
-    // scene.add(earMiddleMorphPoints);
+    //   // Morphs
+    //   const visualizerByEarMiddleMorphGeo =
+    //     new THREE.BufferGeometry().setFromPoints(
+    //       visualizerByEarMiddleWidthMorph,
+    //     );
+    //   const earMiddleMorphPoints = new THREE.Points(
+    //     visualizerByEarMiddleMorphGeo,
+    //     new THREE.PointsMaterial({ color: 0xff0000, size: 0.01 }),
+    //   );
+    //   // scene.add(earMiddleMorphPoints);
 
-    const visualizerByEarTopMorphGeo = new THREE.BufferGeometry().setFromPoints(
-      visualizerByEarTopThicknessMorph,
-    );
-    const earTopMorphPoints = new THREE.Points(
-      visualizerByEarTopMorphGeo,
-      new THREE.PointsMaterial({ color: "#0ff", size: 0.01 }),
-    );
-    scene.add(earTopMorphPoints);
+    //   const visualizerByEarTopMorphGeo =
+    //     new THREE.BufferGeometry().setFromPoints(
+    //       visualizerByEarTopThicknessMorph,
+    //     );
+    //   const earTopMorphPoints = new THREE.Points(
+    //     visualizerByEarTopMorphGeo,
+    //     new THREE.PointsMaterial({ color: "#0ff", size: 0.01 }),
+    //   );
+    //   scene.add(earTopMorphPoints);
+    // };
+    // addVisualizers();
 
-    const morphFolder = guiInspectorFolderCutHead.addFolder("New Head Morphs");
-    morphFolder
-      .add(headNode.morphTargetInfluences, 0, 0, 1, 0.01)
-      .name("Ear Middle Width");
-    morphFolder
-      .add(headNode.morphTargetInfluences, 1, 0, 1, 0.01)
-      .name("Ear Top Thickness");
+    // const morphFolder = guiInspectorFolderCutHead.addFolder("New Head Morphs");
+    // morphFolder
+    //   .add(headNode.morphTargetInfluences, 0, 0, 1, 0.01)
+    //   .name("Ear Middle Width");
+    // morphFolder
+    //   .add(headNode.morphTargetInfluences, 1, 0, 1, 0.01)
+    //   .name("Ear Top Thickness");
   };
 
   // loadHairTst();
@@ -1265,6 +1298,7 @@ const animate = async () => {
   // const time = clock.getElapsedTime()
 
   // Update controls
+  controls.target.lerp(orbitControlsTargetCenter, 0.1);
   controls.update();
 
   // Update renderer

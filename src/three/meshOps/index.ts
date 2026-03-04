@@ -2913,6 +2913,8 @@ export function modifyNewVerticesUv(
   offsetPositivePercentage: number,
   offsetNegativePercentage: number,
 ): void {
+  console.log("\n -- modifyNewVerticesUv -- cutObj ->", cutObj);
+  console.log("\n -- modifyNewVerticesUv -- originalNode ->", originalNode);
   const originalNodeAttr = getAttributes(originalNode as THREE.Mesh);
   const finalCutObjAttr = getAttributes(cutObj as THREE.Mesh);
 
