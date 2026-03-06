@@ -71,7 +71,7 @@ import {
   generateFacialMorphs,
   getObject3DBoundingBoxCenter,
   modifyNewVerticesUv,
-  scaleGroupToHeight
+  scaleGroupToHeight,
 } from "../../three/meshOps";
 import { getCutHeadV3, getCutHeadV4 } from "../../three/utils/csgCutHead";
 import { getCutHead } from "../../three/utils/csgCutHeadV3";
@@ -117,6 +117,123 @@ const height = window.innerHeight;
 // Orbit Controls Target Center
 // const orbitControlsTargetCenter = new THREE.Vector3(0, 148.05, 0);
 const orbitControlsTargetCenter = new THREE.Vector3(0, 0, 0);
+
+/**
+ * Normal Fns.
+ */
+
+/**
+ * Inflates the extreme X-axis regions (ears) of a single-mesh head geometry.
+ * @param geometry The BufferGeometry of the head OBJ.
+ * @param inflateAmount The maximum distance (in mm/units) to push the vertices outward.
+ * @param earZoneWidth The width of the zone from the bounding box edge to apply the effect.
+ */
+function inflateEarsProgrammatically(
+  geometry: THREE.BufferGeometry,
+  inflateAmount: number = 0.5,
+  earZoneWidth: number = 10.0, // Adjust based on your 40mm scale
+) {
+  // Ensure we have normals to push along
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+
+  const boundingBox = geometry.boundingBox;
+  if (!boundingBox) return;
+
+  const positions = geometry.attributes.position;
+  const normals = geometry.attributes.normal;
+
+  // We need to modify the positions
+  const newPositions = new Float32Array(positions.count * 3);
+
+  const minX = boundingBox.min.x;
+  const maxX = boundingBox.max.x;
+
+  const inflateVerticesVisulizer: THREE.Vector3[] = [];
+
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i);
+    const y = positions.getY(i);
+    const z = positions.getZ(i);
+
+    const nx = normals.getX(i);
+    const ny = normals.getY(i);
+    const nz = normals.getZ(i);
+
+    let multiplier = 0;
+
+    // Check if vertex is in the Left Ear Zone
+    if (x < minX + earZoneWidth) {
+      // Create a smooth falloff from 1.0 (edge) to 0.0 (inner boundary)
+      const distance = (x - minX) / earZoneWidth;
+      multiplier = 1.0 - smoothstep(0, 1, distance);
+      inflateVerticesVisulizer.push(new THREE.Vector3(x, y, z));
+    }
+    // Check if vertex is in the Right Ear Zone
+    else if (x > maxX - earZoneWidth) {
+      const distance = (maxX - x) / earZoneWidth;
+      multiplier = 1.0 - smoothstep(0, 1, distance);
+      inflateVerticesVisulizer.push(new THREE.Vector3(x, y, z));
+    }
+
+    // Apply the displacement along the normal vector
+    const displacement = inflateAmount * multiplier;
+
+    newPositions[i * 3] = x + nx * displacement;
+    newPositions[i * 3 + 1] = y + ny * displacement;
+    newPositions[i * 3 + 2] = z + nz * displacement;
+  }
+
+  // Update the geometry
+  geometry.setAttribute("position", new THREE.BufferAttribute(newPositions, 3));
+  geometry.computeVertexNormals(); // Recompute for accurate shading
+
+  // Note: UVs remain untouched, preserving your color map!
+
+  // Return the visulizer
+  return inflateVerticesVisulizer;
+}
+
+// Standard GLSL smoothstep function for JS
+function smoothstep(min: number, max: number, value: number) {
+  const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  return x * x * (3 - 2 * x);
+}
+
+function createPointsFromVectors(
+  vectors: THREE.Vector3[],
+): THREE.InstancedMesh {
+  const count = vectors.length;
+
+  // 1. Define the geometry and material for the "Point"
+  // Using a Sphere for a rounded point, or Box for a pixel/voxel look
+  const geometry = new THREE.SphereGeometry(0.02, 8, 8);
+  const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+
+  // 2. Initialize the InstancedMesh
+  const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+
+  // 3. Use a dummy object to calculate the transformation matrices
+  const dummy = new THREE.Object3D();
+
+  vectors.forEach((vector, i) => {
+    // Set the position from your array
+    dummy.position.copy(vector);
+
+    // Optional: You can also set random rotation or scale here
+    // dummy.scale.setScalar(Math.random() * 0.5 + 0.5);
+
+    dummy.updateMatrix();
+
+    // 4. Apply the matrix to the specific instance index
+    instancedMesh.setMatrixAt(i, dummy.matrix);
+  });
+
+  // 5. CRITICAL: Inform Three.js that the matrices are ready
+  instancedMesh.instanceMatrix.needsUpdate = true;
+
+  return instancedMesh;
+}
 
 // Init scene fn
 const init = async () => {
@@ -1156,10 +1273,25 @@ const init = async () => {
     console.log("\n -- headV2Tst -- cutHead ->", cutHead);
     applyPBRMaterialAndSRGBColorSpace(cutHead, true);
     applyDoubleSide(cutHead);
+    // Inflate ears
+    const cutHeadNode = cutHead.children[0] as THREE.Mesh;
+    const inflateVerticesVisulizer = inflateEarsProgrammatically(
+      cutHeadNode.geometry,
+      0.4,
+      2,
+    );
+    console.log(
+      "\n -- headV2Tst -- inflateVerticesVisulizer ->",
+      inflateVerticesVisulizer,
+    );
+    const inflateVerticesVisulizerMesh = createPointsFromVectors(
+      inflateVerticesVisulizer,
+    );
+    scene.add(inflateVerticesVisulizerMesh);
 
     // Offset on the X axis for comparison
-    headModel.position.x -= 1;
-    cutHead.position.x += 1;
+    // headModel.position.x -= 1;
+    // cutHead.position.x += 1;
     // scene.add(headModel, cutHead, LoadedCuttersModel);
     scene.add(cutHead);
 
